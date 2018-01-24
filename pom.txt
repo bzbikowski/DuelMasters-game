@@ -1,0 +1,81 @@
+##  ==+   KOMENDY DO WYSY£ANIA/ODBIERANIA PO TCP/IP   +==
+
+# KOMUNIKATY
+# przeciwnik zagra³ x karte na y miejscu
+# przeciwnik dobiera karte
+# przeciwnik cofa/prosi o cofniêcie jednej akcji
+# przeciwnik konczy ture
+# przeciwnik rzucil x spella na pole
+# przeciwnik rzucil x karte na mane
+# przeciwnik dodal karte do tarcz
+# przeciwnik zaatakowa³ x karte y karta
+# przeciwnik zaatakowa³ x tarcze
+# przeciwnik tapuje mane
+# przeciwnik untapuje mane
+# przeciwnik oglada twoj¹ karte w rece
+# przeciwnik oglada wszystkie karty w rece
+# przeciwnik oglada twoja tarcze
+
+
+##  ==+   EFEKTY KART DO ZAPROJEKTOWANIA   +==
+
+# POTWORY
+# podwójny/potrójny ³amacz(mo¿e 2/3 razy atakowaæ tarcze)
+# bloker (przeciwnik musi atakowaæ blokera przed atakiem innych kart)
+# omija blokery
+# omija blokery o sile mniejszej ni¿ xxxx
+# omija blokery jeœli na polu s¹ inne potwory
+# niszczy wszystkie blokery
+# nie moze atakowaæ graczy/tarcz
+# nie moze atakowaæ wogóle
+# na koñcu tury jeœli stapowany to mo¿esz untap
+# zabójca (slayer)
+# gdy zagrany wraca x card do rêki z pola bitwy
+# power attacker +xxxx
+# power attacker jeœli coœ jest na polu 
+# gdy zagrany mo¿esz wzi¹æ z talii jednego spella
+# gdy zagrany mo¿esz dobraæ x kart
+# gdy zagrany mo¿esz wróciæ x kart z cmentarza do rêki
+# gdy zagrany zniszcz wszystkie potwory z mniej si³y ni¿ xxxx
+# gdy zagrany mo¿esz dodaæ do many x kart z cmentarza
+# gdy zagrany wróc wszystkie potwory z mniej si³y ni¿ xxxx
+# gdy zagrany zniszcz x innych twoich potworów lub zniszcz siebie
+# gdy zagrany to zabierz x kart z many na cmentarz
+# moze atakowaæ untapowane karty
+# gdy zniszczony wraca do reki
+# gdy zniszczony ide na mane
+# jeœli wygra walke to zniszcz siebie
+# musi atakowaæ jeœli mo¿e
+# gdy zagrany zniszcz jedna swoj¹ karte, przeciwnik równie¿ niszczy jedn¹ z swoich kart
+# gdy zagrany przeciwnik wybiera jedn¹ karte i dodaje j¹ do many
+# gdy zagrany przeciwnik wybiera jedn¹ karte i j¹ niszczy
+# gdy zagrany zniszcz jedn¹ karte która ma mniej ni¿ xxxx
+# gdy jest na polu bitwy, mo¿esz untapowaæ na koniec tury wszystkie stapowane karty
+# gdy zagrany dobierz x kart, jeœli jest y na polu bitwy
+# gdy zagrany przeciwnik wyrzuca losow¹ karte z rêki
+# gdy zagrany mo¿esz przenieœæ x kart z rêki na mane
+# gdy zagrany stapuj jednego potwora przeciwnika
+# gdy zagrany przenies jedna karte z gory talii na mane
+
+# SPELLE
+# shield trigger
+# ztappuj x kart przeciwnika
+# ztappuj wszystkie karty przeciwnika
+# twoje x kard mo¿e omijaæ blokery
+# wyciagnij jedna karte z talii
+# wroc x kart z pola bitwy do rêki
+# jesli twoje potwory zostan¹ zablokowane, stan¹ siê slayerami
+# zniszcz x stworów
+# wybierz jednego potwora przeciwnika, który mo¿e byæ atakowany(jak taped)
+# daj swojemu potworowi power atacker +xxxx i double breaker
+# daj wszystkim swoim potworom power atacket +xxxx
+# przenies na mane x stworów przeciwnika
+# dobierz x kart
+# przywroc x kart z cmentarza do rêki
+# zniszcz stwora z moc¹ mniejsz¹ lub równ¹ ni¿ xxxx
+# przenies swojego stwora na mane
+# zniszcz jednego z untapowanych potworów przecinwika
+# wyrzuæ losow¹ karte przeciwnika
+# daj power atacket +xxxx
+# wyciagnij jednego potwora z talii
+# przenies x kart z góry decku na mane

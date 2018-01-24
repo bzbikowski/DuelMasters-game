@@ -1,0 +1,142 @@
+from PyQt5.QtWidgets import QGraphicsScene, QGraphicsPixmapItem, QMenu, QAction, QWidget
+from PyQt5.QtGui import QCursor, QTransform
+
+class GameView(QGraphicsScene):
+    def __init__(self, parent=None):
+        super(GameView, self).__init__(parent)
+        self.parent = parent
+
+    def contextMenuEvent(self, event):
+        point = self.itemAt(event.scenePos(), QTransform())
+        if point is not None:
+            point.contextMenuEvent(event)
+        else:
+            menu = QMenu()
+            draw_action = QAction("Draw a card")
+            draw_action.triggered.connect(self.parent.draw_a_card)
+            menu.addAction(draw_action)
+            end_action = QAction("End turn")
+            end_action.triggered.connect(self.parent.end_turn)
+            menu.addAction(end_action)
+            menu.exec_(QCursor.pos())
+
+
+class CardView(QGraphicsPixmapItem):
+    # settings
+    # yo - yours
+    # op - opponent
+    # sh - shield
+    # mn - mana
+    # hd - hand
+    # bf - battlefield
+    # gv - graveyard
+
+    def __init__(self, set, iden, parent=None):
+        super(CardView, self).__init__()
+        self.set = set
+        self.iden = iden
+        self.parent = parent
+
+    def mousePressEvent(self, event):
+        super(CardView, self).mousePressEvent(event)
+        if not self.parent.locked:
+            self.parent.locked = True
+            self.parent.startTime()
+            self.parent.card_clicked(self.x(), self.y())
+            
+    def set_card(self, card):
+        self.card = card
+
+    def contextMenuEvent(self, event):
+        menu = QMenu()
+        if self.set == 'yu_hd':
+            summon_action = QAction("Play a card")
+            summon_action.triggered.connect(lambda: self.parent.summon_card(self.iden))
+            menu.addAction(summon_action)
+            mana_action = QAction("Add card to mana")
+            mana_action.triggered.connect(lambda: self.parent.add_to_mana(self.iden))
+            menu.addAction(mana_action)
+            shield_action = QAction("Add card to shields")
+            shield_action.triggered.connect(lambda: self.parent.add_to_shield(self.iden))
+            menu.addAction(shield_action)
+        elif self.set == 'op_hd':
+            peek_action = QAction("Look at card")
+            peek_action.triggered.connect(lambda: self.parent.opp_look_at_hand(self.iden))
+            menu.addAction(peek_action)
+            hand_action = QAction('Look at hand')
+            hand_action.triggered.connect(lambda: self.parent.opp_look_at_hand(-1))
+            menu.addAction(hand_action)
+        elif self.set == 'yu_sh':
+            peek_action = QAction('Look at shield')
+            peek_action.triggered.connect(lambda: self.parent.look_at_shield(self.iden))
+            menu.addAction(peek_action)
+            put_action = QAction('Put down a shield')
+            put_action.triggered.connect(lambda: self.parent.put_shield(self.iden))
+            menu.addAction(put_action)
+        elif self.set == 'op_sh':
+            peek_action = QAction('Look at shield')
+            peek_action.triggered.connect(lambda: self.parent.opp_look_at_shield(self.iden))
+            menu.addAction(peek_action)
+            select_action = QAction('Select shield to attack')
+            select_action.triggered.connect(lambda: self.parent.opp_shield_attack(self.iden))
+            menu.addAction(select_action)
+        elif self.set == 'yu_mn':
+            tap_action = QAction("Tap mana")
+            tap_action.triggered.connect(lambda: self.parent.tap_card(self.set, self.iden))
+            menu.addAction(tap_action)
+            untap_action = QAction('Untap mana')
+            untap_action.triggered.connect(lambda: self.parent.untap_card(self.set, self.iden))
+            menu.addAction(untap_action)
+            return_action = QAction("Return a card to hand")
+            return_action.triggered.connect(lambda: self.parent.return_card_to_hand(self.set, self.iden))
+            menu.addAction(return_action)
+            destroy_action = QAction("Move a card to graveyard")
+            destroy_action.triggered.connect(lambda: self.parent.move_to_graveyard(self.set, self.iden))
+            menu.addAction(destroy_action)
+        elif self.set == 'op_mn':
+            return_action = QAction("Return a card to hand")
+            return_action.triggered.connect(lambda: self.parent.opp_return_card_to_hand(self.set, self.iden))
+            menu.addAction(return_action)
+            destroy_action = QAction("Move a card to graveyard")
+            destroy_action.triggered.connect(lambda: self.parent.opp_move_to_graveyard(self.set, self.iden))
+            menu.addAction(destroy_action)
+        elif self.set == 'yu_bf':
+            attack_action = QAction("Attack")
+            attack_action.triggered.connect(lambda: self.parent.attack_with_creature(self.iden))
+            menu.addAction(attack_action)
+            return_action = QAction("Return a card to hand")
+            return_action.triggered.connect(lambda: self.parent.return_card_to_hand(self.set, self.iden))
+            menu.addAction(return_action)
+            destroy_action = QAction("Move a card to graveyard")
+            destroy_action.triggered.connect(lambda: self.parent.move_to_graveyard(self.set, self.iden))
+            menu.addAction(destroy_action)
+        elif self.set == 'op_bf':
+            select_action = QAction("Select card to attack")
+            select_action.triggered.connect(lambda: self.parent.attack_opp_creature(self.iden))
+            menu.addAction(select_action)
+            return_action = QAction("Return a card to hand")
+            return_action.triggered.connect(lambda: self.parent.opp_return_card_to_hand(self.set, self.iden))
+            menu.addAction(return_action)
+            destroy_action = QAction("Move a card to graveyard")
+            destroy_action.triggered.connect(lambda: self.parent.opp_move_to_graveyard(self.set, self.iden))
+            menu.addAction(destroy_action)
+        elif self.set == 'op_gv':
+            look_action = QAction('Look at opponent graveyard')
+            look_action.triggered.connect(lambda: self.parent.look_graveyard(self.set, self.iden))
+            menu.addAction(look_action)
+        elif self.set == 'yu_gv':
+            look_action = QAction('Look at your graveyard')
+            look_action.triggered.connect(lambda: self.parent.look_graveyard(self.set, self.iden))
+            menu.addAction(look_action)
+        menu.exec_(QCursor.pos())
+
+        
+class GraveyardView(QWidget):
+    def __init__(self, cards, parent=None):
+        super(GraveyardView, self).__init__()
+        self.width = 800
+        self.height = 600
+        self.setFixedSize(self.width, self.height)
+        print(len(cards))
+        
+        
