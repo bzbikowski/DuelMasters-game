@@ -12,7 +12,7 @@ class Client(QThread):
         self.socket = QTcpSocket()
         self.socket.connected.connect(self.parent.connected_with_player)
         # self.socket.disconnected.connect()
-        self.socket.error.connect(self.error_handle)
+        self.socket.error.connect(self.server_error_handle)
         # self.socket.bytesWritten.connect()
         self.socket.readyRead.connect(self.receive_data)
         
@@ -21,6 +21,7 @@ class Client(QThread):
         self.socket.waitForConnected(10000)
         
     def send_data(self, data):
+        # self.socket.write
         block = QByteArray()
         stream = QDataStream(block, QIODevice.ReadWrite)
         stream.setVersion(QDataStream.Qt_5_8)
@@ -31,16 +32,16 @@ class Client(QThread):
     def receive_data(self):
         stream = QDataStream(self.socket)
         stream.setVersion(QDataStream.Qt_5_8)
-        if self.tcpSocket.bytesAvailable() < 2:
+        if self.socket.bytesAvailable() < 2:
             return
         data = stream.readUInt16()
-        if self.tcpSocket.bytesAvailable() < data:
+        if self.socket.bytesAvailable() < data:
             return
         print(str(data.readString(), encoding='ascii'))
 
-    def error_handle(self, error):
+    def server_error_handle(self, error):
         if error == QAbstractSocket.RemoteHostClosedError:
-            pass
+            print("QAbstractSocket.RemoteHostClosedError")
         else:
             print("Error occured: {}".format(self.socket.errorString()))
         
@@ -57,12 +58,11 @@ class Server(QThread):
         self.parent = parent
         self.server = QTcpServer()
         self.server.newConnection.connect(self.conn_handle)
+        self.server.acceptError.connect(self.server_error_handle)
         self.connected = False
         self.ham_addr = "0.0.0.0"
         self.wifi_addr = "0.0.0.0"
         self.port = 10023
-        self.find_ip()
-        self.socket.acceptError.connect(self.error_handle)
 
     def find_ip(self):
         ham_pat = r"^25\.[1-2]?[0-9]?[0-9]\.[1-2]?[0-9]?[0-9]\.[1-2]?[0-9]?[0-9]$"
@@ -70,17 +70,24 @@ class Server(QThread):
         inet = QNetworkInterface().interfaceFromName("eth0")
         addr = inet.allAddresses()
         for add in addr:
-            if re.match(ham_pat, add.toString()):
-                self.ham_addr = add.toString()
-            elif re.match(wifi_pat, add.toString()):
-                self.wifi_addr = add.toString()
+            add_str = add.toString()
+            if re.match(ham_pat, add_str):
+                self.ham_addr = add_str
+            elif re.match(wifi_pat, add_str):
+                self.wifi_addr = add_str
+        return self.wifi_addr, self.ham_addr, self.port
 
     def conn_handle(self):
         self.socket = self.server.nextPendingConnection()
+        self.socket.readyRead.connect(self.receive_data)
+        self.socket.acceptError.connect(self.socket_error_handle)
         self.parent.connected_with_player()
 
-    def error_handle(self):
+    def server_error_handle(self):
         print("Jakiś error")
+
+    def socket_error_handle(self):
+        print("Jakis inny error")
 
     def __del__(self):
         self.wait()
@@ -103,10 +110,10 @@ class Server(QThread):
     def receive_data(self):
         stream = QDataStream(self.socket)
         stream.setVersion(QDataStream.Qt_5_8)
-        if self.tcpSocket.bytesAvailable() < 2:
+        if self.socket.bytesAvailable() < 2:
             return
         data = stream.readUInt16()
-        if self.tcpSocket.bytesAvailable() < data:
+        if self.socket.bytesAvailable() < data:
             return
         msg = str(data.readString(), encoding='ascii')
         self.parent.received_message(msg)

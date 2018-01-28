@@ -1,18 +1,15 @@
 from PyQt5.QtWidgets import QMainWindow, QApplication
 from menu import MainMenu
 import sys
-#import win32api
 
 
 class Window(QMainWindow):
-    def __init__(self):
+    def __init__(self, screen_size):
         super(Window, self).__init__()
-        self.width = 800
-        self.height = 600
-        #screen_width = win32api.GetSystemMetrics(0)
-        #screen_height = win32api.GetSystemMetrics(1)
-        self.setFixedSize(self.width, self.height)
-        #self.move((screen_width - self.width)/2, (screen_height - self.height)/2 - 20)
+        width = 800
+        height = 600
+        self.setFixedSize(width, height)
+        self.move((screen_size[2] - width)/2, (screen_size[3] - height)/2 - 20)
         self.setWindowTitle("Duel master - Main menu")
         self.ui = MainMenu(self)
         self.setCentralWidget(self.ui)
@@ -21,6 +18,7 @@ class Window(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    qapp = Window()
+    size = app.desktop().screenGeometry().getRect()
+    qapp = Window(size)
     qapp.show()
     sys.exit(app.exec_())

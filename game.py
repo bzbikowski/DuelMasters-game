@@ -6,17 +6,18 @@ from cards import ParseXml
 from views import GameView, CardView, GraveyardView
 from connection import Client, Server
 from logging import Log
-#import win32api
 import random
+
+
+DEBUG = False
+
 
 class Game(QWidget):
     def __init__(self, deck, parent=None):
         super(Game, self).__init__()
-        self.width = 1360
-        self.height = 768
-        #screen_width = win32api.GetSystemMetrics(0)
-        #screen_height = win32api.GetSystemMetrics(1)
-        self.setFixedSize(self.width, self.height)
+        width = 1360
+        height = 768
+        self.setFixedSize(width, height)
         #self.move((screen_width - self.width)/2, (screen_height - self.height)/2 - 20)
         self.setWindowTitle("Duel master - Game")
         self.locked = False
@@ -48,19 +49,25 @@ class Game(QWidget):
         self.cardlist = ParseXml().parseFile('res/cards.xml')
         self.choose_connection()
 
+    def closeEvent(self, event):
+        # todo wyłącz wątki przed zamknięciem
+        self.logging.save_file()
+        self.parent.show_window()
+
     def choose_connection(self):
         self.server_button = QPushButton("Create a game room", self)
         self.server_button.setFixedSize(1000, 300)
-        self.server_button.move((self.width - self.server_button.width())/2, 40)
+        self.server_button.move((self.width() - self.server_button.width())/2, 40)
         self.server_button.clicked.connect(self.wait_for_connection)
         self.server_button.setFont(QFont("Arial", 60))
         self.client_button = QPushButton("Connect to existing game", self)
         self.client_button.setFixedSize(1000, 300)
-        self.client_button.move((self.width - self.client_button.width()) / 2, 420)
+        self.client_button.move((self.width() - self.client_button.width()) / 2, 420)
         self.client_button.clicked.connect(self.connect_to_room)
         self.client_button.setFont(QFont("Arial", 60))
         
     def connect_to_room(self):
+        self.logging.log("Łącze z serwerem...", Log.dict_level["DEBUG"])
         self.server_button.setVisible(False)
         self.client_button.setVisible(False)
         self.ip_address_label = QLabel("Ip address: ", self)
@@ -83,9 +90,11 @@ class Game(QWidget):
         self.port_field.setVisible(True)
         self.ok_button = QPushButton("Accept", self)
         self.ok_button.setFixedSize(600, 140)
-        self.ok_button.move((self.width - self.ok_button.width())/2, 560)
-        self.ok_button.clicked.connect(self.start_connection)
-        # self.ok_button.clicked.connect(self.connected_with_player)
+        self.ok_button.move((self.width() - self.ok_button.width())/2, 560)
+        if DEBUG:
+            self.ok_button.clicked.connect(self.connected_with_player)
+        else:
+            self.ok_button.clicked.connect(self.start_connection)
         self.ok_button.setVisible(True)
 
     def wait_for_connection(self):
@@ -95,16 +104,27 @@ class Game(QWidget):
         self.ip_address_label.setFont(QFont("Arial", 50))
         self.ip_address_label.move(50, 50)
         self.ip_address_label.setVisible(True)
+
+        self.port_label = QLabel("You are listining on port xxxx", self)
+        self.port_label.setFont(QFont("Arial", 50))
+        self.port_label.move(50, 200)
+        self.port_label.setVisible(True)
+
         self.status_label = QLabel("Waiting for connection...", self)
         self.status_label.setFont(QFont("Arial", 50))
         self.status_label.move(50, 400)
         self.status_label.setVisible(True)
         self.server = Server(self)
-        try:
-            ip_address = self.server.find_ip()
-            self.ip_address_label.setText("Your address is " + ip_address)
-        except:
+        ip_local, ip_ham, ip_port = self.server.find_ip()
+        if ip_local == "0.0.0.0":
+            print("Nie znaleziono polaczenia sieciowego. Sprawdz...")
             return
+        else:
+            if ip_ham == "0.0.0.0":
+                self.ip_address_label.setText("Your address is {0}".format(ip_local))
+            else:
+                self.ip_address_label.setText("Your address is {0}".format(ip_ham))
+        self.port_label.setText("You are listining on port {0}".format(ip_port))
         self.isServer = True
         self.server.start()
 
@@ -119,6 +139,7 @@ class Game(QWidget):
         self.client.start()
         
     def connected_with_player(self):
+        # jeśli serwer, to wylosuj kto zaczyna
         self.clear_window()
         self.init_game()
         self.draw()
@@ -151,15 +172,20 @@ class Game(QWidget):
         self.opp_bfield = [1, -1, -1, -1, -1, -1]
         self.opp_graveyard = []
 
-    # def startTime(self):
-    #     self.timer = QTimer(self)
-    #     self.timer.setSingleShot(True)
-    #     self.timer.setInterval(20)
-    #     self.timer.start()
-    #     self.timer.timeout.connect(self.change_state)
+    def startTime(self):
+        """
+        zablokuj wybieranie kart na 20ms po kliknięciu
+        zawsze wybiera pierwszą kartę na wierzchu
+        """
+        self.timer = QTimer(self)
+        self.timer.setSingleShot(True)
+        self.timer.setInterval(20)
+        self.timer.start()
+        self.timer.timeout.connect(self.change_state)
 
-    # def change_state(self):
-    #     self.locked = False
+    def change_state(self):
+        # ZAWSZE WYBIERA JEDNĄ KARTĘ
+        self.locked = False
         
     def draw(self):
         # img = QPixmap("res//img//background.png")
