@@ -1,4 +1,6 @@
-from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, QGraphicsEllipseItem, QGraphicsTextItem
+from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QGraphicsView, QGraphicsScene, \
+QGraphicsPixmapItem, QGraphicsEllipseItem, QGraphicsTextItem, QGraphicsRectItem, QScrollArea, QLabel, QTextEdit, \
+QComboBox
 from PyQt5.QtGui import QBrush, QColor, QPixmap, QPen, QFont
 from PyQt5.QtCore import Qt
 from cards import ParseXml, Card
@@ -10,12 +12,26 @@ class DeckManager(QWidget):
     """
     def __init__(self, parent=None):
         super(DeckManager, self).__init__()
-        self.deck = [0,0,0,0,0,1,1,1,1,2,2,2,3,3,4]
-        self.setFixedSize(575, 450)
+        self.deck = []
+        self.setFixedSize(1300, 500)
         self.parent = parent
-        self.main_layout = QVBoxLayout(self)
+        self.main_layout = QHBoxLayout(self)
+        self.screen_layout = QVBoxLayout()
         self.button_layout = QHBoxLayout()
+        self.deck_view = QGraphicsView(self)
+        self.deck_view.setSceneRect(0, 0, 400, 400)
+        self.deck_view.setFixedSize(440, 440)
+        self.deck_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.deck_scene = QGraphicsScene(self)
+        self.deck_scene.setBackgroundBrush(QBrush(QColor(0, 0, 0)))
+        self.deck_view.setScene(self.deck_scene)
+        self.gui_layout = QVBoxLayout()
+        self.build_gui()
+        self.main_layout.addWidget(self.deck_view)
+        self.main_layout.addLayout(self.screen_layout)
+        self.main_layout.addLayout(self.gui_layout)
         self.database = ParseXml().parseFile("res//cards.xml")
+        self.actual_view = range(len(self.database))
         self.view = DeckBuilder(self)
         self.view.setFixedSize(545, 365)
         self.view.setSceneRect(0, 0, 545, 365)
@@ -24,8 +40,8 @@ class DeckManager(QWidget):
         self.canvas = QGraphicsScene(self)
         self.canvas.setBackgroundBrush(QBrush(QColor(0, 0, 0)))
         self.view.setScene(self.canvas)
-        self.main_layout.addWidget(self.view)
-        self.main_layout.addLayout(self.button_layout)
+        self.screen_layout.addWidget(self.view)
+        self.screen_layout.addLayout(self.button_layout)
         self.save_button = QPushButton("Save", self)
         self.clear_button = QPushButton("Clear", self)
         self.exit_button = QPushButton("Exit", self)
@@ -38,22 +54,80 @@ class DeckManager(QWidget):
         self.column_size = 3
         self.redraw()
 
+    def build_gui(self):
+        self.search_layout = QHBoxLayout()
+        self.gui_layout.addLayout(self.search_layout)
+        self.search_label = QLabel("Wyszukaj", self)
+        self.search_input = QTextEdit(self)
+        self.search_layout.addWidget(self.search_label)
+        self.search_layout.addWidget(self.search_input)
+
+        self.civ_layout = QHBoxLayout()
+        self.gui_layout.addLayout(self.civ_layout)
+        self.civ_label = QLabel("Civilization", self)
+        self.civ_input = QComboBox(self)
+        self.civ_input.addItem("")
+        self.civ_input.addItem("Light")
+        self.civ_input.addItem("Water")
+        self.civ_input.addItem("Darkness")
+        self.civ_input.addItem("Fire")
+        self.civ_input.addItem("Nature")
+        self.civ_layout.addWidget(self.civ_label)
+        self.civ_layout.addWidget(self.civ_input)
+
+        self.search_button = QPushButton(self)
+        self.search_button.clicked.connect(self.search_cards)
+        self.gui_layout.addWidget(self.search_button)
+
+    def search_cards(self):
+        pass
+
+    def search_by_name(self):
+        name = self.search_input.toPlainText()
+        if name == "":
+            self.actual_view = range(len(self.database))
+        else:
+            self.actual_view = []
+            for card in self.database:
+                if name in card.name:
+                    self.actual_view.append(card.id)
+        self.actual_row = 0
+        self.redraw()
+    
+    def search_by_civ(self):
+        civ = self.civ_input.currentText()
+        self.actual_view = []
+        for card in self.database:
+            if civ in card.civ:
+                self.actual_view.append(card.id)
+        self.actual_row = 0
+        self.redraw()
+
     def redraw(self):
-        id = self.actual_row * self.row_size
+        self.canvas.clear()
+        self.deck_scene.clear()
+        offset = self.actual_row * self.row_size
         x = 5
         y = 5
+        ind = 0
         for _ in range(self.column_size):
-            for _ in range(self.row_size): 
-                self.draw_card(x, y, id)
-                if id in self.deck:
-                    self.draw_number(x, y, self.deck.count(id))
-                x += 90
-                id += 1
+            for _ in range(self.row_size):
+                if ind+offset < len(self.actual_view):
+                    id = self.actual_view[offset+ind]
+                    self.draw_card(x, y, id)
+                    if id in self.deck:
+                        self.draw_number(x, y, self.deck.count(id))
+                    x += 90
+                    ind += 1
             x = 5
             y += 120
+        y = 2
+        for card in self.deck:
+            self.draw_result(y, card)
+            y += 32
 
     def draw_card(self, x, y, id):
-        card = CardHandle()
+        card = CardHandle(id, self)
         if os.path.exists(self.database[id].image):
             card.setPixmap(QPixmap(self.database[id].image))
         else:
@@ -76,6 +150,17 @@ class DeckManager(QWidget):
         numb.setDefaultTextColor(QColor(255, 0, 0))
         self.canvas.addItem(numb)
 
+    def draw_result(self, y, id):
+        rect = QGraphicsRectItem(10, y, 380, 30)
+        rect.setPen(QPen(QColor(127, 127, 127)))
+        self.deck_scene.addItem(rect)
+
+        text = QGraphicsTextItem(self.database[id].name)
+        text.setPos(10, y)
+        text.setFont(QFont("Arial", 10))
+        text.setDefaultTextColor(QColor(255, 0, 0))
+        self.deck_scene.addItem(text)
+
     def clear_deck(self):
         self.deck = []
 
@@ -97,20 +182,29 @@ class DeckBuilder(QGraphicsView):
 
     def wheelEvent(self, event):
         wheel = event.angleDelta().y()
-        if wheel < 0:
-            self.parent.actual_row -= 1
-        elif wheel > 0:
-            self.parent.actual_row += 1
+        if wheel > 0:
+            if self.parent.actual_row > 0:
+                self.parent.actual_row -= 1
+        elif wheel < 0:
+            if len(self.parent.actual_view) > (self.parent.actual_row+1) * self.parent.row_size:
+                self.parent.actual_row += 1
         else:
             print("Excuse me")
         self.parent.redraw()
 
 class CardHandle(QGraphicsPixmapItem):
-    def __init__(self):
+    def __init__(self, id, parent):
         super(CardHandle, self).__init__()
+        self.parent = parent
+        self.id = id
 
     def mousePressEvent(self, event):
-        pass
-
-    def mouseReleaseEvent(self, event):
-        pass
+        if len(self.parent.deck) < 40:
+            if event.button() == Qt.LeftButton:
+                if self.parent.deck.count(self.id) < 4:
+                    self.parent.deck.append(self.id)
+            elif event.button() == Qt.RightButton:
+                if self.id in self.parent.deck:
+                    index = self.parent.deck.index(self.id)
+                    self.parent.deck.pop(index)
+            self.parent.redraw()

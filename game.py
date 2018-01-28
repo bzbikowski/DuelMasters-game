@@ -9,7 +9,7 @@ from logging import Log
 import random
 
 
-DEBUG = False
+DEBUG = True
 
 
 class Game(QWidget):

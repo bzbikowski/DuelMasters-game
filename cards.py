@@ -4,10 +4,10 @@ class ParseXml:
     def parseFile(self, path):
         cardlist = []
         with minidom.parse(path) as file:
-            global_id = 1
+            global_id = 0
             cardsets = file.getElementsByTagName('cardset')
             for cardset in cardsets:
-                id = 1
+                id = 0
                 setname = cardset.getAttribute('setname')
                 cards = cardset.getElementsByTagName('card')
                 for card in cards:
@@ -47,6 +47,7 @@ class Card:
         self.cost = cost
         self.power = power
         self.rarity = rarity
+        # todo przerobić tekst efektów
         self.rules_text = rules
         self.flavor_text = flavor
         self.image = "res//img//" + set_name + '//' + str(self.id) + ".jpg"
