@@ -5,7 +5,6 @@ from PyQt5.QtGui import QBrush, QColor, QPen, QPixmap, QTransform, QCursor, QIma
 from cards import ParseXml
 from views import GameView, CardView, GraveyardView
 from connection import Client, Server
-from logging import Log
 import random
 
 
@@ -24,7 +23,6 @@ class Game(QWidget):
         self.isServer = False
         self.parent = parent
         self.deck = deck
-        self.logging = Log()
         self.view = QGraphicsView(self)
         self.view.setSceneRect(0, 0, 1024, 768)
         self.view.setFixedSize(1024, 768)
@@ -51,7 +49,6 @@ class Game(QWidget):
 
     def closeEvent(self, event):
         # todo wyłącz wątki przed zamknięciem
-        self.logging.save_file()
         self.parent.show_window()
 
     def choose_connection(self):
@@ -67,7 +64,6 @@ class Game(QWidget):
         self.client_button.setFont(QFont("Arial", 60))
         
     def connect_to_room(self):
-        self.logging.log("Łącze z serwerem...", Log.dict_level["DEBUG"])
         self.server_button.setVisible(False)
         self.client_button.setVisible(False)
         self.ip_address_label = QLabel("Ip address: ", self)
@@ -365,7 +361,6 @@ class Game(QWidget):
         self.refresh_screen()
         
     def end_turn(self):
-        self.logging.log("Koniec tury.", self.log_level["INFO"])
         self.send_message("end_turn")
         self.your_turn = False
         

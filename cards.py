@@ -1,5 +1,6 @@
 import xml.dom.minidom as minidom
 
+
 class ParseXml:
     def parseFile(self, path):
         cardlist = []
@@ -34,8 +35,6 @@ class ParseXml:
         return cardlist
 
 
-
-# struktura do przechowywania informacji o karcie
 class Card:
     def __init__(self, set_id, glob_id, set_name, name, civ, typ, race, cost, power, rarity, rules, flavor):
         self.id = set_id
@@ -50,4 +49,5 @@ class Card:
         # todo przerobić tekst efektów
         self.rules_text = rules
         self.flavor_text = flavor
-        self.image = "res//img//" + set_name + '//' + str(self.id) + ".jpg"
+        self.image = "res//img//" + set_name + '//' + str(self.id) + "//" + "low.jpg"
+        self.info = "res//img//" + set_name + '//' + str(self.id) + "//" + "high.jpg"
