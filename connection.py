@@ -11,19 +11,18 @@ class Client(QThread):
         self.parent = parent
         self.socket = QTcpSocket()
         self.socket.connected.connect(self.parent.connected_with_player)
-        # self.socket.disconnected.connect()
         self.socket.error.connect(self.server_error_handle)
-        # self.socket.bytesWritten.connect()
         self.socket.readyRead.connect(self.receive_data)
+        # self.socket.disconnected.connect(self.disconnected)
+        # self.socket.bytesWritten.connect()
         
     def connect(self):
         self.socket.connectToHost(QHostAddress(self.address), self.port, QIODevice.ReadWrite)
         self.socket.waitForConnected(10000)
         
     def send_data(self, data):
-        # self.socket.write
         block = QByteArray()
-        stream = QDataStream(block, QIODevice.ReadWrite)
+        stream = QDataStream(block, QIODevice.WriteOnly)
         stream.setVersion(QDataStream.Qt_5_8)
         msg = bytes(data, encoding='ascii')
         stream.writeString(msg)
@@ -37,7 +36,9 @@ class Client(QThread):
         data = stream.readUInt16()
         if self.socket.bytesAvailable() < data:
             return
-        print(str(data.readString(), encoding='ascii'))
+        msg = str(data.readString(), encoding='ascii')
+        print(msg)
+        self.parent.received_message(msg)
 
     def server_error_handle(self, error):
         if error == QAbstractSocket.RemoteHostClosedError:
@@ -81,6 +82,8 @@ class Server(QThread):
         self.socket = self.server.nextPendingConnection()
         self.socket.readyRead.connect(self.receive_data)
         self.socket.acceptError.connect(self.socket_error_handle)
+        # self.socket.disconnected.connect(self.disconnected)
+        # self.socket.bytesWritten.connect()
         self.parent.connected_with_player()
 
     def server_error_handle(self):
@@ -101,7 +104,7 @@ class Server(QThread):
 
     def send_data(self, data):
         block = QByteArray()
-        stream = QDataStream(block, QIODevice.ReadWrite)
+        stream = QDataStream(block, QIODevice.WriteOnly)
         stream.setVersion(QDataStream.Qt_5_8)
         msg = bytes(data, encoding='ascii')
         stream.writeString(msg)
@@ -116,4 +119,5 @@ class Server(QThread):
         if self.socket.bytesAvailable() < data:
             return
         msg = str(data.readString(), encoding='ascii')
+        print(msg)
         self.parent.received_message(msg)

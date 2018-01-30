@@ -23,6 +23,9 @@ class Game(QWidget):
         self.isServer = False
         self.parent = parent
         self.deck = deck
+        self.card_to_draw = 0
+        self.card_to_mana = 0
+        self.your_turn = False
         self.view = QGraphicsView(self)
         self.view.setSceneRect(0, 0, 1024, 768)
         self.view.setFixedSize(1024, 768)
@@ -43,12 +46,14 @@ class Game(QWidget):
         self.preview.setScene(self.preview_scene)
         self.preview_scene.setBackgroundBrush(QBrush(QColor(0, 0, 0)))
         self.preview.setVisible(False)
-        # parsed xml with cards
         self.cardlist = ParseXml().parseFile('res/cards.xml')
         self.choose_connection()
 
     def closeEvent(self, event):
-        # todo wyłącz wątki przed zamknięciem
+        if self.isServer:
+            self.server.wait()
+        else:
+            self.client.wait()
         self.parent.show_window()
 
     def choose_connection(self):
@@ -135,10 +140,14 @@ class Game(QWidget):
         self.client.start()
         
     def connected_with_player(self):
-        # jeśli serwer, to wylosuj kto zaczyna
+        if self.isServer:
+            if random.random() < 0.5:
+                self.turn_states(0)
+            else:
+                self.send_message("you_start")
         self.clear_window()
         self.init_game()
-        self.draw()
+        self.draw_screen()
         
     def clear_window(self):
         self.ip_address_field.setVisible(False)
@@ -165,7 +174,7 @@ class Game(QWidget):
         self.opp_shields = [True, True, True, True, True]
         self.opp_mana = [[1, True]]
         self.opp_hand = [-1, -1, -1, -1, -1]
-        self.opp_bfield = [1, -1, -1, -1, -1, -1]
+        self.opp_bfield = [-1, -1, -1, -1, -1, -1]
         self.opp_graveyard = []
 
     def startTime(self):
@@ -183,7 +192,7 @@ class Game(QWidget):
         # ZAWSZE WYBIERA JEDNĄ KARTĘ
         self.locked = False
         
-    def draw(self):
+    def draw_screen(self):
         # img = QPixmap("res//img//background.png")
         # self.scene.addItem(QGraphicsPixmapItem().setPixmap(img))
         for i in range(len(self.opp_shields)):
@@ -328,75 +337,117 @@ class Game(QWidget):
                 return card
 
     def send_message(self, msg):
+        # todo przerobić wszytsko na system komend i wartości
         if self.isServer:
             self.server.send_data(msg)
         else:
             self.client.send_data(msg)
 
-    def received_message(self, msg):
-        if msg == "end_turn":
-            self.your_turn = True
-
-    def turn_states(self):
-        """
-        1 -> dobierz kartę
-        2 -> ?
-        ... -> zakończ turę
-        """
-        pass
-
-#   METODY MENU
-    def refresh_screen(self):
-        self.scene.clear()
-        self.draw()
-        
-    def draw_a_card(self):
-        if not len(self.deck) == 0:
-            card = self.deck.pop(0)
-            self.hand.append(card)
-            self.send_message("draw_card")
-        else:
-            print("Przegrales")
-            self.send_message("lose")
+    def received_message(self, msg, *args):
+        if msg == "you_start":
+            self.turn_states(0)
+        elif msg == "end_turn":
+            self.turn_states(1)
+        elif msg == "draw_card":
+            self.opp_hand.append(-1)
+        elif msg == "lose":
+            print("Wygrałeś!")
+        elif msg == "play_card":
+            id = args[0]
+            pos = args[1]
+            self.opp_bfield[pos] = id
+        elif msg == "add_mana":
+            id = args[0]
+            self.opp_mana.append([id, True])
+        elif msg == "return_card":
+            if args[0]:
+                #przeciwnika
+                if args[1]:
+                    #pole bitwy
+                    self.opp_bfield[args[2]] = -1
+                    self.opp_hand.append(-1)
+                else:
+                    #mana
+                    self.opp_mana.pop(args[2])
+                    self.opp_hand.append(-1)
+            else:
+                pass
         self.refresh_screen()
         
-    def end_turn(self):
+    def turn_states(self, state):
+        """
+        0 -> pierwsza runda w grze
+        1 -> dobierz kartę + rzucanie many/czary/creatury
+        """
+        if state == 0:
+            self.card_to_draw = 0
+            self.card_to_mana = 1
+            self.your_turn = True
+        elif state == 1:
+            self.card_to_draw = 1
+            self.card_to_mana = 1
+            self.your_turn = True
+
+    def refresh_screen(self):
+        self.scene.clear()
+        self.draw_screen()
+
+#   METODY MENU
+#####################################################
+
+    def m_draw_a_card(self):
+        if self.card_to_draw > 0:
+            if not len(self.deck) == 0:
+                card = self.deck.pop(0)
+                self.hand.append(card)
+                self.send_message("draw_card")
+            else:
+                print("Przegrales")
+                self.send_message("lose")
+            self.turn_states(2)
+            self.refresh_screen()
+        
+    def m_end_turn(self):
         self.send_message("end_turn")
         self.your_turn = False
         
-    def summon_card(self, iden):
+    def m_summon_card(self, iden):
         card = self.find_card(self.hand[iden - 1])
         sum = 0
         for item in self.weights:
             sum += item
         if sum >= int(card.cost) and not self.weights[self.dict_civ[card.civ]] == 0:
-            if card.type == "Creature":
+            if card.typ == "Creature":
                 for i in range(len(self.bfield) - 1):
                     if self.bfield[i] == -1:
                         card = self.hand.pop(iden - 1)
                         self.bfield[i] = card
+                        self.send_message("play_card", card, i)
                         break
-            elif card.type == "Spell":
+            elif card.typ == "Spell":
                 if self.bfield[5] == -1:
                     card = self.hand.pop(iden - 1)
                     self.bfield[5] = card
+                    self.send_message("play_card", card, 5)
         else:
             print("Za mało many")
         self.refresh_screen()
         
-    def return_card_to_hand(self, set, iden):
+    def m_return_card_to_hand(self, set, iden):
         if set == "yu_bf":
             card = self.bfield[iden-1]
             self.bfield[iden-1] = -1
             self.hand.append(card)
+            self.send_message("return_card", True, True, card, iden-1)
         elif set == "yu_mn":
             card = self.mana.pop(iden-1)
             if not card[1]:
                 self.weights[self.dict_civ[self.find_card(card[0]).civ]] -= 1
             self.hand.append(card[0])
+            self.send_message("return_card", True, False, iden-1)
         self.refresh_screen()
         
-    def move_to_graveyard(self, set, iden):
+    def m_move_to_graveyard(self, set, iden):
         if set == "yu_bf":
             self.graveyard.append(self.bfield[iden - 1])
             self.bfield[iden - 1] = -1
@@ -407,12 +458,14 @@ class Game(QWidget):
             self.graveyard.append(card[0])
         self.refresh_screen()
         
-    def add_to_mana(self, iden):
-        card = self.hand.pop(iden-1)
-        self.mana.append([card, True])
-        self.refresh_screen()
+    def m_add_to_mana(self, iden):
+        if self.card_to_mana > 0:
+            card = self.hand.pop(iden-1)
+            self.mana.append([card, True])
+            self.send_message("add_mana", card)
+            self.refresh_screen()
         
-    def add_to_shield(self, iden):
+    def m_add_to_shield(self, iden):
         for i, shield in enumerate(self.shields):
             if shield[0] == -1:
                 card = self.hand.pop(iden-1)
@@ -420,37 +473,37 @@ class Game(QWidget):
                 break
         self.refresh_screen()
         
-    def tap_card(self, set, iden):
+    def m_tap_card(self, set, iden):
         if self.mana[iden - 1][1] == True:
             card = self.find_card(self.mana[iden - 1][0])
             self.weights[self.dict_civ[card.civ]] += 1
             self.mana[iden - 1][1] = False
         self.refresh_screen()
         
-    def untap_card(self, set, iden):
+    def m_untap_card(self, set, iden):
         if self.mana[iden - 1][1] == False:
             card = self.find_card(self.mana[iden - 1][0])
             self.weights[self.dict_civ[card.civ]] -= 1
             self.mana[iden - 1][1] = True
         self.refresh_screen()
         
-    def look_at_shield(self, iden):
+    def m_look_at_shield(self, iden):
         self.shields[iden-1][1] = False
         self.refresh_screen()
         
-    def attack_with_creature(self, iden):
+    def m_attack_with_creature(self, iden):
         pass
         
-    def attack_opp_creature(self, iden):
+    def m_attack_opp_creature(self, iden):
         pass
         
-    def opp_look_at_hand(self, iden): #
+    def m_opp_look_at_hand(self, iden): #
         pass
         
-    def opp_look_at_shield(self, iden): #
+    def m_opp_look_at_shield(self, iden): #
         pass
         
-    def opp_return_card_to_hand(self, set, iden):
+    def m_opp_return_card_to_hand(self, set, iden):
         if set == "op_mn":
             self.opp_mana.pop(iden-1)
         elif set == "op_bf":
@@ -458,7 +511,7 @@ class Game(QWidget):
         self.opp_hand.append(-1)
         self.refresh_screen()
         
-    def opp_move_to_graveyard(self, set, iden):
+    def m_opp_move_to_graveyard(self, set, iden):
         if set == "op_mn":
             self.opp_graveyard.append(self.opp_mana.pop(iden-1)[0])
         elif set == "op_bf":
@@ -466,10 +519,10 @@ class Game(QWidget):
             self.opp_bfield[iden - 1] = -1
         self.refresh_screen()
         
-    def opp_shield_attack(self, iden):
+    def m_opp_shield_attack(self, iden):
         pass
         
-    def look_graveyard(self, set, iden):
+    def m_look_graveyard(self, set, iden):
         if set=="op_gv":
             graveyard_look = GraveyardView(self.opp_graveyard, self)
         elif set=="yu_gv":
@@ -478,10 +531,10 @@ class Game(QWidget):
             return
         graveyard_look.show()
         
-    def put_shield(self, iden):
+    def m_put_shield(self, iden):
         self.shields[iden-1][1] = True
         self.refresh_screen()
 
-    def destroy_shield(self, iden):
+    def m_destroy_shield(self, iden):
         self.opp_shields[iden-1] = False
         self.refresh_screen()

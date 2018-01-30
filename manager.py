@@ -8,9 +8,6 @@ import os
 
 
 class DeckManager(QWidget):
-    """
-    todo wyświetlenie kart, sortowanie, wyszukiwarka
-    """
     def __init__(self, parent=None):
         super(DeckManager, self).__init__()
         self.deck = []
