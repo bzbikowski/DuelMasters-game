@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QGraphicsScene, QGraphicsPixmapItem, QMenu, QAction, QWidget
 from PyQt5.QtGui import QCursor, QTransform
 
+
 class GameView(QGraphicsScene):
     def __init__(self, parent=None):
         super(GameView, self).__init__(parent)
@@ -22,14 +23,16 @@ class GameView(QGraphicsScene):
 
 
 class CardView(QGraphicsPixmapItem):
-    # settings
-    # yo - yours
-    # op - opponent
-    # sh - shield
-    # mn - mana
-    # hd - hand
-    # bf - battlefield
-    # gv - graveyard
+    """
+    settings:
+    yo - yours
+    op - opponent
+    sh - shield
+    mn - mana
+    hd - hand
+    bf - battlefield
+    gv - graveyard
+    """
 
     def __init__(self, set, iden, parent=None):
         super(CardView, self).__init__()
@@ -104,6 +107,8 @@ class CardView(QGraphicsPixmapItem):
             attack_action = QAction("Attack")
             attack_action.triggered.connect(lambda: self.parent.m_attack_with_creature(self.iden))
             menu.addAction(attack_action)
+            target_action = QAction("Target this card")
+            menu.addAction(target_action)
             return_action = QAction("Return a card to hand")
             return_action.triggered.connect(lambda: self.parent.m_return_card_to_hand(self.set, self.iden))
             menu.addAction(return_action)
@@ -111,7 +116,7 @@ class CardView(QGraphicsPixmapItem):
             destroy_action.triggered.connect(lambda: self.parent.m_move_to_graveyard(self.set, self.iden))
             menu.addAction(destroy_action)
         elif self.set == 'op_bf':
-            select_action = QAction("Select card to attack")
+            select_action = QAction("Target card to attack/cast")
             select_action.triggered.connect(lambda: self.parent.m_attack_opp_creature(self.iden))
             menu.addAction(select_action)
             return_action = QAction("Return a card to hand")
@@ -132,6 +137,7 @@ class CardView(QGraphicsPixmapItem):
 
         
 class GraveyardView(QWidget):
+    # todo dokończyć
     def __init__(self, cards, parent=None):
         super(GraveyardView, self).__init__()
         self.width = 800

@@ -1,5 +1,4 @@
 from PyQt5.QtWidgets import QWidget, QPushButton, QGridLayout, QFileDialog
-from PyQt5.QtCore import QDir
 from game import Game
 from manager import DeckManager
 import sys
@@ -8,6 +7,7 @@ import sys
 class MainMenu(QWidget):
     def __init__(self, parent=None):
         super(MainMenu, self).__init__(parent)
+        self.window = None
         self.deck = []
         self.parent = parent
         self.main_layout = QGridLayout(self)
@@ -54,6 +54,6 @@ class MainMenu(QWidget):
     def show_window(self):
         self.parent.show()
         
-    def exit_app(self):
+    @staticmethod
+    def exit_app():
         sys.exit(0)
-        

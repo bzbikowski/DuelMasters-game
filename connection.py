@@ -21,10 +21,17 @@ class Client(QThread):
         self.socket.waitForConnected(10000)
         
     def send_data(self, data):
+        msg = ""
+        for item in data:
+            m = hex(int(item))[2:]
+            while len(m) < 2:
+                m = "0" + m
+            msg += m
+        print(msg)
         block = QByteArray()
         stream = QDataStream(block, QIODevice.WriteOnly)
         stream.setVersion(QDataStream.Qt_5_8)
-        msg = bytes(data, encoding='ascii')
+        msg = bytes(msg, encoding='ascii')
         stream.writeString(msg)
         stream.device().seek(0)
         
@@ -103,10 +110,17 @@ class Server(QThread):
         self.server.waitForNewConnection(100000)
 
     def send_data(self, data):
+        msg = ""
+        for item in data:
+            m = hex(int(item))[2:]
+            while len(m) < 2:
+                m = "0" + m
+            msg += m
+        print(msg)
         block = QByteArray()
         stream = QDataStream(block, QIODevice.WriteOnly)
         stream.setVersion(QDataStream.Qt_5_8)
-        msg = bytes(data, encoding='ascii')
+        msg = bytes(msg, encoding='ascii')
         stream.writeString(msg)
         stream.device().seek(0)
 

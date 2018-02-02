@@ -2,7 +2,8 @@ import xml.dom.minidom as minidom
 
 
 class ParseXml:
-    def parseFile(self, path):
+    @staticmethod
+    def parseFile(path):
         cardlist = []
         with minidom.parse(path) as file:
             global_id = 0

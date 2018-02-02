@@ -26,6 +26,7 @@ class Game(QWidget):
         self.card_to_draw = 0
         self.card_to_mana = 0
         self.your_turn = False
+        self.selected_card = None
         self.view = QGraphicsView(self)
         self.view.setSceneRect(0, 0, 1024, 768)
         self.view.setFixedSize(1024, 768)
@@ -140,11 +141,13 @@ class Game(QWidget):
         self.client.start()
         
     def connected_with_player(self):
+        if DEBUG:
+            self.client = Client("127.0.0.1", 10000, self)
         if self.isServer:
             if random.random() < 0.5:
                 self.turn_states(0)
             else:
-                self.send_message("you_start")
+                self.send_message(1)
         self.clear_window()
         self.init_game()
         self.draw_screen()
@@ -336,14 +339,37 @@ class Game(QWidget):
             if card.id == iden:
                 return card
 
-    def send_message(self, msg):
-        # todo przerobić wszytsko na system komend i wartości
+    def send_message(self, *msg):
+        """
+        Wiadomości wysyłane do przeciwnika
+        0 - przeciwnik wygrał
+        1 - przeciwnik zaczyna grę
+        2 - koniec mojej tury
+        3 - ja dobieram kartę
+        4,x,y - ja zagrywam kartę o id x na miejscu y na pole bitwy
+        5,v,x,y - gracz v podnosi kartę z pól x z miejsca y do ręki
+                  v - 0/1 - przeciwnik/ty
+                  x - 0/1 - mana/pole bitwy
+        6,v,x,y - gracz v podnosi kartę z pól x z miejsca y na cmentarz
+                  v - 0/1 - przeciwnik/ty
+                  x - 0/1 - mana/pole bitwy
+
+        7,x - ja dodaję kartę x z ręki na mane
+        8,x,y - ja dodaję kartę x z reki na tarczę y
+        9,x,y - ja tapuje/odtapuje manę
+                x - 0/1 - odtapuje/tapuje
+                y - pozycja karty na manie
+        10,x - ja zaglądam w swoją tarczę na pozycji x
+        11,x,y - ja zaglądam w twoją tarczę/kartę z reki na pozycji y
+                x - 0/1 - ręka/tarcza
+        """
         if self.isServer:
             self.server.send_data(msg)
         else:
             self.client.send_data(msg)
 
     def received_message(self, msg, *args):
+        #todo do przerobienia
         if msg == "you_start":
             self.turn_states(0)
         elif msg == "end_turn":
@@ -371,6 +397,7 @@ class Game(QWidget):
                     self.opp_mana.pop(args[2])
                     self.opp_hand.append(-1)
             else:
+                #twoj
                 pass
         self.refresh_screen()
         
@@ -400,15 +427,14 @@ class Game(QWidget):
             if not len(self.deck) == 0:
                 card = self.deck.pop(0)
                 self.hand.append(card)
-                self.send_message("draw_card")
+                self.send_message(3)
             else:
                 print("Przegrales")
-                self.send_message("lose")
-            self.turn_states(2)
+                self.send_message(0)
             self.refresh_screen()
         
     def m_end_turn(self):
-        self.send_message("end_turn")
+        self.send_message(2)
         self.your_turn = False
         
     def m_summon_card(self, iden):
@@ -422,13 +448,13 @@ class Game(QWidget):
                     if self.bfield[i] == -1:
                         card = self.hand.pop(iden - 1)
                         self.bfield[i] = card
-                        self.send_message("play_card", card, i)
+                        self.send_message(4, card, i)
                         break
             elif card.typ == "Spell":
                 if self.bfield[5] == -1:
                     card = self.hand.pop(iden - 1)
                     self.bfield[5] = card
-                    self.send_message("play_card", card, 5)
+                    self.send_message(4, card, 5)
         else:
             print("Za mało many")
         self.refresh_screen()
@@ -438,31 +464,33 @@ class Game(QWidget):
             card = self.bfield[iden-1]
             self.bfield[iden-1] = -1
             self.hand.append(card)
-            self.send_message("return_card", True, True, card, iden-1)
+            self.send_message(5, 1, 1, iden-1)
         elif set == "yu_mn":
             card = self.mana.pop(iden-1)
             if not card[1]:
                 self.weights[self.dict_civ[self.find_card(card[0]).civ]] -= 1
             self.hand.append(card[0])
-            self.send_message("return_card", True, False, iden-1)
+            self.send_message(5, 1, 0, iden-1)
         self.refresh_screen()
         
     def m_move_to_graveyard(self, set, iden):
         if set == "yu_bf":
             self.graveyard.append(self.bfield[iden - 1])
             self.bfield[iden - 1] = -1
+            self.send_message(6, 1, 1, iden-1)
         elif set == "yu_mn":
             card = self.mana.pop(iden-1)
             if not card[1]:
                 self.weights[self.dict_civ[self.find_card(card[0]).civ]] -= 1
             self.graveyard.append(card[0])
+            self.send_message(6, 1, 0, iden - 1)
         self.refresh_screen()
         
     def m_add_to_mana(self, iden):
         if self.card_to_mana > 0:
             card = self.hand.pop(iden-1)
             self.mana.append([card, True])
-            self.send_message("add_mana", card)
+            self.send_message(7, card)
             self.refresh_screen()
         
     def m_add_to_shield(self, iden):
@@ -470,14 +498,16 @@ class Game(QWidget):
             if shield[0] == -1:
                 card = self.hand.pop(iden-1)
                 self.shields[i][0] = card
+                self.send_message(8, card, i)
                 break
         self.refresh_screen()
         
     def m_tap_card(self, set, iden):
-        if self.mana[iden - 1][1] == True:
+        if self.mana[iden - 1][1]:
             card = self.find_card(self.mana[iden - 1][0])
             self.weights[self.dict_civ[card.civ]] += 1
             self.mana[iden - 1][1] = False
+            self.send_message(9, 1, iden - 1)
         self.refresh_screen()
         
     def m_untap_card(self, set, iden):
@@ -485,42 +515,66 @@ class Game(QWidget):
             card = self.find_card(self.mana[iden - 1][0])
             self.weights[self.dict_civ[card.civ]] -= 1
             self.mana[iden - 1][1] = True
+            self.send_message(9, 0, iden - 1)
         self.refresh_screen()
         
     def m_look_at_shield(self, iden):
         self.shields[iden-1][1] = False
+        self.send_message(10, iden-1)
         self.refresh_screen()
         
     def m_attack_with_creature(self, iden):
-        pass
+        self.selected_card = [self.bfield[iden-1], iden-1]
         
     def m_attack_opp_creature(self, iden):
-        pass
+        if self.selected_card is not None:
+            opp_card = self.opp_bfield[iden-1]
+            if self.cardlist[opp_card].power < self.cardlist[self.selected_card[0]].power:
+                #trafiony zatopiony
+                pass
+            elif self.cardlist[opp_card].power == self.cardlist[self.selected_card[0]].power:
+                #oba zniszczone
+                pass
+            else:
+                #giniesz
+                pass
+            self.send_message(-1)
         
-    def m_opp_look_at_hand(self, iden): #
-        pass
+    def m_opp_look_at_hand(self, iden):
+        self.send_message(11, 0, iden)
         
-    def m_opp_look_at_shield(self, iden): #
-        pass
+    def m_opp_look_at_shield(self, iden):
+        self.send_message(11, 1, iden)
         
     def m_opp_return_card_to_hand(self, set, iden):
         if set == "op_mn":
             self.opp_mana.pop(iden-1)
+            self.send_message(5, 0, 0, iden - 1)
         elif set == "op_bf":
             self.opp_bfield[iden - 1] = -1
+            self.send_message(5, 0, 1, iden - 1)
         self.opp_hand.append(-1)
         self.refresh_screen()
         
     def m_opp_move_to_graveyard(self, set, iden):
         if set == "op_mn":
             self.opp_graveyard.append(self.opp_mana.pop(iden-1)[0])
+            self.send_message(6, 0, 0, iden - 1)
         elif set == "op_bf":
             self.opp_graveyard.append(self.opp_bfield[iden - 1])
             self.opp_bfield[iden - 1] = -1
+            self.send_message(6, 0, 1, iden - 1)
         self.refresh_screen()
         
     def m_opp_shield_attack(self, iden):
-        pass
+        if self.selected_card is not None:
+            # sprawdz czy moze atakować i czy przeciwnik ma blokery
+            pass
+
+            if self.opp_shields[iden-1]:
+                #zniszcz tarcze
+                pass
+            self.send_message(-1)
         
     def m_look_graveyard(self, set, iden):
         if set=="op_gv":

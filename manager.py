@@ -3,7 +3,7 @@ QGraphicsPixmapItem, QGraphicsEllipseItem, QGraphicsTextItem, QGraphicsRectItem,
 QComboBox, QDialog, QInputDialog
 from PyQt5.QtGui import QBrush, QColor, QPixmap, QPen, QFont
 from PyQt5.QtCore import Qt
-from cards import ParseXml, Card
+from cards import ParseXml
 import os
 
 
