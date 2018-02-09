@@ -47,7 +47,7 @@ class MainMenu(QWidget):
                 self.deck.append(number)
         
     def deck_window(self):
-        self.window = DeckManager(self)
+        self.window = DeckManager(self, self.deck)
         self.window.show()
         self.parent.hide()
 

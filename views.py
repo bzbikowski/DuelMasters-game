@@ -127,11 +127,11 @@ class CardView(QGraphicsPixmapItem):
             menu.addAction(destroy_action)
         elif self.set == 'op_gv':
             look_action = QAction('Look at opponent graveyard')
-            look_action.triggered.connect(lambda: self.parent.m_look_graveyard(self.set, self.iden))
+            look_action.triggered.connect(lambda: self.parent.m_look_graveyard(self.set))
             menu.addAction(look_action)
         elif self.set == 'yu_gv':
             look_action = QAction('Look at your graveyard')
-            look_action.triggered.connect(lambda: self.parent.m_look_graveyard(self.set, self.iden))
+            look_action.triggered.connect(lambda: self.parent.m_look_graveyard(self.set))
             menu.addAction(look_action)
         menu.exec_(QCursor.pos())
 

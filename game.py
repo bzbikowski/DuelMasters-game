@@ -353,7 +353,6 @@ class Game(QWidget):
         6,v,x,y - gracz v podnosi kartę z pól x z miejsca y na cmentarz
                   v - 0/1 - przeciwnik/ty
                   x - 0/1 - mana/pole bitwy
-
         7,x - ja dodaję kartę x z ręki na mane
         8,x,y - ja dodaję kartę x z reki na tarczę y
         9,x,y - ja tapuje/odtapuje manę
@@ -362,6 +361,8 @@ class Game(QWidget):
         10,x - ja zaglądam w swoją tarczę na pozycji x
         11,x,y - ja zaglądam w twoją tarczę/kartę z reki na pozycji y
                 x - 0/1 - ręka/tarcza
+        12,x,y - (info) ja atakuje swoją kartą x twoją kartę y na polu bitwy
+        13,x - ja niszcze ci tarczę na pozycji x
         """
         if self.isServer:
             self.server.send_data(msg)
@@ -531,14 +532,15 @@ class Game(QWidget):
             opp_card = self.opp_bfield[iden-1]
             if self.cardlist[opp_card].power < self.cardlist[self.selected_card[0]].power:
                 #trafiony zatopiony
-                pass
+                self.send_message(6, 0, 1, iden-1)
             elif self.cardlist[opp_card].power == self.cardlist[self.selected_card[0]].power:
                 #oba zniszczone
-                pass
+                self.send_message(6, 0, 1, iden-1)
+                self.send_message(6, 1, 1, self.selected_card[1])
             else:
+                self.send_message(6, 1, 1, self.selected_card[1])
                 #giniesz
-                pass
-            self.send_message(-1)
+            self.send_message(12, self.selected_card[0], opp_card)
         
     def m_opp_look_at_hand(self, iden):
         self.send_message(11, 0, iden)
@@ -568,18 +570,16 @@ class Game(QWidget):
         
     def m_opp_shield_attack(self, iden):
         if self.selected_card is not None:
-            # sprawdz czy moze atakować i czy przeciwnik ma blokery
+            # todo sprawdz czy moze atakować i czy przeciwnik ma blokery
             pass
 
             if self.opp_shields[iden-1]:
-                #zniszcz tarcze
-                pass
-            self.send_message(-1)
+                self.send_message(13, iden-1)
         
-    def m_look_graveyard(self, set, iden):
-        if set=="op_gv":
+    def m_look_graveyard(self, set):
+        if set == "op_gv":
             graveyard_look = GraveyardView(self.opp_graveyard, self)
-        elif set=="yu_gv":
+        elif set == "yu_gv":
             graveyard_look = GraveyardView(self.graveyard, self)
         else:
             return
@@ -587,8 +587,4 @@ class Game(QWidget):
         
     def m_put_shield(self, iden):
         self.shields[iden-1][1] = True
-        self.refresh_screen()
-
-    def m_destroy_shield(self, iden):
-        self.opp_shields[iden-1] = False
         self.refresh_screen()

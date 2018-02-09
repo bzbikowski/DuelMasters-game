@@ -8,9 +8,12 @@ import os
 
 
 class DeckManager(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, deck=None):
         super(DeckManager, self).__init__()
-        self.deck = []
+        if deck is not None:
+            self.deck = deck
+        else:
+            self.deck = []
         self.setFixedSize(1300, 500)
         self.parent = parent
         self.main_layout = QHBoxLayout(self)
