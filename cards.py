@@ -51,4 +51,5 @@ class Card:
         self.rules_text = rules
         self.flavor_text = flavor
         self.image = "res//img//" + set_name + '//' + str(self.id) + "//" + "low.jpg"
+        self.prev = "res//img//" + set_name + '//' + str(self.id) + "//" + "med.jpg"
         self.info = "res//img//" + set_name + '//' + str(self.id) + "//" + "high.jpg"

@@ -39,13 +39,17 @@ class CardView(QGraphicsPixmapItem):
         self.set = set
         self.iden = iden
         self.parent = parent
+        self.card = None
 
     def mousePressEvent(self, event):
         super(CardView, self).mousePressEvent(event)
         if not self.parent.locked:
             self.parent.locked = True
             self.parent.startTime()
-            self.parent.card_clicked(self.x(), self.y())
+            if self.card is not None:
+                self.parent.card_clicked(self.x(), self.y(), self.card.id)
+            else:
+                self.parent.card_clicked(self.x(), self.y())
             
     def set_card(self, card):
         self.card = card

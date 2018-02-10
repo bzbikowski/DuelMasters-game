@@ -38,15 +38,18 @@ class Game(QWidget):
         self.preview.setSceneRect(0, 0, 336, 768)
         self.preview.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.preview.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.scene = GameView(self)
-        self.view.setScene(self.scene)
-        self.scene.setBackgroundBrush(QBrush(QColor(0, 0, 0)))
+        self.view_scene = GameView(self)
+        self.view.setScene(self.view_scene)
+        self.view_scene.setBackgroundBrush(QBrush(QColor(0, 0, 0)))
         self.view.setVisible(False)
 
         self.preview_scene = QGraphicsScene()
         self.preview.setScene(self.preview_scene)
         self.preview_scene.setBackgroundBrush(QBrush(QColor(0, 0, 0)))
         self.preview.setVisible(False)
+
+        self.card_prev = None
+
         self.cardlist = ParseXml().parseFile('res/cards.xml')
         self.choose_connection()
 
@@ -175,7 +178,7 @@ class Game(QWidget):
         self.bfield = [-1, -1, -1, -1, -1, -1]
         self.graveyard = []
         self.opp_shields = [True, True, True, True, True]
-        self.opp_mana = [[1, True]]
+        self.opp_mana = [[0, True]]
         self.opp_hand = [-1, -1, -1, -1, -1]
         self.opp_bfield = [-1, -1, -1, -1, -1, -1]
         self.opp_graveyard = []
@@ -205,7 +208,7 @@ class Game(QWidget):
                 pixmap = QPixmap("res//img//cardback.png").transformed(transform)
                 card.setPixmap(pixmap)
                 card.setPos(74, 139 + i * 125)  # tarcze przeciwnika
-                self.scene.addItem(card)
+                self.view_scene.addItem(card)
 
         for i in range(len(self.shields)):
             if not self.shields[i][0] == -1:
@@ -217,7 +220,7 @@ class Game(QWidget):
                     card.set_card(item)
                     card.setPixmap(QPixmap(item.image))
                 card.setPos(866, 14 + i * 125)  # tarcze twoje
-                self.scene.addItem(card)
+                self.view_scene.addItem(card)
                 
         for i in range(len(self.bfield)):
             if not self.bfield[i] == -1:
@@ -226,7 +229,7 @@ class Game(QWidget):
                 card.set_card(item)
                 card.setPixmap(QPixmap(item.image))
                 card.setPos(232 + i * 95, 389)  # pole potworów twoje
-                self.scene.addItem(card)
+                self.view_scene.addItem(card)
                 
         for i in range(len(self.opp_bfield)):
             if not self.opp_bfield[i] == -1:
@@ -235,7 +238,7 @@ class Game(QWidget):
                 card.set_card(item)
                 card.setPixmap(QPixmap(item.image))
                 card.setPos(232 + i * 95, 264)  # pole potworów przeciwnika
-                self.scene.addItem(card)
+                self.view_scene.addItem(card)
                 
         if not len(self.opp_graveyard) == 0:      
             card = CardView("op_gv", 1, self)
@@ -244,7 +247,7 @@ class Game(QWidget):
             transform = QTransform().rotate(180)
             card.setPixmap(QPixmap(item.image).transformed(transform))
             card.setPos(74, 14) # cmentarz przeciwnika
-            self.scene.addItem(card)
+            self.view_scene.addItem(card)
 
         if not len(self.graveyard) == 0:      
             card = CardView("yu_gv", 1, self)
@@ -252,7 +255,7 @@ class Game(QWidget):
             card.set_card(item)
             card.setPixmap(QPixmap(item.image))
             card.setPos(866, 639) # twój cmentarz
-            self.scene.addItem(card)
+            self.view_scene.addItem(card)
             
         # twoje karty w ręku
         self.add_cards_to_scene(self.hand, "yu_hd")
@@ -266,15 +269,29 @@ class Game(QWidget):
         # mana przeciwnika
         self.add_mana_to_scene(self.opp_mana, "op_mn")
         
-    def card_clicked(self, x, y):
+    def card_clicked(self, x, y, c_id=None):
         self.refresh_screen()
+        self.preview_scene.removeItem(self.card_prev)
+        if c_id is not None:
+            self.draw_preview_card(c_id)
         self.highlightCard(x, x + 85, y, y + 115, QColor(255, 0, 0))
         
     def highlightCard(self, x1, x2, y1, y2, color):
-        self.scene.addLine(x1 - 1, y1 - 1, x1 - 1, y2 + 1, QPen(color))
-        self.scene.addLine(x2 + 1, y1 - 1, x2 + 1, y2 + 1, QPen(color))
-        self.scene.addLine(x1 - 1, y1 - 1, x2 + 1, y1 - 1, QPen(color))
-        self.scene.addLine(x1 - 1, y2 + 1, x2 + 1, y2 + 1, QPen(color))
+        """
+        draw a frame around a clicked card on the board
+        """
+        self.view_scene.addLine(x1 - 1, y1 - 1, x1 - 1, y2 + 1, QPen(color))
+        self.view_scene.addLine(x2 + 1, y1 - 1, x2 + 1, y2 + 1, QPen(color))
+        self.view_scene.addLine(x1 - 1, y1 - 1, x2 + 1, y1 - 1, QPen(color))
+        self.view_scene.addLine(x1 - 1, y2 + 1, x2 + 1, y2 + 1, QPen(color))
+
+    def draw_preview_card(self, card_id):
+        """
+        draw a preview of the clicked card on preview side of the screen
+        """
+        self.card_prev = QGraphicsPixmapItem(QPixmap(self.find_card(card_id).info))
+        self.card_prev.setPos(0, 0)
+        self.preview_scene.addItem(self.card_prev)
         
     def add_cards_to_scene(self, arr, type):
         height = 0
@@ -303,7 +320,7 @@ class Game(QWidget):
                     item.setPos(512 - 85 / 2 - 95 * ((size - 1) / 2) + 95 * i, height)
             else:
                 item.setPos(232 + (475 / (size - 1)) * i, height)
-            self.scene.addItem(item)
+            self.view_scene.addItem(item)
             
     def add_mana_to_scene(self, arr, type):
         height = 0
@@ -332,7 +349,7 @@ class Game(QWidget):
                     item.setPos(512 - 85 / 2 - 95 * ((size - 1) / 2) + 95 * i, height)
             else:
                 item.setPos(232 + (475 / (size - 1)) * i, height)
-            self.scene.addItem(item)
+            self.view_scene.addItem(item)
             
     def find_card(self, iden):
         for card in self.cardlist:
@@ -416,8 +433,11 @@ class Game(QWidget):
             self.card_to_mana = 1
             self.your_turn = True
 
+    def win(self):
+        print("Winner!")
+
     def refresh_screen(self):
-        self.scene.clear()
+        self.view_scene.clear()
         self.draw_screen()
 
 #   METODY MENU

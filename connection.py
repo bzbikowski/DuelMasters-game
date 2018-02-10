@@ -1,5 +1,6 @@
 from PyQt5.QtNetwork import QTcpSocket, QTcpServer, QHostAddress, QNetworkInterface, QAbstractSocket
 from PyQt5.QtCore import QThread, QIODevice, QDataStream, QByteArray
+from controller import Controller
 import re
 
 
@@ -9,6 +10,7 @@ class Client(QThread):
         self.address = address
         self.port = port
         self.parent = parent
+        self.controller = Controller(parent)
         self.socket = QTcpSocket()
         self.socket.connected.connect(self.parent.connected_with_player)
         self.socket.error.connect(self.server_error_handle)
@@ -45,7 +47,8 @@ class Client(QThread):
             return
         msg = str(data.readString(), encoding='ascii')
         print(msg)
-        self.parent.received_message(msg)
+        self.controller.received_message(msg)
+        # self.parent.received_message(msg)
 
     def server_error_handle(self, error):
         if error == QAbstractSocket.RemoteHostClosedError:
