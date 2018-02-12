@@ -48,7 +48,6 @@ class Client(QThread):
         msg = str(data.readString(), encoding='ascii')
         print(msg)
         self.controller.received_message(msg)
-        # self.parent.received_message(msg)
 
     def server_error_handle(self, error):
         if error == QAbstractSocket.RemoteHostClosedError:
@@ -67,7 +66,10 @@ class Server(QThread):
     def __init__(self, parent=None):
         super(Server, self).__init__()
         self.parent = parent
+        self.socket = None
+        self.controller = Controller(parent)
         self.server = QTcpServer()
+        self.server.setMaxPendingConnections(1)
         self.server.newConnection.connect(self.conn_handle)
         self.server.acceptError.connect(self.server_error_handle)
         self.connected = False
@@ -90,6 +92,8 @@ class Server(QThread):
 
     def conn_handle(self):
         self.socket = self.server.nextPendingConnection()
+        if not self.socket.isValid():
+            print("Critical error, do nothing")
         self.socket.readyRead.connect(self.receive_data)
         self.socket.acceptError.connect(self.socket_error_handle)
         # self.socket.disconnected.connect(self.disconnected)
@@ -137,4 +141,4 @@ class Server(QThread):
             return
         msg = str(data.readString(), encoding='ascii')
         print(msg)
-        self.parent.received_message(msg)
+        self.controller.received_message(msg)

@@ -199,8 +199,8 @@ class Game(QWidget):
         self.locked = False
         
     def draw_screen(self):
-        # img = QPixmap("res//img//background.png")
-        # self.scene.addItem(QGraphicsPixmapItem().setPixmap(img))
+        self.view_scene.addItem(QGraphicsPixmapItem(QPixmap("res//img//background.png")))
+        self.preview_scene.addItem(QGraphicsPixmapItem(QPixmap("res//img//console.png")))
         for i in range(len(self.opp_shields)):
             if self.opp_shields[i]:
                 card = CardView("op_sh", i + 1, self)
@@ -385,39 +385,6 @@ class Game(QWidget):
             self.server.send_data(msg)
         else:
             self.client.send_data(msg)
-
-    def received_message(self, msg, *args):
-        #todo do przerobienia
-        if msg == "you_start":
-            self.turn_states(0)
-        elif msg == "end_turn":
-            self.turn_states(1)
-        elif msg == "draw_card":
-            self.opp_hand.append(-1)
-        elif msg == "lose":
-            print("Wygrałeś!")
-        elif msg == "play_card":
-            id = args[0]
-            pos = args[1]
-            self.opp_bfield[pos] = id
-        elif msg == "add_mana":
-            id = args[0]
-            self.opp_mana.append([id, True])
-        elif msg == "return_card":
-            if args[0]:
-                #przeciwnika
-                if args[1]:
-                    #pole bitwy
-                    self.opp_bfield[args[2]] = -1
-                    self.opp_hand.append(-1)
-                else:
-                    #mana
-                    self.opp_mana.pop(args[2])
-                    self.opp_hand.append(-1)
-            else:
-                #twoj
-                pass
-        self.refresh_screen()
         
     def turn_states(self, state):
         """

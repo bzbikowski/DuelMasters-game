@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QGraphicsView, QGraphicsScene, \
 QGraphicsPixmapItem, QGraphicsEllipseItem, QGraphicsTextItem, QGraphicsRectItem, QScrollArea, QLabel, QTextEdit, \
-QComboBox, QDialog, QInputDialog
+QComboBox, QDialog, QInputDialog, QMessageBox
 from PyQt5.QtGui import QBrush, QColor, QPixmap, QPen, QFont
 from PyQt5.QtCore import Qt
 from cards import ParseXml
@@ -46,6 +46,7 @@ class DeckManager(QWidget):
         self.save_button = QPushButton("Save", self)
         self.save_button.clicked.connect(self.save_deck)
         self.clear_button = QPushButton("Clear", self)
+        self.clear_button.clicked.connect(self.clear_deck)
         self.exit_button = QPushButton("Exit", self)
         self.exit_button.clicked.connect(self.exit)
         self.button_layout.addWidget(self.save_button)
@@ -164,14 +165,14 @@ class DeckManager(QWidget):
         view = []
         for card in self.actual_view:
             card_power = int(self.database[card].power)
-            if sign == ">=":
+            if sign == "<=":
                 if power >= card_power:
                     view.append(card)
             elif sign == "==":
                 if power == card_power:
                     view.append(card)
-            elif sign == "<=":
-                if power >= card_power > 0:
+            elif sign == ">=":
+                if 0 < power <= card_power:
                     view.append(card)
         return view
 
@@ -259,15 +260,37 @@ class DeckManager(QWidget):
         self.info_window.show()
 
     def clear_deck(self):
-        self.deck = []
+        if len(self.deck) > 0:
+            button = QMessageBox.information(self, "Information", "Are you sure you want to clear your deck?", QMessageBox.Ok, QMessageBox.Cancel)
+            if button == QMessageBox.Ok:
+                self.deck = []
+                self.redraw()
 
     def save_deck(self):
-        name, okpressed = QInputDialog.getText(self, "Name your deck", "Name")
-        if not okpressed:
+        if len(self.deck) < 40:
+            button = QMessageBox.information(self, "Information", "Your deck is incomplete. Do you want to continue?",
+                                         QMessageBox.Ok, QMessageBox.Cancel)
+            if button == QMessageBox.Cancel:
+                return
+        name, ok_pressed = QInputDialog.getText(self, "Name your deck", "Name")
+        if not ok_pressed:
             return
-        with open("decks/{}.txt".format(name), "w") as f:
-            for card in self.deck:
-                f.write("{0}\n".format(card))
+        check = self.validate_file_name(name)
+        if check:
+            with open("decks/{}.txt".format(name), "w") as f:
+                for card in self.deck:
+                    f.write("{0}\n".format(card))
+        else:
+            _ = QMessageBox.information(self, "Information", "Incorrect file name.",
+                                             QMessageBox.Ok, QMessageBox.NoButton)
+
+    @staticmethod
+    def validate_file_name(name):
+        chars = ["!", "/", "?"]
+        for char in chars:
+            if char in name:
+                return False
+        return True
 
     def exit(self):
         self.parent.show_window()
@@ -290,8 +313,6 @@ class DeckBuilder(QGraphicsView):
         elif wheel < 0:
             if len(self.parent.actual_view) > (self.parent.actual_row+1) * self.parent.row_size:
                 self.parent.actual_row += 1
-        else:
-            print("Excuse me")
         self.parent.redraw()
 
 

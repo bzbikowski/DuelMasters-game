@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QPushButton, QGridLayout, QFileDialog
+from PyQt5.QtWidgets import QWidget, QPushButton, QGridLayout, QFileDialog, QMessageBox
 from game import Game
 from manager import DeckManager
 import sys
@@ -34,10 +34,11 @@ class MainMenu(QWidget):
             self.game.show()
             self.parent.hide()
         else:
-            print("Za malo kart w decku")
+            _ = QMessageBox.information(self, "Information", "Your deck is incomplete",
+                                         QMessageBox.Ok, QMessageBox.NoButton)
 
     def load_deck(self):
-        file = QFileDialog().getOpenFileName(self, "Load deck", "", "Text files (*.txt)")
+        file = QFileDialog().getOpenFileName(self, "Load deck", ".//decks", "Text files (*.txt)")
         if not file:
             return
         self.deck = []
