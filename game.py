@@ -1,10 +1,12 @@
 from PyQt5.QtWidgets import QWidget, QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, QMenu, QAction, \
-QTextEdit, QLabel, QPushButton
+QTextEdit, QLabel, QPushButton, QGraphicsRectItem, QGraphicsTextItem
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QBrush, QColor, QPen, QPixmap, QTransform, QCursor, QImage, QFont
 from cards import ParseXml
 from views import GameView, CardView, GraveyardView
 from connection import Client, Server
+from logs import LogInfo
+from collections import deque
 import random
 
 
@@ -47,6 +49,8 @@ class Game(QWidget):
         self.preview.setScene(self.preview_scene)
         self.preview_scene.setBackgroundBrush(QBrush(QColor(0, 0, 0)))
         self.preview.setVisible(False)
+
+        self.logs = deque(maxlen=10)
 
         self.card_prev = None
 
@@ -182,6 +186,7 @@ class Game(QWidget):
         self.opp_hand = [-1, -1, -1, -1, -1]
         self.opp_bfield = [-1, -1, -1, -1, -1, -1]
         self.opp_graveyard = []
+        self.change_button_state = True
 
     def startTime(self):
         """
@@ -199,7 +204,8 @@ class Game(QWidget):
         self.locked = False
         
     def draw_screen(self):
-        self.view_scene.addItem(QGraphicsPixmapItem(QPixmap("res//img//background.png")))
+        self.background = QGraphicsPixmapItem(QPixmap("res//img//background.png"))
+        self.view_scene.addItem(self.background)
         self.preview_scene.addItem(QGraphicsPixmapItem(QPixmap("res//img//console.png")))
         for i in range(len(self.opp_shields)):
             if self.opp_shields[i]:
@@ -268,13 +274,56 @@ class Game(QWidget):
 
         # mana przeciwnika
         self.add_mana_to_scene(self.opp_mana, "op_mn")
+
+        # rozszerz logi
+        self.extend_logs_button = QPushButton()
+        self.extend_logs_button.setFixedSize(10, 10)
+        self.extend_logs_button.clicked.connect(self.change_logs_size)
+        proxy = self.preview_scene.addWidget(self.extend_logs_button)
+        if self.change_button_state:
+            self.extend_logs_button.setText("+")
+            proxy.setPos(20, 200)
+        else:
+            self.extend_logs_button.setText("-")
+            proxy.setPos(20, 20)
+
+        print("debug")
+
+        #logi
+        if not len(self.logs) == 0:
+            if self.change_button_state:
+                lenght = min(len(self.logs), 3)
+            else:
+                lenght = min(len(self.logs), 10)
+            x_pos = 20
+            y_pos = 698
+            y_height = 50
+            x_width = 296
+            for i in range(lenght):
+                log = self.logs[i]
+                ramka = QGraphicsRectItem(x_pos, y_pos, x_width, y_height)
+                ramka.setPen(QPen(QColor(255, 0, 0)))
+                self.preview_scene.addItem(ramka)
+
+                tekst = QGraphicsTextItem(log.info)
+                tekst.setPos(x_pos + 10, y_pos + 5)
+                tekst.setTextWidth(x_width-20)
+                self.preview_scene.addItem(tekst)
+                y_pos -= 60
+        print("debug2")
         
     def card_clicked(self, x, y, c_id=None):
         self.refresh_screen()
-        self.preview_scene.removeItem(self.card_prev)
-        if c_id is not None:
-            self.draw_preview_card(c_id)
+        # self.preview_scene.removeItem(self.card_prev)
+        if not self.change_button_state:
+            if c_id is not None:
+                self.draw_preview_card(c_id)
+        print("debug3")
         self.highlightCard(x, x + 85, y, y + 115, QColor(255, 0, 0))
+
+    def change_logs_size(self):
+        self.change_button_state = not self.change_button_state
+        self.refresh_screen()
         
     def highlightCard(self, x1, x2, y1, y2, color):
         """
@@ -405,20 +454,29 @@ class Game(QWidget):
 
     def refresh_screen(self):
         self.view_scene.clear()
+        self.preview_scene.clear()
         self.draw_screen()
+
+    def add_log(self, text):
+        self.logs.appendleft(LogInfo(text))
+        self.refresh_screen()
 
 #   METODY MENU
 #####################################################
 
     def m_draw_a_card(self):
+        ##########################
+        for i in range(10):
+            self.add_log("Test")
+        ##########################
         if self.card_to_draw > 0:
             if not len(self.deck) == 0:
                 card = self.deck.pop(0)
                 self.hand.append(card)
-                self.send_message(3)
+                #self.send_message(3)
             else:
                 print("Przegrales")
-                self.send_message(0)
+                #self.send_message(0)
             self.refresh_screen()
         
     def m_end_turn(self):

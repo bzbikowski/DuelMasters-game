@@ -39,7 +39,7 @@ class MainMenu(QWidget):
 
     def load_deck(self):
         file = QFileDialog().getOpenFileName(self, "Load deck", ".//decks", "Text files (*.txt)")
-        if not file:
+        if not file or file[0] == "":
             return
         self.deck = []
         with open(file[0], "r") as f:
