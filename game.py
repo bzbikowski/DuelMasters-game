@@ -52,8 +52,6 @@ class Game(QWidget):
 
         self.logs = deque(maxlen=10)
 
-        self.card_prev = None
-
         self.cardlist = ParseXml().parseFile('res/cards.xml')
         self.choose_connection()
 
@@ -182,10 +180,17 @@ class Game(QWidget):
         self.bfield = [-1, -1, -1, -1, -1, -1]
         self.graveyard = []
         self.opp_shields = [True, True, True, True, True]
-        self.opp_mana = [[0, True]]
+        self.opp_mana = [[0, True], [1, True]]
         self.opp_hand = [-1, -1, -1, -1, -1]
         self.opp_bfield = [-1, -1, -1, -1, -1, -1]
         self.opp_graveyard = []
+        self.background = QGraphicsPixmapItem(QPixmap("res//img//background.png"))
+        self.view_scene.addItem(self.background)
+        self.preview_scene.addItem(QGraphicsPixmapItem(QPixmap("res//img//console.png")))
+        self.extend_logs_button = QPushButton()
+        self.extend_logs_button.setFixedSize(20, 20)
+        self.extend_logs_button.clicked.connect(self.change_logs_size)
+        self.proxy = self.preview_scene.addWidget(self.extend_logs_button)
         self.change_button_state = True
 
     def startTime(self):
@@ -204,9 +209,6 @@ class Game(QWidget):
         self.locked = False
         
     def draw_screen(self):
-        self.background = QGraphicsPixmapItem(QPixmap("res//img//background.png"))
-        self.view_scene.addItem(self.background)
-        self.preview_scene.addItem(QGraphicsPixmapItem(QPixmap("res//img//console.png")))
         for i in range(len(self.opp_shields)):
             if self.opp_shields[i]:
                 card = CardView("op_sh", i + 1, self)
@@ -260,7 +262,7 @@ class Game(QWidget):
             item = self.find_card(self.graveyard[len(self.graveyard) - 1])
             card.set_card(item)
             card.setPixmap(QPixmap(item.image))
-            card.setPos(866, 639) # twój cmentarz
+            card.setPos(866, 639)
             self.view_scene.addItem(card)
             
         # twoje karty w ręku
@@ -276,18 +278,12 @@ class Game(QWidget):
         self.add_mana_to_scene(self.opp_mana, "op_mn")
 
         # rozszerz logi
-        self.extend_logs_button = QPushButton()
-        self.extend_logs_button.setFixedSize(10, 10)
-        self.extend_logs_button.clicked.connect(self.change_logs_size)
-        proxy = self.preview_scene.addWidget(self.extend_logs_button)
         if self.change_button_state:
             self.extend_logs_button.setText("+")
-            proxy.setPos(20, 200)
+            self.proxy.setPos(20, 700)
         else:
-            self.extend_logs_button.setText("-")
-            proxy.setPos(20, 20)
-
-        print("debug")
+            self.extend_logs_button.setText("*")
+            self.proxy.setPos(20, 20)
 
         #logi
         if not len(self.logs) == 0:
@@ -310,15 +306,12 @@ class Game(QWidget):
                 tekst.setTextWidth(x_width-20)
                 self.preview_scene.addItem(tekst)
                 y_pos -= 60
-        print("debug2")
         
     def card_clicked(self, x, y, c_id=None):
         self.refresh_screen()
-        # self.preview_scene.removeItem(self.card_prev)
-        if not self.change_button_state:
+        if self.change_button_state:
             if c_id is not None:
                 self.draw_preview_card(c_id)
-        print("debug3")
         self.highlightCard(x, x + 85, y, y + 115, QColor(255, 0, 0))
 
     def change_logs_size(self):
@@ -338,9 +331,9 @@ class Game(QWidget):
         """
         draw a preview of the clicked card on preview side of the screen
         """
-        self.card_prev = QGraphicsPixmapItem(QPixmap(self.find_card(card_id).info))
-        self.card_prev.setPos(0, 0)
-        self.preview_scene.addItem(self.card_prev)
+        card_prev = QGraphicsPixmapItem(QPixmap(self.find_card(card_id).info))
+        card_prev.setPos(0, 0)
+        self.preview_scene.addItem(card_prev)
         
     def add_cards_to_scene(self, arr, type):
         height = 0
@@ -452,10 +445,23 @@ class Game(QWidget):
     def win(self):
         print("Winner!")
 
+    def lose(self):
+        print("Loser!")
+
     def refresh_screen(self):
-        self.view_scene.clear()
-        self.preview_scene.clear()
+        self.clear_view_scene()
+        self.clear_preview_scene()
         self.draw_screen()
+
+    def clear_view_scene(self):
+        items = self.view_scene.items()
+        for i in range(len(items)-1):
+            self.view_scene.removeItem(items[i])
+
+    def clear_preview_scene(self):
+        items = self.preview_scene.items()
+        for i in range(len(items)-2):
+            self.preview_scene.removeItem(items[i])
 
     def add_log(self, text):
         self.logs.appendleft(LogInfo(text))
@@ -465,21 +471,19 @@ class Game(QWidget):
 #####################################################
 
     def m_draw_a_card(self):
-        ##########################
-        for i in range(10):
-            self.add_log("Test")
-        ##########################
         if self.card_to_draw > 0:
             if not len(self.deck) == 0:
                 card = self.deck.pop(0)
+                self.add_log("Dobierasz karte {}.".format(self.find_card(card).name))
                 self.hand.append(card)
-                #self.send_message(3)
+                self.send_message(3)
             else:
-                print("Przegrales")
-                #self.send_message(0)
+                self.lose()
+                self.send_message(0)
             self.refresh_screen()
         
     def m_end_turn(self):
+        self.add_log("Koniec tury.")
         self.send_message(2)
         self.your_turn = False
         

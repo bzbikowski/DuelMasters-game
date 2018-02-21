@@ -8,9 +8,7 @@ class GameView(QGraphicsScene):
         self.parent = parent
 
     def contextMenuEvent(self, event):
-        print(event)
         point = self.itemAt(event.scenePos(), QTransform())
-        print(point)
         if point is not self.parent.background:
             point.contextMenuEvent(event)
         else:
