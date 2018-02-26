@@ -12,18 +12,18 @@
 ##  ==+   EFEKTY KART DO ZAPROJEKTOWANIA   +==
 
 # POTWORY
-# podw?jny/potr?jny ?amacz(mo?e 2/3 razy atakowa? tarcze)
-# bloker (przeciwnik musi atakowa? blokera przed atakiem innych kart)
-# omija blokery
-# omija blokery o sile mniejszej ni? xxxx
+shieldbreaker - podw?jny/potr?jny ?amacz(mo?e 2/3 razy atakowa? tarcze)
+blocker - bloker (przeciwnik musi atakowa? blokera przed atakiem innych kart)
+pass_blockers(state=None) - omija blokery
+pass_blocker(state=Power) - omija blokery o sile mniejszej ni? xxxx
 # omija blokery je?li na polu s? inne potwory
-# niszczy wszystkie blokery
-# nie moze atakowa? graczy/tarcz
+destroy_blockers - niszczy wszystkie blokery
+not_attacking(mode=player) - nie moze atakowa? graczy/tarcz
 # nie moze atakowa? wog?le
-# na ko?cu tury je?li stapowany to mo?esz untap
+untap - na ko?cu tury je?li stapowany to mo?esz untap
 # zab?jca (slayer)
-# gdy zagrany wraca x card do r?ki z pola bitwy
-# power attacker +xxxx
+teleport - gdy zagrany wraca x card do r?ki z pola bitwy
+powerattacker - power attacker +xxxx
 # power attacker je?li co? jest na polu 
 # gdy zagrany mo?esz wzi?? z talii jednego spella
 # gdy zagrany mo?esz dobra? x kart

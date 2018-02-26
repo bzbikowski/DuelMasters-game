@@ -30,14 +30,25 @@ class ParseXml:
                         flavor_text = flavor.firstChild.nodeValue
                     except AttributeError:
                         flavor_text = ""
-                    cardlist.append(Card(id, global_id, setname, cardname, civ, typ, race, cost, power, rarity, rule_text, flavor_text))
+                    effects = card.getElementsByTagName("effects")[0]
+                    r_effects = [item for item in effects.childNodes if item.nodeType == item.ELEMENT_NODE]
+                    effect_names = []
+                    effect_dicts = []
+                    for effect in r_effects:
+                        effect_name = effect.nodeName
+                        effect_dict = {}
+                        for key in effect.attributes.keys():
+                            effect_dict[key] = effect.attributes[key].firstChild.nodeValue
+                        effect_names.append(effect_name)
+                        effect_dicts.append(effect_dict)
+                    cardlist.append(Card(id, global_id, setname, cardname, civ, typ, race, cost, power, rarity, rule_text, flavor_text, [effect_names, effect_dicts]))
                     id += 1
                     global_id += 1
         return cardlist
 
 
 class Card:
-    def __init__(self, set_id, glob_id, set_name, name, civ, typ, race, cost, power, rarity, rules, flavor):
+    def __init__(self, set_id, glob_id, set_name, name, civ, typ, race, cost, power, rarity, rules, flavor, effect):
         self.id = set_id
         self.globid = glob_id
         self.name = name
@@ -47,7 +58,7 @@ class Card:
         self.cost = cost
         self.power = power
         self.rarity = rarity
-        # todo przerobić tekst efektów
+        self.effect = effect
         self.rules_text = rules
         self.flavor_text = flavor
         self.image = "res//img//" + set_name + '//' + str(self.id) + "//" + "low.jpg"

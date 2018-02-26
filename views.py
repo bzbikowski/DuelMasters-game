@@ -7,15 +7,22 @@ class GameView(QGraphicsScene):
         super(GameView, self).__init__(parent)
         self.parent = parent
 
+    def mousePressEvent(self, event):
+        if self.parent.focus_request:
+            self.parent.focus_request = False
+            self.parent.refresh_screen()
+        super(GameView, self).mousePressEvent(event)
+
     def contextMenuEvent(self, event):
         point = self.itemAt(event.scenePos(), QTransform())
         if point is not self.parent.background:
             point.contextMenuEvent(event)
         else:
             menu = QMenu()
-            draw_action = QAction("Draw a card")
-            draw_action.triggered.connect(self.parent.m_draw_a_card)
-            menu.addAction(draw_action)
+            if self.parent.select_mode and len(self.parent.selected_card) == self.parent.card_to_choose:
+                end_action = QAction("Accept cards")
+                end_action.triggered.connect(self.parent.m_accept_cards)
+                menu.addAction(end_action)
             end_action = QAction("End turn")
             end_action.triggered.connect(self.parent.m_end_turn)
             menu.addAction(end_action)
@@ -56,6 +63,10 @@ class CardView(QGraphicsPixmapItem):
 
     def contextMenuEvent(self, event):
         menu = QMenu()
+        if self.parent.select_mode and self.set in self.parent.type_to_choose:
+            choose_action = QAction("Choose a card")
+            choose_action.triggered.connect(lambda: self.parent.m_choose_card(self.set, self.iden))
+            menu.addAction(choose_action)
         if self.set == 'yu_hd':
             summon_action = QAction("Play a card")
             summon_action.triggered.connect(lambda: self.parent.m_summon_card(self.iden))

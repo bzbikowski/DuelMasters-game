@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QWidget, QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, QMenu, QAction, \
-QTextEdit, QLabel, QPushButton, QGraphicsRectItem, QGraphicsTextItem
+    QTextEdit, QLabel, QPushButton, QGraphicsRectItem, QGraphicsTextItem, QMessageBox
+from PyQt5.QtMultimediaWidgets import QGraphicsVideoItem
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QBrush, QColor, QPen, QPixmap, QTransform, QCursor, QImage, QFont
 from cards import ParseXml
@@ -20,7 +21,7 @@ class Game(QWidget):
         height = 768
         self.setFixedSize(width, height)
         #self.move((screen_width - self.width)/2, (screen_height - self.height)/2 - 20)
-        self.setWindowTitle("Duel master - Game")
+        self.setWindowTitle("Duel masters - Video game")
         self.locked = False
         self.isServer = False
         self.parent = parent
@@ -29,17 +30,23 @@ class Game(QWidget):
         self.card_to_mana = 0
         self.your_turn = False
         self.selected_card = None
+        self.focus_request = False
+        self.select_mode = False
+        self.card_to_choose = 0
+
         self.view = QGraphicsView(self)
         self.view.setSceneRect(0, 0, 1024, 768)
         self.view.setFixedSize(1024, 768)
         self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
         self.preview = QGraphicsView(self)
         self.preview.move(1024, 0)
         self.preview.setFixedSize(336, 768)
         self.preview.setSceneRect(0, 0, 336, 768)
         self.preview.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.preview.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
         self.view_scene = GameView(self)
         self.view.setScene(self.view_scene)
         self.view_scene.setBackgroundBrush(QBrush(QColor(0, 0, 0)))
@@ -56,6 +63,7 @@ class Game(QWidget):
         self.choose_connection()
 
     def closeEvent(self, event):
+        # todo
         if self.isServer:
             self.server.wait()
         else:
@@ -124,7 +132,8 @@ class Game(QWidget):
         self.server = Server(self)
         ip_local, ip_ham, ip_port = self.server.find_ip()
         if ip_local == "0.0.0.0":
-            print("Nie znaleziono polaczenia sieciowego. Sprawdz...")
+            _ = QMessageBox.information(self, "Information", "Couldn't find a valid ip address. Please check your connection.",
+                                         QMessageBox.Ok, QMessageBox.NoButton)
             return
         else:
             if ip_ham == "0.0.0.0":
@@ -151,8 +160,10 @@ class Game(QWidget):
         if self.isServer:
             if random.random() < 0.5:
                 self.turn_states(0)
+                self.add_log("Zaczynasz gre!")
             else:
                 self.send_message(1)
+                self.add_log("Przeciwnik zaczyna.")
         self.clear_window()
         self.init_game()
         self.draw_screen()
@@ -192,6 +203,7 @@ class Game(QWidget):
         self.extend_logs_button.clicked.connect(self.change_logs_size)
         self.proxy = self.preview_scene.addWidget(self.extend_logs_button)
         self.change_button_state = True
+        self.selected_card = []
 
     def startTime(self):
         """
@@ -209,44 +221,15 @@ class Game(QWidget):
         self.locked = False
         
     def draw_screen(self):
-        for i in range(len(self.opp_shields)):
-            if self.opp_shields[i]:
-                card = CardView("op_sh", i + 1, self)
-                transform = QTransform().rotate(180)
-                pixmap = QPixmap("res//img//cardback.png").transformed(transform)
-                card.setPixmap(pixmap)
-                card.setPos(74, 139 + i * 125)  # tarcze przeciwnika
-                self.view_scene.addItem(card)
+        # opponent shields
+        self.add_shield_to_scene(self.opp_shields, "op_sh")
 
-        for i in range(len(self.shields)):
-            if not self.shields[i][0] == -1:
-                card = CardView("yu_sh", i + 1, self)
-                if self.shields[i][1]:
-                    card.setPixmap(QPixmap("res//img//cardback.png"))
-                else:
-                    item = self.find_card(self.shields[i][0])
-                    card.set_card(item)
-                    card.setPixmap(QPixmap(item.image))
-                card.setPos(866, 14 + i * 125)  # tarcze twoje
-                self.view_scene.addItem(card)
-                
-        for i in range(len(self.bfield)):
-            if not self.bfield[i] == -1:
-                card = CardView("yu_bf", i + 1, self)
-                item = self.find_card(self.bfield[i])
-                card.set_card(item)
-                card.setPixmap(QPixmap(item.image))
-                card.setPos(232 + i * 95, 389)  # pole potworów twoje
-                self.view_scene.addItem(card)
-                
-        for i in range(len(self.opp_bfield)):
-            if not self.opp_bfield[i] == -1:
-                card = CardView("op_bf", i + 1, self)
-                item = self.find_card(self.opp_bfield[i])
-                card.set_card(item)
-                card.setPixmap(QPixmap(item.image))
-                card.setPos(232 + i * 95, 264)  # pole potworów przeciwnika
-                self.view_scene.addItem(card)
+        # your shields
+        self.add_shield_to_scene(self.shields, "yu_sh")
+
+        self.add_bf_to_scene(self.bfield, "yu_bf")
+
+        self.add_bf_to_scene(self.opp_bfield, "op_bf")
                 
         if not len(self.opp_graveyard) == 0:      
             card = CardView("op_gv", 1, self)
@@ -266,10 +249,10 @@ class Game(QWidget):
             self.view_scene.addItem(card)
             
         # twoje karty w ręku
-        self.add_cards_to_scene(self.hand, "yu_hd")
+        self.add_hand_to_scene(self.hand, "yu_hd")
 
         # karty w ręce przeciwnika
-        self.add_cards_to_scene(self.opp_hand, "op_hd")
+        self.add_hand_to_scene(self.opp_hand, "op_hd")
 
         # twoja mana
         self.add_mana_to_scene(self.mana, "yu_mn")
@@ -335,7 +318,8 @@ class Game(QWidget):
         card_prev.setPos(0, 0)
         self.preview_scene.addItem(card_prev)
         
-    def add_cards_to_scene(self, arr, type):
+    def add_hand_to_scene(self, arr, type):
+        x = 0
         height = 0
         if type == "yu_hd":
             height = 639
@@ -357,14 +341,24 @@ class Game(QWidget):
             item.setPixmap(pixmap)
             if size <= 6:
                 if size % 2 == 0:
+                    x = 422 - 95 * (size/2 - 1) + i * 95
                     item.setPos(422 - 95 * (size/2 - 1) + i * 95, height)
                 else:
+                    x = 512 - 85 / 2 - 95 * ((size - 1) / 2) + 95 * i
                     item.setPos(512 - 85 / 2 - 95 * ((size - 1) / 2) + 95 * i, height)
             else:
-                item.setPos(232 + (475 / (size - 1)) * i, height)
+                x = 232 + (475 / (size - 1)) * i
+            item.setPos(x, height)
             self.view_scene.addItem(item)
+            if not len(self.selected_card) == 0:
+                for sel_card in self.selected_card:
+                    if sel_card[0] == type:
+                        if sel_card[1] == i + 1:
+                            self.highlightCard(x, x+85, height, height+115, QColor(0, 0, 255))
+                            break
             
     def add_mana_to_scene(self, arr, type):
+        x = 0
         height = 0
         if type == "yu_mn":
             height = 514
@@ -386,13 +380,75 @@ class Game(QWidget):
             item.setPixmap(pixmap)
             if size <= 6:
                 if size % 2 == 0:
-                    item.setPos(422 - 95 * (size/2 - 1) + i * 95, height)
+                    x = 422 - 95 * (size/2 - 1) + i * 95
                 else:
-                    item.setPos(512 - 85 / 2 - 95 * ((size - 1) / 2) + 95 * i, height)
+                    x = 512 - 85 / 2 - 95 * ((size - 1) / 2) + 95 * i
             else:
-                item.setPos(232 + (475 / (size - 1)) * i, height)
+                x = 232 + (475 / (size - 1)) * i
+            item.setPos(x, height)
             self.view_scene.addItem(item)
-            
+            if not len(self.selected_card) == 0:
+                for sel_card in self.selected_card:
+                    if sel_card[0] == type:
+                        if sel_card[1] == i + 1:
+                            self.highlightCard(x, x+85, height, height+115, QColor(0, 0, 255))
+                            break
+
+    def add_shield_to_scene(self, arr, type):
+        for i in range(len(arr)):
+            x = y = 0
+            if type == "yu_sh":
+                x = 866
+                y = 14
+                if not arr[i][0] == -1:
+                    card = CardView("yu_sh", i + 1, self)
+                    if arr[i][1]:
+                        card.setPixmap(QPixmap("res//img//cardback.png"))
+                    else:
+                        item = self.find_card(arr[i][0])
+                        card.set_card(item)
+                        card.setPixmap(QPixmap(item.image))
+                    card.setPos(x, y + i * 125)  # tarcze twoje
+                    self.view_scene.addItem(card)
+            elif type == "op_sh":
+                x = 74
+                y = 139
+                if arr[i]:
+                    card = CardView("op_sh", i + 1, self)
+                    transform = QTransform().rotate(180)
+                    pixmap = QPixmap("res//img//cardback.png").transformed(transform)
+                    card.setPixmap(pixmap)
+                    card.setPos(x, y + i * 125)
+                    self.view_scene.addItem(card)
+            if not len(self.selected_card) == 0:
+                for sel_card in self.selected_card:
+                    if sel_card[0] == type:
+                        if sel_card[1] == i + 1:
+                            self.highlightCard(x, x+85, y, y+115, QColor(0, 0, 255))
+                            break
+
+    def add_bf_to_scene(self, arr, type):
+        x = 232
+        y = 0
+        if type == "yu_bf":
+            y = 389
+        elif type == "op_bf":
+            y = 264
+        for i in range(len(arr)):
+            if not arr[i] == -1:
+                card = CardView(type, i + 1, self)
+                item = self.find_card(arr[i])
+                card.set_card(item)
+                card.setPixmap(QPixmap(item.image))
+                card.setPos(x + i * 95, y)  # pole potworów twoje
+                self.view_scene.addItem(card)
+            if not len(self.selected_card) == 0:
+                for sel_card in self.selected_card:
+                    if sel_card[0] == type:
+                        if sel_card[1] == i + 1:
+                            self.highlightCard(x, x + 85, y, y + 115, QColor(0, 0, 255))
+                            break
+
     def find_card(self, iden):
         for card in self.cardlist:
             if card.id == iden:
@@ -434,12 +490,10 @@ class Game(QWidget):
         1 -> dobierz kartę + rzucanie many/czary/creatury
         """
         if state == 0:
-            self.card_to_draw = 0
             self.card_to_mana = 1
             self.your_turn = True
         elif state == 1:
-            self.card_to_draw = 1
-            self.card_to_mana = 1
+            self.m_draw_a_card()
             self.your_turn = True
 
     def win(self):
@@ -467,25 +521,68 @@ class Game(QWidget):
         self.logs.appendleft(LogInfo(text))
         self.refresh_screen()
 
-#   METODY MENU
-#####################################################
+    def draw_a_card(self):
+        if not len(self.deck) == 0:
+            card = self.deck.pop(0)
+            self.add_log("Dobierasz karte {}.".format(self.find_card(card).name))
+            self.hand.append(card)
+            self.send_message(3)
+        else:
+            self.lose()
+            self.send_message(0)
+        self.refresh_screen()
 
-    def m_draw_a_card(self):
-        if self.card_to_draw > 0:
-            if not len(self.deck) == 0:
-                card = self.deck.pop(0)
-                self.add_log("Dobierasz karte {}.".format(self.find_card(card).name))
-                self.hand.append(card)
-                self.send_message(3)
-            else:
-                self.lose()
-                self.send_message(0)
-            self.refresh_screen()
-        
+    def summon_effect(self, card_id):
+        card = self.find_card(card_id)
+        names, attr = card.effect
+        for eff, att in zip(names, attr):
+            if eff == "teleport":
+                count = att["count"]
+                self.teleport(count)
+
+    def message_screen_request(self, bg_color, frame_color, text):
+        # pojawiający się box z info na środku ekranu
+        # po jednym kliknięciu znika
+        bg = QGraphicsRectItem(100, 100, 200, 200)
+        bg.setBrush(QBrush(bg_color))
+        self.view_scene.addItem(bg)
+        frame = QGraphicsRectItem(99, 99, 202, 202)
+        frame.setPen(QPen(frame_color))
+        self.view_scene.addItem(frame)
+        text = QGraphicsTextItem(text)
+        text.setPos(110, 110)
+        self.view_scene.addItem(text)
+        self.focus_request = True
+        self.select_mode = True
+
+
+    #  METODY EFEKTÓW
+    #####################################################
+
+    def teleport(self, count, firsttime=True):
+        if firsttime:
+            self.message_screen_request(QColor(55, 55, 55), QColor(255, 0, 0),
+                                        "Choose {} cards in the battlefield to activate the effect.".format(count))
+            self.card_to_choose = count
+            self.type_to_choose = ["yu_bf", "op_bf"]
+            self.fun_to_call = self.teleport
+        else:
+            for card in self.selected_card:
+                self.m_return_card_to_hand(card[0], card[1])
+            self.selected_card = []
+            self.type_to_choose = []
+            self.select_mode = False
+
+    #   METODY MENU
+    #####################################################
+
     def m_end_turn(self):
         self.add_log("Koniec tury.")
         self.send_message(2)
         self.your_turn = False
+
+    def m_accept_cards(self):
+        self.fun_to_call(_, False)
         
     def m_summon_card(self, iden):
         card = self.find_card(self.hand[iden - 1])
@@ -493,12 +590,15 @@ class Game(QWidget):
         for item in self.weights:
             sum += item
         if sum >= int(card.cost) and not self.weights[self.dict_civ[card.civ]] == 0:
+            # todo ztapuj mane na polu bitwy
             if card.typ == "Creature":
                 for i in range(len(self.bfield) - 1):
                     if self.bfield[i] == -1:
                         card = self.hand.pop(iden - 1)
                         self.bfield[i] = card
                         self.send_message(4, card, i)
+                        # efekt podczas zagrania
+                        self.summon_effect(card)
                         break
             elif card.typ == "Spell":
                 if self.bfield[5] == -1:
@@ -506,7 +606,11 @@ class Game(QWidget):
                     self.bfield[5] = card
                     self.send_message(4, card, 5)
         else:
-            print("Za mało many")
+            return
+        self.refresh_screen()
+
+    def m_choose_card(self, set, iden):
+        self.selected_card.append([set, iden])
         self.refresh_screen()
         
     def m_return_card_to_hand(self, set, iden):
