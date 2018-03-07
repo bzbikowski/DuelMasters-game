@@ -2,6 +2,9 @@ import xml.dom.minidom as minidom
 
 
 class ParseXml:
+    """
+    Class which refactor xml data containing informations about cards
+    """
     @staticmethod
     def parseFile(path):
         cardlist = []
@@ -48,6 +51,9 @@ class ParseXml:
 
 
 class Card:
+    """
+    Simple class to cointaining all the data about one card
+    """
     def __init__(self, set_id, glob_id, set_name, name, civ, typ, race, cost, power, rarity, rules, flavor, effect):
         self.id = set_id
         self.globid = glob_id

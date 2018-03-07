@@ -3,6 +3,9 @@ from menu import MainMenu
 
 
 class Window(QMainWindow):
+    """
+    Main window widget, which is just cointainer for MainMenu widget.
+    """
     def __init__(self, screen_size):
         super(Window, self).__init__()
         width = 800

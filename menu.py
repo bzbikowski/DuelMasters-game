@@ -5,7 +5,13 @@ import sys
 
 
 class MainMenu(QWidget):
+    """
+    Widget, where all the things connected with start screen will be putted.
+    """
     def __init__(self, parent=None):
+        """
+        Init all widgets and layout for the menu.
+        """
         super(MainMenu, self).__init__(parent)
         self.window = None
         self.deck = []
@@ -29,6 +35,9 @@ class MainMenu(QWidget):
         self.main_layout.addWidget(exit_button, 1, 1)
         
     def new_game(self):
+        """
+        If your deck is completed, run game widget.
+        """
         if len(self.deck) >= 40:
             self.game = Game(self.deck, self)
             self.game.show()
@@ -38,6 +47,10 @@ class MainMenu(QWidget):
                                          QMessageBox.Ok, QMessageBox.NoButton)
 
     def load_deck(self):
+        """
+        Load your deck from txt file.
+        Todo: Validate txt file before adding cards to deck.
+        """
         file = QFileDialog().getOpenFileName(self, "Load deck", ".//decks", "Text files (*.txt)")
         if not file or file[0] == "":
             return
@@ -48,6 +61,9 @@ class MainMenu(QWidget):
                 self.deck.append(number)
         
     def deck_window(self):
+        """
+        Open deck creator.
+        """
         self.window = DeckManager(self, self.deck)
         self.window.show()
         self.parent.hide()

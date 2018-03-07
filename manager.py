@@ -8,7 +8,13 @@ import os
 
 
 class DeckManager(QWidget):
+    """
+    Deck manager, which is used to create, save your own deck
+    """
     def __init__(self, parent=None, deck=None):
+        """
+        deck - if set, open preloaded deck to edit 
+        """
         super(DeckManager, self).__init__()
         if deck is not None:
             self.deck = deck
@@ -16,48 +22,33 @@ class DeckManager(QWidget):
             self.deck = []
         self.setFixedSize(1300, 500)
         self.parent = parent
-        self.main_layout = QHBoxLayout(self)
-        self.screen_layout = QVBoxLayout()
-        self.button_layout = QHBoxLayout()
-        self.deck_view = QGraphicsView(self)
-        self.deck_view.setSceneRect(0, 0, 400, 400)
-        self.deck_view.setFixedSize(440, 440)
-        self.deck_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.deck_scene = QGraphicsScene(self)
-        self.deck_scene.setBackgroundBrush(QBrush(QColor(0, 0, 0)))
-        self.deck_view.setScene(self.deck_scene)
-        self.gui_layout = QVBoxLayout()
         self.build_gui()
-        self.main_layout.addWidget(self.deck_view)
-        self.main_layout.addLayout(self.screen_layout)
-        self.main_layout.addLayout(self.gui_layout)
         self.database = ParseXml().parseFile("res//cards.xml")
         self.actual_view = range(len(self.database))
-        self.view = DeckBuilder(self)
-        self.view.setFixedSize(545, 365)
-        self.view.setSceneRect(0, 0, 545, 365)
-        self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.canvas = QGraphicsScene(self)
-        self.canvas.setBackgroundBrush(QBrush(QColor(0, 0, 0)))
-        self.view.setScene(self.canvas)
-        self.screen_layout.addWidget(self.view)
-        self.screen_layout.addLayout(self.button_layout)
-        self.save_button = QPushButton("Save", self)
-        self.save_button.clicked.connect(self.save_deck)
-        self.clear_button = QPushButton("Clear", self)
-        self.clear_button.clicked.connect(self.clear_deck)
-        self.exit_button = QPushButton("Exit", self)
-        self.exit_button.clicked.connect(self.exit)
-        self.button_layout.addWidget(self.save_button)
-        self.button_layout.addWidget(self.clear_button)
-        self.button_layout.addWidget(self.exit_button)
         self.actual_row = 0
         self.row_size = 6
         self.column_size = 3
         self.redraw()
 
     def build_gui(self):
+        """
+        Build all components of the GUI
+        """
+        self.main_layout = QHBoxLayout(self)
+        self.screen_layout = QVBoxLayout()
+        self.button_layout = QHBoxLayout()
+
+        self.deck_view = QGraphicsView(self)
+        self.deck_view.setSceneRect(0, 0, 400, 400)
+        self.deck_view.setFixedSize(440, 440)
+        self.deck_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+        self.deck_scene = QGraphicsScene(self)
+        self.deck_scene.setBackgroundBrush(QBrush(QColor(0, 0, 0)))
+        self.deck_view.setScene(self.deck_scene)
+
+        self.gui_layout = QVBoxLayout()
+
         self.name_layout = QHBoxLayout()
         self.gui_layout.addLayout(self.name_layout)
         self.name_label = QLabel("Name", self)
@@ -111,7 +102,37 @@ class DeckManager(QWidget):
         self.search_button.clicked.connect(self.search_cards)
         self.gui_layout.addWidget(self.search_button)
 
+        self.view = DeckBuilder(self)
+        self.view.setFixedSize(545, 365)
+        self.view.setSceneRect(0, 0, 545, 365)
+        self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+        self.canvas = QGraphicsScene(self)
+        self.canvas.setBackgroundBrush(QBrush(QColor(0, 0, 0)))
+        self.view.setScene(self.canvas)
+
+        self.screen_layout.addWidget(self.view)
+        self.screen_layout.addLayout(self.button_layout)
+
+        self.save_button = QPushButton("Save", self)
+        self.save_button.clicked.connect(self.save_deck)
+        self.clear_button = QPushButton("Clear", self)
+        self.clear_button.clicked.connect(self.clear_deck)
+        self.exit_button = QPushButton("Exit", self)
+        self.exit_button.clicked.connect(self.exit)
+        self.button_layout.addWidget(self.save_button)
+        self.button_layout.addWidget(self.clear_button)
+        self.button_layout.addWidget(self.exit_button)
+
+        self.main_layout.addWidget(self.deck_view)
+        self.main_layout.addLayout(self.screen_layout)
+        self.main_layout.addLayout(self.gui_layout)
+
     def search_cards(self):
+        """
+        Search engine, check all cards in database if they pass all requirements
+        """
         self.actual_view = range(len(self.database))
         name = self.name_input.toPlainText()
         if not name == "":
@@ -127,6 +148,9 @@ class DeckManager(QWidget):
             try:
                 cost = int(cost)
             except ValueError:
+                self.actual_view = range(len(self.database))
+                _ = QMessageBox.information(self, "Information", "Wrong cost value.",
+                                    QMessageBox.Ok, QMessageBox.NoButton)
                 return
             self.actual_view = self.search_by_cost(cost)
         power = self.power_input1.toPlainText()
@@ -135,12 +159,19 @@ class DeckManager(QWidget):
             try:
                 power = int(power)
             except ValueError:
+                self.actual_view = range(len(self.database))
+                _ = QMessageBox.information(self, "Information", "Wrong power value.",
+                                    QMessageBox.Ok, QMessageBox.NoButton)
                 return
             self.actual_view = self.search_by_power(power, sign)
         self.actual_row = 0
         self.redraw()
 
     def search_by_name(self, name):
+        """
+        Check if string name is in actual card name
+        Todo: change text case sensitive
+        """
         view = []
         for card in self.actual_view:
             if name in self.database[card].name:
@@ -148,6 +179,9 @@ class DeckManager(QWidget):
         return view
 
     def search_by_type(self, typ):
+        """
+        Check type of the card
+        """
         view = []
         for card in self.actual_view:
             if typ == self.database[card].typ:
@@ -155,6 +189,9 @@ class DeckManager(QWidget):
         return view
 
     def search_by_civ(self, civ):
+        """
+        Check civilization of the card
+        """
         view = []
         for card in self.actual_view:
             if civ in self.database[card].civ:
@@ -162,6 +199,9 @@ class DeckManager(QWidget):
         return view
 
     def search_by_power(self, power, sign):
+        """
+        Check if power of the creature is less/eual/greater than ... power 
+        """
         view = []
         for card in self.actual_view:
             card_power = int(self.database[card].power)
@@ -177,6 +217,10 @@ class DeckManager(QWidget):
         return view
 
     def search_by_cost(self, cost):
+        """
+        Check cost of the card
+        Todo: maybe add less/eual/greater
+        """
         view = []
         for card in self.actual_view:
             if cost == int(self.database[card].cost):
@@ -184,6 +228,9 @@ class DeckManager(QWidget):
         return view
 
     def redraw(self):
+        """
+        Redraw all the elements on the GraphicsScene
+        """
         self.canvas.clear()
         self.deck_scene.clear()
         self.parent.deck = self.deck
@@ -219,6 +266,9 @@ class DeckManager(QWidget):
                 self.deck_view.setSceneRect(0, 0, 400, 400)
 
     def draw_card(self, x, y, id):
+        """
+        Draw card item with its image on the screen
+        """
         card = CardHandle(id, self)
         if os.path.exists(self.database[id].image):
             card.setPixmap(QPixmap(self.database[id].image))
@@ -228,6 +278,9 @@ class DeckManager(QWidget):
         self.canvas.addItem(card)
 
     def draw_number(self, x, y, number):
+        """
+        Draw number of card in the deck on the screen
+        """
         elipse = QGraphicsEllipseItem(x+24, y+35, 40, 40)
         elipse.setBrush(QBrush(QColor(255, 255, 255)))
         pen = QPen()
@@ -243,6 +296,9 @@ class DeckManager(QWidget):
         self.canvas.addItem(numb)
 
     def draw_result(self, y, id, count, civ):
+        """
+        Draw informations about card that is in the deck
+        """
         palette = {"Nature": QColor(0, 255, 0), "Fire": QColor(255, 0, 0), "Water": QColor(0, 0, 255), "Light": QColor(255, 255, 0)
                    , "Darkness": QColor(128, 128, 128)}
         rect = QGraphicsRectItem(10, y, 380, 30)
@@ -256,6 +312,9 @@ class DeckManager(QWidget):
         self.deck_scene.addItem(text)
 
     def pop_window(self, card_id):
+        """
+        Show card image in better resolution
+        """
         self.info_window = CardInfo(self, self.database[card_id])
         self.info_window.show()
 
@@ -286,6 +345,9 @@ class DeckManager(QWidget):
 
     @staticmethod
     def validate_file_name(name):
+        """
+        Check string if it's acceptable for file name
+        """
         chars = ["!", "/", "?"]
         for char in chars:
             if char in name:
@@ -301,6 +363,9 @@ class DeckManager(QWidget):
 
 
 class DeckBuilder(QGraphicsView):
+    """
+    View representing all the cards in the deck. Scrolling through this view shows different cards in the database.
+    """
     def __init__(self, parent):
         super(DeckBuilder, self).__init__(parent)
         self.parent = parent
@@ -317,6 +382,9 @@ class DeckBuilder(QGraphicsView):
 
 
 class CardHandle(QGraphicsPixmapItem):
+    """
+    Single card handle to check more info, add or remove card from your deck.
+    """
     def __init__(self, id, parent):
         super(CardHandle, self).__init__()
         self.parent = parent
@@ -338,6 +406,9 @@ class CardHandle(QGraphicsPixmapItem):
 
 
 class CardInfo(QDialog):
+    """
+    Window for showing card image in better resolution
+    """
     def __init__(self, parent, card):
         super(CardInfo, self).__init__(parent)
         self.setFixedSize(400, 600)
