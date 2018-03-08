@@ -3,6 +3,11 @@ from PyQt5.QtGui import QCursor, QTransform
 
 
 class GameView(QGraphicsScene):
+    """
+    Main scene in Game class, which displays GUI and cards currently on gameboard.
+    This class is extended to support mouse buttons.
+    Right mouse button creates context menu to choose actions about the game.
+    """
     def __init__(self, parent=None):
         super(GameView, self).__init__(parent)
         self.parent = parent
@@ -31,7 +36,8 @@ class GameView(QGraphicsScene):
 
 class CardView(QGraphicsPixmapItem):
     """
-    settings:
+    Class representing view of single Card on the gameboard.
+    Keywords:
     yo - yours
     op - opponent
     sh - shield
@@ -152,7 +158,9 @@ class CardView(QGraphicsPixmapItem):
 
         
 class GraveyardView(QWidget):
-    # todo dokończyć
+    """
+    Unfinished graveyard
+    """
     def __init__(self, cards, parent=None):
         super(GraveyardView, self).__init__()
         self.width = 800

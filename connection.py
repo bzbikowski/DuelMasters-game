@@ -5,6 +5,9 @@ import re
 
 
 class Client(QThread):
+    """
+    Client class for communication Client <-> Server.
+    """
     def __init__(self, address, port, parent=None):
         super(Client, self).__init__()
         self.address = address
@@ -63,6 +66,9 @@ class Client(QThread):
 
 
 class Server(QThread):
+    """
+    Server class for communication Client <-> Server.
+    """
     def __init__(self, parent=None):
         super(Server, self).__init__()
         self.parent = parent

@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, QMenu, QAction, \
+from PyQt5.QtWidgets import QWidget, QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, \
     QTextEdit, QLabel, QPushButton, QGraphicsRectItem, QGraphicsTextItem, QMessageBox
 from PyQt5.QtMultimediaWidgets import QGraphicsVideoItem
 from PyQt5.QtCore import Qt, QTimer
@@ -10,11 +10,14 @@ from logs import LogInfo
 from collections import deque
 import random
 
-
+# testing GUI, if true, tcp is artificial
 DEBUG = True
 
 
 class Game(QWidget):
+    """
+    Main class in application.
+    """
     def __init__(self, deck, parent=None):
         super(Game, self).__init__()
         width = 1360
