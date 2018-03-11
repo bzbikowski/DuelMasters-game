@@ -11,7 +11,7 @@ from collections import deque
 import random
 
 # testing GUI, if true, tcp is artificial
-DEBUG = True
+DEBUG = False
 
 
 class Game(QWidget):
