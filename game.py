@@ -10,21 +10,19 @@ from logs import LogInfo
 from collections import deque
 import random
 
-# testing GUI, if true, tcp is artificial
-DEBUG = False
-
 
 class Game(QWidget):
     """
     Main class in application.
     """
-    def __init__(self, deck, parent=None):
+    def __init__(self, deck, debug, parent=None):
         super(Game, self).__init__()
         width = 1360
         height = 768
         self.setFixedSize(width, height)
         #self.move((screen_width - self.width)/2, (screen_height - self.height)/2 - 20)
         self.setWindowTitle("Duel masters - Video game")
+        self.debug_mode = debug
         self.locked = False
         self.isServer = False
         self.parent = parent
@@ -109,7 +107,7 @@ class Game(QWidget):
         self.ok_button = QPushButton("Accept", self)
         self.ok_button.setFixedSize(600, 140)
         self.ok_button.move((self.width() - self.ok_button.width())/2, 560)
-        if DEBUG:
+        if self.debug_mode:
             self.ok_button.clicked.connect(self.connected_with_player)
         else:
             self.ok_button.clicked.connect(self.start_connection)
@@ -140,10 +138,10 @@ class Game(QWidget):
             return
         else:
             if ip_ham == "0.0.0.0":
-                self.ip_address_label.setText("Your address is {0}".format(ip_local))
+                self.ip_address_label.setText("Your address is {}".format(ip_local))
             else:
-                self.ip_address_label.setText("Your address is {0}".format(ip_ham))
-        self.port_label.setText("You are listining on port {0}".format(ip_port))
+                self.ip_address_label.setText("Your address is {}".format(ip_ham))
+        self.port_label.setText("You are listining on port {}".format(ip_port))
         self.isServer = True
         self.server.start()
 
@@ -158,15 +156,15 @@ class Game(QWidget):
         self.client.start()
         
     def connected_with_player(self):
-        if DEBUG:
+        if self.debug_mode:
             self.client = Client("127.0.0.1", 10000, self)
         if self.isServer:
             if random.random() < 0.5:
                 self.turn_states(0)
-                self.add_log("Zaczynasz gre!")
+                self.add_log("You start the game! Your turn.")
             else:
                 self.send_message(1)
-                self.add_log("Przeciwnik zaczyna.")
+                self.add_log("Opponent starts the game.")
         self.clear_window()
         self.init_game()
         self.draw_screen()
@@ -210,8 +208,8 @@ class Game(QWidget):
 
     def startTime(self):
         """
-        zablokuj wybieranie kart na 20ms po kliknięciu
-        zawsze wybiera pierwszą kartę na wierzchu
+        Implemented to block choosing multiple cards with one click.
+        One mouse click should always choose a card on the top.
         """
         self.timer = QTimer(self)
         self.timer.setSingleShot(True)
@@ -220,58 +218,53 @@ class Game(QWidget):
         self.timer.timeout.connect(self.change_state)
 
     def change_state(self):
-        # ZAWSZE WYBIERA JEDNĄ KARTĘ
         self.locked = False
         
     def draw_screen(self):
-        # opponent shields
-        self.add_shield_to_scene(self.opp_shields, "op_sh")
-
+        """
+        Draw all elements into the screen.
+        """
         # your shields
         self.add_shield_to_scene(self.shields, "yu_sh")
-
+        # opponent's shields
+        self.add_shield_to_scene(self.opp_shields, "op_sh")
+        # your battlefield
         self.add_bf_to_scene(self.bfield, "yu_bf")
-
+        # opponent's battlefield
         self.add_bf_to_scene(self.opp_bfield, "op_bf")
-                
-        if not len(self.opp_graveyard) == 0:      
-            card = CardView("op_gv", 1, self)
-            item = self.find_card(self.opp_graveyard[len(self.opp_graveyard) - 1])
-            card.set_card(item)
-            transform = QTransform().rotate(180)
-            card.setPixmap(QPixmap(item.image).transformed(transform))
-            card.setPos(74, 14) # cmentarz przeciwnika
-            self.view_scene.addItem(card)
-
-        if not len(self.graveyard) == 0:      
+        # your graveyard
+        if not len(self.graveyard) == 0:
             card = CardView("yu_gv", 1, self)
             item = self.find_card(self.graveyard[len(self.graveyard) - 1])
             card.set_card(item)
             card.setPixmap(QPixmap(item.image))
             card.setPos(866, 639)
             self.view_scene.addItem(card)
-            
-        # twoje karty w ręku
+        # opponent's graveyard
+        if not len(self.opp_graveyard) == 0:      
+            card = CardView("op_gv", 1, self)
+            item = self.find_card(self.opp_graveyard[len(self.opp_graveyard) - 1])
+            card.set_card(item)
+            transform = QTransform().rotate(180)
+            card.setPixmap(QPixmap(item.image).transformed(transform))
+            card.setPos(74, 14)
+            self.view_scene.addItem(card)
+        # your cards in hand
         self.add_hand_to_scene(self.hand, "yu_hd")
-
-        # karty w ręce przeciwnika
+        # opponent's cards in hand
         self.add_hand_to_scene(self.opp_hand, "op_hd")
-
-        # twoja mana
+        # your cards in mana zone
         self.add_mana_to_scene(self.mana, "yu_mn")
-
-        # mana przeciwnika
+        # opponent's cards in mana zone
         self.add_mana_to_scene(self.opp_mana, "op_mn")
-
-        # rozszerz logi
+        # change max number of logs to display
         if self.change_button_state:
             self.extend_logs_button.setText("+")
             self.proxy.setPos(20, 700)
         else:
             self.extend_logs_button.setText("*")
             self.proxy.setPos(20, 20)
-
-        #logi
+        # display logs
         if not len(self.logs) == 0:
             if self.change_button_state:
                 lenght = min(len(self.logs), 3)
@@ -294,6 +287,9 @@ class Game(QWidget):
                 y_pos -= 60
         
     def card_clicked(self, x, y, c_id=None):
+        """
+        Display info and highlight a card when it is clicked on the board
+        """
         self.refresh_screen()
         if self.change_button_state:
             if c_id is not None:

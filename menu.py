@@ -8,11 +8,12 @@ class MainMenu(QWidget):
     """
     Widget, where all the things connected with start screen will be putted.
     """
-    def __init__(self, parent=None):
+    def __init__(self, debug_mode, parent=None):
         """
         Init all widgets and layout for the menu.
         """
         super(MainMenu, self).__init__(parent)
+        self.is_debug_mode = debug_mode
         self.window = None
         self.deck = []
         self.parent = parent
@@ -39,7 +40,7 @@ class MainMenu(QWidget):
         If your deck is completed, run game widget.
         """
         if len(self.deck) >= 40:
-            self.game = Game(self.deck, self)
+            self.game = Game(self.deck, self.is_debug_mode, self)
             self.game.show()
             self.parent.hide()
         else:
