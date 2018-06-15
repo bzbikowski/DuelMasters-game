@@ -50,7 +50,6 @@ class MainMenu(QWidget):
     def load_deck(self):
         """
         Load your deck from txt file.
-        Todo: Validate txt file before adding cards to deck.
         """
         file = QFileDialog().getOpenFileName(self, "Load deck", ".//decks", "Text files (*.txt)")
         if not file or file[0] == "":
@@ -58,7 +57,13 @@ class MainMenu(QWidget):
         self.deck = []
         with open(file[0], "r") as f:
             for line in f.readlines():
-                number = int(line.split()[0])
+                try:
+                    number = int(line.split()[0])
+                except ValueError:
+                    _ = QMessageBox.information(self, "Information", "This text file is corrupted.",
+                                                QMessageBox.Ok, QMessageBox.NoButton)
+                    self.deck = []
+                    return
                 self.deck.append(number)
         
     def deck_window(self):

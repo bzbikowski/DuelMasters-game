@@ -168,6 +168,13 @@ class Game(QWidget):
         self.clear_window()
         self.init_game()
         self.draw_screen()
+
+    def test_for_raspberry(self):
+        self.server = Server(self)
+        self.server.find_ip()
+        self.server.port = 10024
+        self.isServer = True
+        self.server.start()
         
     def clear_window(self):
         self.ip_address_field.setVisible(False)

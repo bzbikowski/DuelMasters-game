@@ -170,11 +170,10 @@ class DeckManager(QWidget):
     def search_by_name(self, name):
         """
         Check if string name is in actual card name
-        Todo: change text case sensitive
         """
         view = []
         for card in self.actual_view:
-            if name in self.database[card].name:
+            if str.lower(name) in str.lower(self.database[card].name):
                 view.append(card)
         return view
 
@@ -219,7 +218,7 @@ class DeckManager(QWidget):
     def search_by_cost(self, cost):
         """
         Check cost of the card
-        Todo: maybe add less/eual/greater
+        Todo: maybe add less/equal/greater
         """
         view = []
         for card in self.actual_view:

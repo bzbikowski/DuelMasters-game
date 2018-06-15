@@ -15,7 +15,7 @@ if __name__ == "__main__":
     parsed_args, unparsed_args = process_args()
     qt_args = sys.argv[:1] + unparsed_args
     app = QApplication(qt_args)
-    size = app.desktop().screenGeometry().getRect()
+    size = app.desktop().screenGeometry().getRect()[2:4]
     qapp = Window(size, parsed_args)
     qapp.show()
     sys.exit(app.exec_())

@@ -35,14 +35,14 @@ class Client(QThread):
         print(msg)
         block = QByteArray()
         stream = QDataStream(block, QIODevice.WriteOnly)
-        stream.setVersion(QDataStream.Qt_5_8)
+        stream.setVersion(QDataStream.Qt_5_10)
         msg = bytes(msg, encoding='ascii')
         stream.writeString(msg)
         stream.device().seek(0)
         
     def receive_data(self):
         stream = QDataStream(self.socket)
-        stream.setVersion(QDataStream.Qt_5_8)
+        stream.setVersion(QDataStream.Qt_5_10)
         if self.socket.bytesAvailable() < 2:
             return
         data = stream.readUInt16()
@@ -85,7 +85,7 @@ class Server(QThread):
 
     def find_ip(self):
         ham_pat = r"^25\.[1-2]?[0-9]?[0-9]\.[1-2]?[0-9]?[0-9]\.[1-2]?[0-9]?[0-9]$"
-        wifi_pat = r"^192\.168\.[1-2]?[0-9]?[0-9]\.[1-2]?[0-9]?[0-9]$"
+        wifi_pat = r"^192\.168\.[0-2]?[0-9]?[0-9]\.[0-2]?[0-9]?[0-9]$"
         inet = QNetworkInterface().interfaceFromName("eth0")
         addr = inet.allAddresses()
         for add in addr:
@@ -132,14 +132,14 @@ class Server(QThread):
         print(msg)
         block = QByteArray()
         stream = QDataStream(block, QIODevice.WriteOnly)
-        stream.setVersion(QDataStream.Qt_5_8)
+        stream.setVersion(QDataStream.Qt_5_10)
         msg = bytes(msg, encoding='ascii')
         stream.writeString(msg)
         stream.device().seek(0)
 
     def receive_data(self):
         stream = QDataStream(self.socket)
-        stream.setVersion(QDataStream.Qt_5_8)
+        stream.setVersion(QDataStream.Qt_5_10)
         if self.socket.bytesAvailable() < 2:
             return
         data = stream.readUInt16()
