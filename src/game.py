@@ -1,11 +1,11 @@
 from PyQt5.QtWidgets import QWidget, QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, \
     QTextEdit, QLabel, QPushButton, QGraphicsRectItem, QGraphicsTextItem, QMessageBox
-from PyQt5.QtMultimediaWidgets import QGraphicsVideoItem
 from PyQt5.QtCore import Qt, QTimer
-from PyQt5.QtGui import QBrush, QColor, QPen, QPixmap, QTransform, QCursor, QImage, QFont
-from cards import ParseXml
-from views import GameView, CardView, GraveyardView
-from connection import Client, Server
+from PyQt5.QtGui import QBrush, QColor, QPen, QPixmap, QTransform, QImage, QFont
+from src.cards import ParseXml
+from src.views import GameView, CardView, GraveyardView
+from src.network.server import Server
+from src.network.client import Client
 from collections import deque
 import random
 import logging
@@ -162,7 +162,7 @@ class Game(QWidget):
         self.ip_address_label.move(50, 50)
         self.ip_address_label.setVisible(True)
 
-        self.port_label = QLabel("You are listining on port xxxx", self)
+        self.port_label = QLabel("You are listining on port xxxxx", self)
         self.port_label.setFont(QFont("Arial", 50))
         self.port_label.move(50, 200)
         self.port_label.setVisible(True)

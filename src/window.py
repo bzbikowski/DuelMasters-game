@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QMainWindow
-from menu import MainMenu
+from src.menu import MainMenu
 
 
 class Window(QMainWindow):

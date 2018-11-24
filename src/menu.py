@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QWidget, QPushButton, QGridLayout, QFileDialog, QMessageBox
-from game import Game
-from manager import DeckManager
+from src.game import Game
+from src.manager import DeckManager
 import sys
 import logging
 import datetime

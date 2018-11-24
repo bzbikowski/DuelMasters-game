@@ -1,9 +1,9 @@
 from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QGraphicsView, QGraphicsScene, \
-QGraphicsPixmapItem, QGraphicsEllipseItem, QGraphicsTextItem, QGraphicsRectItem, QScrollArea, QLabel, QTextEdit, \
+QGraphicsPixmapItem, QGraphicsEllipseItem, QGraphicsTextItem, QGraphicsRectItem, QLabel, QTextEdit, \
 QComboBox, QDialog, QInputDialog, QMessageBox
 from PyQt5.QtGui import QBrush, QColor, QPixmap, QPen, QFont
 from PyQt5.QtCore import Qt
-from cards import ParseXml
+from src.cards import ParseXml
 import os
 
 
