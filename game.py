@@ -6,9 +6,9 @@ from PyQt5.QtGui import QBrush, QColor, QPen, QPixmap, QTransform, QCursor, QIma
 from cards import ParseXml
 from views import GameView, CardView, GraveyardView
 from connection import Client, Server
-from logs import LogInfo
 from collections import deque
 import random
+import logging
 
 
 class Game(QWidget):
@@ -20,11 +20,13 @@ class Game(QWidget):
         width = 1360
         height = 768
         self.setFixedSize(width, height)
-        #self.move((screen_width - self.width)/2, (screen_height - self.height)/2 - 20)
+        self.log = None
+        # self.move((screen_width - self.width)/2, (screen_height - self.height)/2 - 20)
         self.setWindowTitle("Duel masters - Video game")
         self.debug_mode = debug
         self.locked = False
         self.isServer = False
+        self.started = False
         self.parent = parent
         self.deck = deck
         self.card_to_draw = 0
@@ -59,19 +61,32 @@ class Game(QWidget):
         self.preview.setVisible(False)
 
         self.logs = deque(maxlen=10)
+        self.setup_logger()
 
         self.cardlist = ParseXml().parseFile('res/cards.xml')
         self.choose_connection()
 
-    def closeEvent(self, event):
-        # todo
-        if self.isServer:
-            self.server.wait()
+    def setup_logger(self):
+        self.log = logging.getLogger("dm_game")
+        if self.debug_mode:
+            self.log.setLevel(logging.DEBUG)
         else:
-            self.client.wait()
+            self.log.setLevel(logging.DEBUG)
+
+    def closeEvent(self, event):
+        if self.started:
+            if self.isServer:
+                self.server.wait()
+            else:
+                self.client.wait()
         self.parent.show_window()
 
     def choose_connection(self):
+        """
+        Menu with two buttons to choose from:
+        - connect to other player (client)
+        - make a room (server)
+        """
         self.server_button = QPushButton("Create a game room", self)
         self.server_button.setFixedSize(1000, 300)
         self.server_button.move((self.width() - self.server_button.width())/2, 40)
@@ -82,8 +97,15 @@ class Game(QWidget):
         self.client_button.move((self.width() - self.client_button.width()) / 2, 420)
         self.client_button.clicked.connect(self.connect_to_room)
         self.client_button.setFont(QFont("Arial", 60))
+        # self.back_button = QPushButton("Back", self)
+        # self.back_button.clicked.connect(self.back)
         
     def connect_to_room(self):
+        """
+        Client side
+        Enter ip address and port of computer, which you want to connect to
+        """
+        self.log.debug("Connect")
         self.server_button.setVisible(False)
         self.client_button.setVisible(False)
         self.ip_address_label = QLabel("Ip address: ", self)
@@ -113,7 +135,26 @@ class Game(QWidget):
             self.ok_button.clicked.connect(self.start_connection)
         self.ok_button.setVisible(True)
 
+    def start_connection(self):
+        """
+        Client side
+        Connect with the server
+        """
+        try:
+            addr = self.ip_address_field.toPlainText()
+            port = int(self.port_field.toPlainText())
+        except:
+            return
+        self.isServer = False
+        self.client = Client(addr, port, self)
+        self.started = True
+        self.client.start()
+
     def wait_for_connection(self):
+        """
+        Server side
+        Wait for connection from other client.
+        """
         self.server_button.setVisible(False)
         self.client_button.setVisible(False)
         self.ip_address_label = QLabel("Your address is xxx.xxx.xxx.xxx", self)
@@ -143,19 +184,13 @@ class Game(QWidget):
                 self.ip_address_label.setText("Your address is {}".format(ip_ham))
         self.port_label.setText("You are listining on port {}".format(ip_port))
         self.isServer = True
+        self.started = True
         self.server.start()
-
-    def start_connection(self):
-        try:
-            addr = self.ip_address_field.toPlainText()
-            port = int(self.port_field.toPlainText())
-        except:
-            return
-        self.isServer = False
-        self.client = Client(addr, port, self)
-        self.client.start()
         
     def connected_with_player(self):
+        """
+        If connection is successful, continue
+        """
         if self.debug_mode:
             self.client = Client("127.0.0.1", 10000, self)
         if self.isServer:
@@ -168,15 +203,11 @@ class Game(QWidget):
         self.clear_window()
         self.init_game()
         self.draw_screen()
-
-    def test_for_raspberry(self):
-        self.server = Server(self)
-        self.server.find_ip()
-        self.server.port = 10024
-        self.isServer = True
-        self.server.start()
         
     def clear_window(self):
+        """
+        Prepare gui for game screen
+        """
         self.ip_address_field.setVisible(False)
         self.ip_address_label.setVisible(False)
         self.port_field.setVisible(False)
@@ -186,6 +217,9 @@ class Game(QWidget):
         self.preview.setVisible(True)
 
     def init_game(self):
+        """
+        Create initial structures and data for our starting game
+        """
         self.dict_civ = {"Light": 0, "Nature": 1, "Darkness": 2, "Fire": 3, "Water": 4}
         random.shuffle(self.deck)
         self.shields = []
@@ -325,6 +359,9 @@ class Game(QWidget):
         self.preview_scene.addItem(card_prev)
         
     def add_hand_to_scene(self, arr, type):
+        """
+        draw card from hand into the screen
+        """
         x = 0
         height = 0
         if type == "yu_hd":
@@ -364,6 +401,9 @@ class Game(QWidget):
                             break
             
     def add_mana_to_scene(self, arr, type):
+        """
+        draw card from mana into the screen
+        """
         x = 0
         height = 0
         if type == "yu_mn":
@@ -401,6 +441,9 @@ class Game(QWidget):
                             break
 
     def add_shield_to_scene(self, arr, type):
+        """
+        draw shield into the screen
+        """
         for i in range(len(arr)):
             x = y = 0
             if type == "yu_sh":
@@ -434,6 +477,9 @@ class Game(QWidget):
                             break
 
     def add_bf_to_scene(self, arr, type):
+        """
+        draw card from battlefield into the screen
+        """
         x = 232
         y = 0
         if type == "yu_bf":
@@ -456,6 +502,11 @@ class Game(QWidget):
                             break
 
     def find_card(self, iden):
+        """
+        find informations about card of given id
+        :param iden:  id of the card
+        :return: Card class with all informations about it
+        """
         for card in self.cardlist:
             if card.id == iden:
                 return card
@@ -522,10 +573,6 @@ class Game(QWidget):
         items = self.preview_scene.items()
         for i in range(len(items)-2):
             self.preview_scene.removeItem(items[i])
-
-    def add_log(self, text):
-        self.logs.appendleft(LogInfo(text))
-        self.refresh_screen()
 
     def draw_a_card(self):
         if not len(self.deck) == 0:

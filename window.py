@@ -8,7 +8,7 @@ class Window(QMainWindow):
     """
     def __init__(self, screen_size=(800, 600), args=None):
         super(Window, self).__init__()
-        if args.d == "True":
+        if args.debug == "True":
             debug_mode = True
         else:
             debug_mode = False

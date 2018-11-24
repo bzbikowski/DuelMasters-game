@@ -2,6 +2,8 @@ from PyQt5.QtWidgets import QWidget, QPushButton, QGridLayout, QFileDialog, QMes
 from game import Game
 from manager import DeckManager
 import sys
+import logging
+import datetime
 
 
 class MainMenu(QWidget):
@@ -14,6 +16,9 @@ class MainMenu(QWidget):
         """
         super(MainMenu, self).__init__(parent)
         self.is_debug_mode = debug_mode
+
+        self.game = None
+        self.log = None
         self.window = None
         self.deck = []
         self.parent = parent
@@ -34,16 +39,34 @@ class MainMenu(QWidget):
         exit_button = QPushButton("Exit app", self)
         exit_button.clicked.connect(self.exit_app)
         self.main_layout.addWidget(exit_button, 1, 1)
+
+        self.setup_logger(debug_mode)
+
+    def setup_logger(self, dm):
+        self.log = logging.getLogger("dm_game")
+        if dm:
+            self.log.setLevel(logging.DEBUG)
+        else:
+            self.log.setLevel(logging.DEBUG)
+        time = datetime.datetime.now()
+        terminal = logging.FileHandler('logs/{0}-{1}-{2}_{3}-{4}-{5}.log'.format(time.year, time.month, time.day, time.hour, time.minute, time.second))
+        terminal.setLevel(logging.DEBUG)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        terminal.setFormatter(formatter)
+        self.log.addHandler(terminal)
         
     def new_game(self):
         """
         If your deck is completed, run game widget.
         """
+        self.log.debug("Button start clicked")
         if len(self.deck) >= 40:
+            self.log.info("Game class created")
             self.game = Game(self.deck, self.is_debug_mode, self)
             self.game.show()
             self.parent.hide()
         else:
+            self.log.warning("Deck incomplete.")
             _ = QMessageBox.information(self, "Information", "Your deck is incomplete",
                                          QMessageBox.Ok, QMessageBox.NoButton)
 
@@ -51,9 +74,11 @@ class MainMenu(QWidget):
         """
         Load your deck from txt file.
         """
+        self.log.debug("Button load clicked")
         file = QFileDialog().getOpenFileName(self, "Load deck", ".//decks", "Text files (*.txt)")
         if not file or file[0] == "":
             return
+        self.log.debug("Trying to load {} file".format(file[0]))
         self.deck = []
         with open(file[0], "r") as f:
             for line in f.readlines():
@@ -63,14 +88,18 @@ class MainMenu(QWidget):
                     _ = QMessageBox.information(self, "Information", "This text file is corrupted.",
                                                 QMessageBox.Ok, QMessageBox.NoButton)
                     self.deck = []
+                    self.log.debug("Deck load failed")
                     return
                 self.deck.append(number)
+        self.log.debug("Deck load success")
         
     def deck_window(self):
         """
         Open deck creator.
         """
+        self.log.debug("Button editor clicked")
         self.window = DeckManager(self, self.deck)
+        self.log.debug("Class DeckManager created")
         self.window.show()
         self.parent.hide()
 

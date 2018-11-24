@@ -120,7 +120,6 @@ class Server(QThread):
             self.server.listen(QHostAddress(self.wifi_addr), self.port)
         else:
             self.server.listen(QHostAddress(self.ham_addr), self.port)
-        self.server.waitForNewConnection(100000)
 
     def send_data(self, data):
         msg = ""

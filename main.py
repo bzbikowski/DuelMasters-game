@@ -5,8 +5,14 @@ import sys
 
 
 def process_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--d", "--debug", action="store")
+    """
+    Parse agruments from command line into the program.
+    Args:
+    debug | -d | --debug - enable program in debug mode, all messages, warnings and errors will be logged to text file.
+    help | -h | --help - print to console help message
+    """
+    parser = argparse.ArgumentParser(prog="Duel Masters Game")
+    parser.add_argument("-d", "--debug", action="store", default="False", help="enable/disable debug mode")
     parsed_args, unparsed_args = parser.parse_known_args()
     return parsed_args, unparsed_args
 

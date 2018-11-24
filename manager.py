@@ -13,7 +13,7 @@ class DeckManager(QWidget):
     """
     def __init__(self, parent=None, deck=None):
         """
-        deck - if set, open preloaded deck to edit 
+        deck - if set, open pre-loaded deck to edit
         """
         super(DeckManager, self).__init__()
         if deck is not None:
