@@ -1,9 +1,12 @@
-from PyQt5.QtWidgets import QWidget, QPushButton, QGridLayout, QFileDialog, QMessageBox
+import datetime
+import logging
+import sys
+
+from PySide2.QtWidgets import QWidget, QPushButton, QGridLayout, QFileDialog, QMessageBox
+
+from src.database import Database
 from src.game import Game
 from src.manager import DeckManager
-import sys
-import logging
-import datetime
 
 
 class MainMenu(QWidget):
@@ -25,24 +28,32 @@ class MainMenu(QWidget):
         self.main_layout = QGridLayout(self)
 
         game_button = QPushButton("New game", self)
+        game_button.setMinimumHeight(150)
         game_button.clicked.connect(self.new_game)
         self.main_layout.addWidget(game_button, 0, 0)
 
         deck_button = QPushButton("Load deck", self)
+        deck_button.setMinimumHeight(150)
         deck_button.clicked.connect(self.load_deck)
         self.main_layout.addWidget(deck_button, 0, 1)
         
         manager_button = QPushButton("Deck manager", self)
+        manager_button.setMinimumHeight(150)
         manager_button.clicked.connect(self.deck_window)
         self.main_layout.addWidget(manager_button, 1, 0)
         
         exit_button = QPushButton("Exit app", self)
+        exit_button.setMinimumHeight(150)
         exit_button.clicked.connect(self.exit_app)
         self.main_layout.addWidget(exit_button, 1, 1)
 
         self.setup_logger(debug_mode)
+        self.database = Database()
 
     def setup_logger(self, dm):
+        import os
+        if not os.path.exists('./logs'):
+            os.mkdir('./logs')
         self.log = logging.getLogger("dm_game")
         if dm:
             self.log.setLevel(logging.DEBUG)
@@ -67,8 +78,10 @@ class MainMenu(QWidget):
             self.parent.hide()
         else:
             self.log.warning("Deck incomplete.")
-            _ = QMessageBox.information(self, "Information", "Your deck is incomplete",
-                                         QMessageBox.Ok, QMessageBox.NoButton)
+            _ = QMessageBox.information(self, "Information", "Minimum required deck size is 40 cards."
+                                                             " Please, add remaining cards in Deck manager section"
+                                                             " in main menu. ",
+                                        QMessageBox.Ok, QMessageBox.NoButton)
 
     def load_deck(self):
         """
@@ -85,20 +98,21 @@ class MainMenu(QWidget):
                 try:
                     number = int(line.split()[0])
                 except ValueError:
-                    _ = QMessageBox.information(self, "Information", "This text file is corrupted.",
+                    _ = QMessageBox.information(self, "Information", "This deck file is corrupted."
+                                                                     " Please, create new deck. ",
                                                 QMessageBox.Ok, QMessageBox.NoButton)
                     self.deck = []
                     self.log.debug("Deck load failed")
                     return
                 self.deck.append(number)
-        self.log.debug("Deck load success")
+        self.log.debug(f"{file[0]} deck load success")
         
     def deck_window(self):
         """
         Open deck creator.
         """
         self.log.debug("Button editor clicked")
-        self.window = DeckManager(self, self.deck)
+        self.window = DeckManager(self.database, self, self.deck)
         self.log.debug("Class DeckManager created")
         self.window.show()
         self.parent.hide()

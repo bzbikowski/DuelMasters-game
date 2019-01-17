@@ -1,7 +1,9 @@
-from PyQt5.QtNetwork import QTcpSocket, QTcpServer, QHostAddress, QNetworkInterface, QAbstractSocket
-from PyQt5.QtCore import QThread, QIODevice, QDataStream, QByteArray
-from src.controller import Controller
 import re
+
+from PySide2.QtCore import QThread, QIODevice, QDataStream, QByteArray
+from PySide2.QtNetwork import QTcpServer, QHostAddress, QNetworkInterface
+
+from src.controller import Controller
 
 
 class Server(QThread):

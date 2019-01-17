@@ -11,7 +11,9 @@
 		rarity="S"
 		collector_number="S3"
 		artist="Seki">
-		<rules_text>When you put this creature into the battle zone, choose up to 2 creatures in the battle zone and return them to their owners' hands.</rules_text>
+		<rules_text>When you put this creature into the battle zone, choose up to 2 creatures in the battle zone and
+			return them to their owners hands.
+		</rules_text>
 		<flavor_text>Water surrounds, enfolds, buoys...and attacks.</flavor_text>
 		<effects>
 			<teleport count="2" />

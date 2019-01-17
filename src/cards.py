@@ -1,4 +1,7 @@
+import json
 import xml.dom.minidom as minidom
+
+from PySide2.QtCore import QFile, QIODevice
 
 
 class ParseXml:
@@ -23,6 +26,8 @@ class ParseXml:
                     cost = card.getAttribute('cost')
                     power = card.getAttribute('power')
                     rarity = card.getAttribute('rarity')
+                    col_num = card.getAttribute('collector_number')
+                    artist = card.getAttribute('artist')
                     rule = card.getElementsByTagName('rules_text')[0]
                     try:
                         rule_text = rule.firstChild.nodeValue
@@ -44,7 +49,8 @@ class ParseXml:
                             effect_dict[key] = effect.attributes[key].firstChild.nodeValue
                         effect_names.append(effect_name)
                         effect_dicts.append(effect_dict)
-                    cardlist.append(Card(id, global_id, setname, cardname, civ, typ, race, cost, power, rarity, rule_text, flavor_text, [effect_names, effect_dicts]))
+                    cardlist.append(Card(id, global_id, setname, cardname, civ, typ, race, cost, power, rarity, col_num,
+                                         artist, rule_text, flavor_text, [effect_names, effect_dicts]))
                     id += 1
                     global_id += 1
         return cardlist
@@ -54,9 +60,12 @@ class Card:
     """
     Simple class to cointaining all the data about one card
     """
-    def __init__(self, set_id, glob_id, set_name, name, civ, typ, race, cost, power, rarity, rules, flavor, effect):
+
+    def __init__(self, set_id, glob_id, set_name, name, civ, typ, race, cost, power, rarity, col_num,
+                 artist, rules, flavor, effect):
         self.id = set_id
         self.globid = glob_id
+        self.set_name = set_name
         self.name = name
         self.civ = civ
         self.typ = typ
@@ -64,9 +73,29 @@ class Card:
         self.cost = cost
         self.power = power
         self.rarity = rarity
-        self.effect = effect
+        self.col_num = col_num
+        self.artist = artist
         self.rules_text = rules
         self.flavor_text = flavor
-        self.image = "res//img//" + set_name + '//' + str(self.id) + "//" + "low.jpg"
-        self.prev = "res//img//" + set_name + '//' + str(self.id) + "//" + "med.jpg"
-        self.info = "res//img//" + set_name + '//' + str(self.id) + "//" + "high.jpg"
+        self.effects = self.parse_effects(effect)
+        self.images = self.load_images(set_name, set_id)
+
+    def parse_effects(self, effects):
+        json_parse = []
+        names, dicts = effects
+        for effect in zip(names, dicts):
+            eff_d = {effect[0]: effect[1]}
+            json_parse.append(eff_d)
+        return json.dumps({"effects": json_parse})
+
+    def load_images(self, set_name, set_id):
+        images = {}
+        sizes = ["low"]
+        for size in sizes:
+            path = f"res//img//{set_name}//{str(set_id)}//{size}.jpg"
+            print(path)
+            file = QFile(path)
+            if not file.open(QIODevice.ReadOnly):
+                return
+            images[size] = file.readAll()
+        return images

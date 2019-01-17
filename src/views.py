@@ -1,5 +1,5 @@
-from PyQt5.QtWidgets import QGraphicsScene, QGraphicsPixmapItem, QMenu, QAction, QWidget
-from PyQt5.QtGui import QCursor, QTransform
+from PySide2.QtGui import QCursor, QTransform
+from PySide2.QtWidgets import QGraphicsScene, QGraphicsPixmapItem, QMenu, QAction, QWidget
 
 
 class GameView(QGraphicsScene):

@@ -1,10 +1,11 @@
-from PyQt5.QtWidgets import QMainWindow
+from PySide2.QtWidgets import QMainWindow
+
 from src.menu import MainMenu
 
 
 class Window(QMainWindow):
     """
-    Main window widget, which is just cointainer for MainMenu widget.
+    Main window widget, which is just container for MainMenu widget.
     """
     def __init__(self, screen_size=(800, 600), args=None):
         super(Window, self).__init__()

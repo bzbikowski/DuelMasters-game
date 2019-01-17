@@ -1,7 +1,9 @@
-from PyQt5.QtWidgets import QApplication
-from src.window import Window
 import argparse
 import sys
+
+from PySide2.QtWidgets import QApplication
+
+from src.window import Window
 
 
 def process_args():

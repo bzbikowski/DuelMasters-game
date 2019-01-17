@@ -1,14 +1,16 @@
-from PyQt5.QtWidgets import QWidget, QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, \
-    QTextEdit, QLabel, QPushButton, QGraphicsRectItem, QGraphicsTextItem, QMessageBox
-from PyQt5.QtCore import Qt, QTimer
-from PyQt5.QtGui import QBrush, QColor, QPen, QPixmap, QTransform, QImage, QFont
-from src.cards import ParseXml
-from src.views import GameView, CardView, GraveyardView
-from src.network.server import Server
-from src.network.client import Client
-from collections import deque
-import random
 import logging
+import random
+from collections import deque
+
+from PySide2.QtCore import Qt, QTimer
+from PySide2.QtGui import QBrush, QColor, QPen, QPixmap, QTransform, QImage, QFont
+from PySide2.QtWidgets import QWidget, QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, \
+    QTextEdit, QLabel, QPushButton, QGraphicsRectItem, QGraphicsTextItem, QMessageBox
+
+from src.cards import ParseXml
+from src.network.client import Client
+from src.network.server import Server
+from src.views import GameView, CardView, GraveyardView
 
 
 class Game(QWidget):
@@ -89,12 +91,12 @@ class Game(QWidget):
         """
         self.server_button = QPushButton("Create a game room", self)
         self.server_button.setFixedSize(1000, 300)
-        self.server_button.move((self.width() - self.server_button.width())/2, 40)
+        self.server_button.move(int((self.width() - self.server_button.width()) / 2), 40)
         self.server_button.clicked.connect(self.wait_for_connection)
         self.server_button.setFont(QFont("Arial", 60))
         self.client_button = QPushButton("Connect to existing game", self)
         self.client_button.setFixedSize(1000, 300)
-        self.client_button.move((self.width() - self.client_button.width()) / 2, 420)
+        self.client_button.move(int((self.width() - self.client_button.width()) / 2), 420)
         self.client_button.clicked.connect(self.connect_to_room)
         self.client_button.setFont(QFont("Arial", 60))
         # self.back_button = QPushButton("Back", self)
@@ -128,7 +130,7 @@ class Game(QWidget):
         self.port_field.setVisible(True)
         self.ok_button = QPushButton("Accept", self)
         self.ok_button.setFixedSize(600, 140)
-        self.ok_button.move((self.width() - self.ok_button.width())/2, 560)
+        self.ok_button.move(int((self.width() - self.ok_button.width()) / 2), 560)
         if self.debug_mode:
             self.ok_button.clicked.connect(self.connected_with_player)
         else:
@@ -174,8 +176,9 @@ class Game(QWidget):
         self.server = Server(self)
         ip_local, ip_ham, ip_port = self.server.find_ip()
         if ip_local == "0.0.0.0":
-            _ = QMessageBox.information(self, "Information", "Couldn't find a valid ip address. Please check your connection.",
-                                         QMessageBox.Ok, QMessageBox.NoButton)
+            _ = QMessageBox.information(self, "Information", "Couldn't find a valid ip address."
+                                                             " Please check your connection.",
+                                        QMessageBox.Ok, QMessageBox.NoButton)
             return
         else:
             if ip_ham == "0.0.0.0":
@@ -615,7 +618,7 @@ class Game(QWidget):
     def teleport(self, count, firsttime=True):
         if firsttime:
             self.message_screen_request(QColor(55, 55, 55), QColor(255, 0, 0),
-                                        "Choose {} cards in the battlefield to activate the effect.".format(count))
+                                        f"Choose {count} cards in the battlefield to activate the effect.")
             self.card_to_choose = count
             self.type_to_choose = ["yu_bf", "op_bf"]
             self.fun_to_call = self.teleport
@@ -630,6 +633,7 @@ class Game(QWidget):
     #####################################################
 
     def m_end_turn(self):
+        # end your turn
         self.add_log("Koniec tury.")
         self.send_message(2)
         self.your_turn = False
