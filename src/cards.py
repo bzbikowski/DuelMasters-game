@@ -60,9 +60,9 @@ class Card:
     """
     Simple class to cointaining all the data about one card
     """
-
     def __init__(self, set_id, glob_id, set_name, name, civ, typ, race, cost, power, rarity, col_num,
                  artist, rules, flavor, effect):
+        # todo add doc
         self.id = set_id
         self.globid = glob_id
         self.set_name = set_name
@@ -77,7 +77,7 @@ class Card:
         self.artist = artist
         self.rules_text = rules
         self.flavor_text = flavor
-        self.effects = self.parse_effects(effect)
+        self.effects, self.effects_json = self.parse_effects(effect)
         self.images = self.load_images(set_name, set_id)
 
     def parse_effects(self, effects):
@@ -86,14 +86,13 @@ class Card:
         for effect in zip(names, dicts):
             eff_d = {effect[0]: effect[1]}
             json_parse.append(eff_d)
-        return json.dumps({"effects": json_parse})
+        return json_parse, json.dumps({"effects": json_parse})
 
     def load_images(self, set_name, set_id):
         images = {}
         sizes = ["low"]
         for size in sizes:
             path = f"res//img//{set_name}//{str(set_id)}//{size}.jpg"
-            print(path)
             file = QFile(path)
             if not file.open(QIODevice.ReadOnly):
                 return

@@ -16,7 +16,7 @@ class Window(QMainWindow):
         width = 800
         height = 600
         self.setFixedSize(width, height)
-        self.move((screen_size[0] - width)/2, (screen_size[1] - height)/2 - 20)
+        self.move(int((screen_size[0] - width) / 2), int((screen_size[1] - height) / 2) - 20)
         self.setWindowTitle("Duel master - Main menu")
         self.ui = MainMenu(debug_mode, self)
         self.setCentralWidget(self.ui)

@@ -73,7 +73,7 @@ class MainMenu(QWidget):
         self.log.debug("Button start clicked")
         if len(self.deck) >= 40:
             self.log.info("Game class created")
-            self.game = Game(self.deck, self.is_debug_mode, self)
+            self.game = Game(self.deck, self.database, self.is_debug_mode, self)
             self.game.show()
             self.parent.hide()
         else:

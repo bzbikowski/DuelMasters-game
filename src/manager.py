@@ -158,6 +158,7 @@ class DeckManager(QWidget):
         power = self.power_input1.text()
         sign = self.power_option1.currentText()
         if not power == "":
+            # todo if spell, than don't search by power
             try:
                 power = int(power)
             except ValueError:

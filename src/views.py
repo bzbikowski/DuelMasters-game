@@ -9,6 +9,7 @@ class GameView(QGraphicsScene):
     Right mouse button creates context menu to choose actions about the game.
     """
     def __init__(self, parent=None):
+        # todo something is breaking when clicked on card
         super(GameView, self).__init__(parent)
         self.parent = parent
 
@@ -28,6 +29,10 @@ class GameView(QGraphicsScene):
                 end_action = QAction("Accept cards")
                 end_action.triggered.connect(self.parent.m_accept_cards)
                 menu.addAction(end_action)
+            if self.parent.debug_mode:
+                draw_action = QAction("Draw a card")
+                draw_action.triggered.connect(self.parent.draw_a_card)
+                menu.addAction(draw_action)
             end_action = QAction("End turn")
             end_action.triggered.connect(self.parent.m_end_turn)
             menu.addAction(end_action)
@@ -58,7 +63,7 @@ class CardView(QGraphicsPixmapItem):
         super(CardView, self).mousePressEvent(event)
         if not self.parent.locked:
             self.parent.locked = True
-            self.parent.startTime()
+            self.parent.start_time()
             if self.card is not None:
                 self.parent.card_clicked(self.x(), self.y(), self.card.id)
             else:
@@ -167,5 +172,3 @@ class GraveyardView(QWidget):
         self.height = 600
         self.setFixedSize(self.width, self.height)
         print(len(cards))
-        
-        

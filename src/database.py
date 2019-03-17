@@ -5,6 +5,7 @@ from src.cards import ParseXml
 
 class Database(object):
     def __init__(self):
+        # todo cleanup class and add doc
         self.db = QSqlDatabase.addDatabase("QSQLITE")
         self.db.setDatabaseName("dataset.db")
         # db.setUserName(os.getenv("DB_LOG"))
@@ -43,8 +44,9 @@ class Database(object):
                 querry.bindValue(":artist", card.artist)
                 querry.bindValue(":rules", card.rules_text)
                 querry.bindValue(":flavor", card.flavor_text)
-                querry.bindValue(":effects", card.effects)
+                querry.bindValue(":effects", card.effects_json)
                 querry.bindValue(":high", card.images['low'])
+                # todo create high resolution cards and change low to high
                 querry.bindValue(":low", card.images['low'])
                 querry.bindValue(":set_name", card.set_name)
                 ok = querry.exec_()

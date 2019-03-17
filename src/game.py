@@ -1,6 +1,5 @@
 import logging
 import random
-from collections import deque
 
 from PySide2.QtCore import Qt, QTimer
 from PySide2.QtGui import QBrush, QColor, QPen, QPixmap, QTransform, QImage, QFont
@@ -8,6 +7,7 @@ from PySide2.QtWidgets import QWidget, QGraphicsView, QGraphicsScene, QGraphicsP
     QTextEdit, QLabel, QPushButton, QGraphicsRectItem, QGraphicsTextItem, QMessageBox
 
 from src.cards import ParseXml
+from src.logs import Logger
 from src.network.client import Client
 from src.network.server import Server
 from src.views import GameView, CardView, GraveyardView
@@ -17,12 +17,15 @@ class Game(QWidget):
     """
     Main class in application.
     """
-    def __init__(self, deck, debug, parent=None):
+
+    def __init__(self, deck, database, debug, parent=None):
+        # todo change to sqlite
         super(Game, self).__init__()
         width = 1360
         height = 768
         self.setFixedSize(width, height)
         self.log = None
+        self.database = database
         # self.move((screen_width - self.width)/2, (screen_height - self.height)/2 - 20)
         self.setWindowTitle("Duel masters - Video game")
         self.debug_mode = debug
@@ -62,7 +65,7 @@ class Game(QWidget):
         self.preview_scene.setBackgroundBrush(QBrush(QColor(0, 0, 0)))
         self.preview.setVisible(False)
 
-        self.logs = deque(maxlen=10)
+        self.log_panel = Logger()
         self.setup_logger()
 
         self.cardlist = ParseXml().parseFile('res/cards.xml')
@@ -75,7 +78,12 @@ class Game(QWidget):
         else:
             self.log.setLevel(logging.DEBUG)
 
+    def add_log(self, msg):
+        """Add log to log panel"""
+        self.log_panel.append(msg)
+
     def closeEvent(self, event):
+        """Close connection and return to menu"""
         if self.started:
             if self.isServer:
                 self.server.wait()
@@ -107,7 +115,7 @@ class Game(QWidget):
         Client side
         Enter ip address and port of computer, which you want to connect to
         """
-        self.log.debug("Connect")
+        self.log.debug("Connecting to server...")
         self.server_button.setVisible(False)
         self.client_button.setVisible(False)
         self.ip_address_label = QLabel("Ip address: ", self)
@@ -147,6 +155,7 @@ class Game(QWidget):
             port = int(self.port_field.toPlainText())
         except:
             return
+        self.log.debug(f"Trying to connect to: {addr}, {port}")
         self.isServer = False
         self.client = Client(addr, port, self)
         self.started = True
@@ -183,8 +192,10 @@ class Game(QWidget):
         else:
             if ip_ham == "0.0.0.0":
                 self.ip_address_label.setText("Your address is {}".format(ip_local))
+                self.log.debug(f"You are listening on: {ip_local}, {ip_port}")
             else:
                 self.ip_address_label.setText("Your address is {}".format(ip_ham))
+                self.log.debug(f"You are listening on: {ip_ham}, {ip_port}")
         self.port_label.setText("You are listining on port {}".format(ip_port))
         self.isServer = True
         self.started = True
@@ -196,13 +207,16 @@ class Game(QWidget):
         """
         if self.debug_mode:
             self.client = Client("127.0.0.1", 10000, self)
-        if self.isServer:
-            if random.random() < 0.5:
-                self.turn_states(0)
-                self.add_log("You start the game! Your turn.")
-            else:
-                self.send_message(1)
-                self.add_log("Opponent starts the game.")
+            self.turn_states(0)
+            self.log.debug("Debug mode.")
+        else:
+            if self.isServer:
+                if random.random() < 0.5:
+                    self.turn_states(0)
+                    self.add_log("You start the game! Your turn.")
+                else:
+                    self.send_message(1)
+                    self.add_log("Opponent starts the game.")
         self.clear_window()
         self.init_game()
         self.draw_screen()
@@ -250,7 +264,7 @@ class Game(QWidget):
         self.change_button_state = True
         self.selected_card = []
 
-    def startTime(self):
+    def start_time(self):
         """
         Implemented to block choosing multiple cards with one click.
         One mouse click should always choose a card on the top.
@@ -262,6 +276,7 @@ class Game(QWidget):
         self.timer.timeout.connect(self.change_state)
 
     def change_state(self):
+        """Change state"""
         self.locked = False
         
     def draw_screen(self):
@@ -281,7 +296,7 @@ class Game(QWidget):
             card = CardView("yu_gv", 1, self)
             item = self.find_card(self.graveyard[len(self.graveyard) - 1])
             card.set_card(item)
-            card.setPixmap(QPixmap(item.image))
+            card.setPixmap(self.get_pixmap_card(self.graveyard[len(self.graveyard) - 1]))
             card.setPos(866, 639)
             self.view_scene.addItem(card)
         # opponent's graveyard
@@ -290,7 +305,7 @@ class Game(QWidget):
             item = self.find_card(self.opp_graveyard[len(self.opp_graveyard) - 1])
             card.set_card(item)
             transform = QTransform().rotate(180)
-            card.setPixmap(QPixmap(item.image).transformed(transform))
+            card.setPixmap(self.get_pixmap_card(self.opp_graveyard[len(self.opp_graveyard) - 1]).transformed(transform))
             card.setPos(74, 14)
             self.view_scene.addItem(card)
         # your cards in hand
@@ -309,26 +324,33 @@ class Game(QWidget):
             self.extend_logs_button.setText("*")
             self.proxy.setPos(20, 20)
         # display logs
-        if not len(self.logs) == 0:
+        if not len(self.log_panel) == 0:
             if self.change_button_state:
-                lenght = min(len(self.logs), 3)
+                lenght = min(len(self.log_panel), 3)
             else:
-                lenght = min(len(self.logs), 10)
+                lenght = min(len(self.log_panel), 10)
             x_pos = 20
             y_pos = 698
             y_height = 50
             x_width = 296
             for i in range(lenght):
-                log = self.logs[i]
+                log = self.log_panel[i]
                 ramka = QGraphicsRectItem(x_pos, y_pos, x_width, y_height)
                 ramka.setPen(QPen(QColor(255, 0, 0)))
                 self.preview_scene.addItem(ramka)
 
-                tekst = QGraphicsTextItem(log.info)
+                tekst = QGraphicsTextItem(log)
                 tekst.setPos(x_pos + 10, y_pos + 5)
                 tekst.setTextWidth(x_width-20)
                 self.preview_scene.addItem(tekst)
                 y_pos -= 60
+
+    def get_pixmap_card(self, card_id, res='low_res'):
+        """Get pixmap of card from the database"""
+        pixmap = QPixmap()
+        if not pixmap.loadFromData(self.database.getdata(card_id, res)):
+            raise Exception("Brak obrazka")
+        return pixmap
         
     def card_clicked(self, x, y, c_id=None):
         """
@@ -338,15 +360,16 @@ class Game(QWidget):
         if self.change_button_state:
             if c_id is not None:
                 self.draw_preview_card(c_id)
-        self.highlightCard(x, x + 85, y, y + 115, QColor(255, 0, 0))
+        self.highlight_card(x, x + 85, y, y + 115, QColor(255, 0, 0))
 
     def change_logs_size(self):
+        """Change size of log panel on right size"""
         self.change_button_state = not self.change_button_state
         self.refresh_screen()
-        
-    def highlightCard(self, x1, x2, y1, y2, color):
+
+    def highlight_card(self, x1, x2, y1, y2, color):
         """
-        draw a frame around a clicked card on the board
+        Draw a frame around a clicked card on the board
         """
         self.view_scene.addLine(x1 - 1, y1 - 1, x1 - 1, y2 + 1, QPen(color))
         self.view_scene.addLine(x2 + 1, y1 - 1, x2 + 1, y2 + 1, QPen(color))
@@ -355,15 +378,16 @@ class Game(QWidget):
 
     def draw_preview_card(self, card_id):
         """
-        draw a preview of the clicked card on preview side of the screen
+        Draw a preview of the clicked card on preview side of the screen
         """
-        card_prev = QGraphicsPixmapItem(QPixmap(self.find_card(card_id).info))
+        pixmap = self.get_pixmap_card(card_id, 'high_res')
+        card_prev = QGraphicsPixmapItem(pixmap)
         card_prev.setPos(0, 0)
         self.preview_scene.addItem(card_prev)
         
     def add_hand_to_scene(self, arr, type):
         """
-        draw card from hand into the screen
+        Draw card from hand into the screen
         """
         x = 0
         height = 0
@@ -376,11 +400,11 @@ class Game(QWidget):
             item = CardView(type, i + 1, self)
             if arr[i] == -1:
                 link = "res//img//cardback.png"
+                pixmap = QPixmap(link)
             else:
+                pixmap = self.get_pixmap_card(arr[i])
                 card = self.find_card(arr[i])
                 item.set_card(card)
-                link = card.image
-            pixmap = QPixmap(link)
             if type == "op_hd":
                 transform = QTransform().rotate(180)
                 pixmap = pixmap.transformed(transform)
@@ -400,12 +424,12 @@ class Game(QWidget):
                 for sel_card in self.selected_card:
                     if sel_card[0] == type:
                         if sel_card[1] == i + 1:
-                            self.highlightCard(x, x+85, height, height+115, QColor(0, 0, 255))
+                            self.highlight_card(x, x + 85, height, height + 115, QColor(0, 0, 255))
                             break
             
     def add_mana_to_scene(self, arr, type):
         """
-        draw card from mana into the screen
+        Draw card from mana into the screen
         """
         x = 0
         height = 0
@@ -418,7 +442,8 @@ class Game(QWidget):
             item = CardView(type, i + 1, self)
             card = self.find_card(arr[i][0])
             item.set_card(card)
-            pixmap = QPixmap(card.image)
+            pixmap = self.get_pixmap_card(arr[i][0])
+            # pixmap = QPixmap(card.image)
             if type == "yu_mn":
                 transform = QTransform().rotate(180)
                 pixmap = pixmap.transformed(transform)
@@ -440,12 +465,12 @@ class Game(QWidget):
                 for sel_card in self.selected_card:
                     if sel_card[0] == type:
                         if sel_card[1] == i + 1:
-                            self.highlightCard(x, x+85, height, height+115, QColor(0, 0, 255))
+                            self.highlight_card(x, x + 85, height, height + 115, QColor(0, 0, 255))
                             break
 
     def add_shield_to_scene(self, arr, type):
         """
-        draw shield into the screen
+        Draw shield into the screen
         """
         for i in range(len(arr)):
             x = y = 0
@@ -459,7 +484,8 @@ class Game(QWidget):
                     else:
                         item = self.find_card(arr[i][0])
                         card.set_card(item)
-                        card.setPixmap(QPixmap(item.image))
+                        pixmap = self.get_pixmap_card(arr[i][0])
+                        card.setPixmap(pixmap)
                     card.setPos(x, y + i * 125)  # tarcze twoje
                     self.view_scene.addItem(card)
             elif type == "op_sh":
@@ -476,12 +502,12 @@ class Game(QWidget):
                 for sel_card in self.selected_card:
                     if sel_card[0] == type:
                         if sel_card[1] == i + 1:
-                            self.highlightCard(x, x+85, y, y+115, QColor(0, 0, 255))
+                            self.highlight_card(x, x + 85, y, y + 115, QColor(0, 0, 255))
                             break
 
     def add_bf_to_scene(self, arr, type):
         """
-        draw card from battlefield into the screen
+        Draw card from battlefield into the screen
         """
         x = 232
         y = 0
@@ -494,19 +520,20 @@ class Game(QWidget):
                 card = CardView(type, i + 1, self)
                 item = self.find_card(arr[i])
                 card.set_card(item)
-                card.setPixmap(QPixmap(item.image))
+                pixmap = self.get_pixmap_card(arr[i])
+                card.setPixmap(pixmap)
                 card.setPos(x + i * 95, y)  # pole potworów twoje
                 self.view_scene.addItem(card)
             if not len(self.selected_card) == 0:
                 for sel_card in self.selected_card:
                     if sel_card[0] == type:
                         if sel_card[1] == i + 1:
-                            self.highlightCard(x, x + 85, y, y + 115, QColor(0, 0, 255))
+                            self.highlight_card(x, x + 85, y, y + 115, QColor(0, 0, 255))
                             break
 
     def find_card(self, iden):
         """
-        find informations about card of given id
+        Find informations about card of given id
         :param iden:  id of the card
         :return: Card class with all informations about it
         """
@@ -516,7 +543,7 @@ class Game(QWidget):
 
     def send_message(self, *msg):
         """
-        Wiadomości wysyłane do przeciwnika
+        Messages, which are sent to opponent:
         0 - przeciwnik wygrał
         1 - przeciwnik zaczyna grę
         2 - koniec mojej tury
@@ -546,6 +573,7 @@ class Game(QWidget):
         
     def turn_states(self, state):
         """
+        Set state of on start of your turn:
         0 -> pierwsza runda w grze
         1 -> dobierz kartę + rzucanie many/czary/creatury
         """
@@ -557,27 +585,33 @@ class Game(QWidget):
             self.your_turn = True
 
     def win(self):
+        """Do someting when you win"""
         print("Winner!")
 
     def lose(self):
+        """Do someting when you lose"""
         print("Loser!")
 
     def refresh_screen(self):
+        """Refresh screen"""
         self.clear_view_scene()
         self.clear_preview_scene()
         self.draw_screen()
 
     def clear_view_scene(self):
+        """Remove all items from view"""
         items = self.view_scene.items()
         for i in range(len(items)-1):
             self.view_scene.removeItem(items[i])
 
     def clear_preview_scene(self):
+        """Remove all items from preview"""
         items = self.preview_scene.items()
         for i in range(len(items)-2):
             self.preview_scene.removeItem(items[i])
 
     def draw_a_card(self):
+        """Draw a top card from your deck and add it to your hand"""
         if not len(self.deck) == 0:
             card = self.deck.pop(0)
             self.add_log("Dobierasz karte {}.".format(self.find_card(card).name))
@@ -589,16 +623,15 @@ class Game(QWidget):
         self.refresh_screen()
 
     def summon_effect(self, card_id):
+        """Check and trigger the effects of played card"""
         card = self.find_card(card_id)
-        names, attr = card.effect
-        for eff, att in zip(names, attr):
-            if eff == "teleport":
-                count = att["count"]
+        for effect in card.effects:
+            if "teleport" in effect.keys():
+                count = effect["teleport"]["count"]
                 self.teleport(count)
 
     def message_screen_request(self, bg_color, frame_color, text):
-        # pojawiający się box z info na środku ekranu
-        # po jednym kliknięciu znika
+        """Message box for displaying important information. After one click it disappears."""
         bg = QGraphicsRectItem(100, 100, 200, 200)
         bg.setBrush(QBrush(bg_color))
         self.view_scene.addItem(bg)
@@ -611,8 +644,7 @@ class Game(QWidget):
         self.focus_request = True
         self.select_mode = True
 
-
-    #  METODY EFEKTÓW
+    #  EFFECT METHODS
     #####################################################
 
     def teleport(self, count, firsttime=True):
@@ -629,7 +661,7 @@ class Game(QWidget):
             self.type_to_choose = []
             self.select_mode = False
 
-    #   METODY MENU
+    #   MENU METHODS
     #####################################################
 
     def m_end_turn(self):
@@ -698,9 +730,10 @@ class Game(QWidget):
         self.refresh_screen()
         
     def m_add_to_mana(self, iden):
-        if self.card_to_mana > 0:
+        if self.card_to_mana > 0 or self.debug_mode:
             card = self.hand.pop(iden-1)
             self.mana.append([card, True])
+            self.card_to_mana -= 1
             self.send_message(7, card)
             self.refresh_screen()
         

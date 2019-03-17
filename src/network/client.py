@@ -26,7 +26,7 @@ class Client(QThread):
         self.socket.disconnected.connect(self.disconnected)
         # self.socket.bytesWritten.connect()
 
-    def connect(self):
+    def start_connection(self):
         self.socket.connectToHost(QHostAddress(self.address), self.port, QIODevice.ReadWrite)
         self.socket.waitForConnected(10000)
 
@@ -41,7 +41,7 @@ class Client(QThread):
         block = QByteArray()
         stream = QDataStream(block, QIODevice.WriteOnly)
         stream.setVersion(QDataStream.Qt_5_10)
-        msg = bytes(msg, encoding='ascii')
+        # msg = bytes(msg, encoding='ascii')
         stream.writeString(msg)
         stream.device().seek(0)
 
@@ -70,4 +70,4 @@ class Client(QThread):
         self.wait()
 
     def run(self):
-        self.connect()
+        self.start_connection()
