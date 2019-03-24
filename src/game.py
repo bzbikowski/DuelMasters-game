@@ -629,6 +629,9 @@ class Game(QWidget):
             if "teleport" in effect.keys():
                 count = effect["teleport"]["count"]
                 self.teleport(count)
+            if "destroy_blockers" in effect.keys():
+                if effect["destroy_blockers"]["mode"] == "all":
+                    self.destroy_blocker(-1)
 
     def message_screen_request(self, bg_color, frame_color, text):
         """Message box for displaying important information. After one click it disappears."""

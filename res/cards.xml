@@ -377,7 +377,7 @@ Double breaker (This creature breaks 2 shields.)</rules_text>
 This creature can't attack players.</rules_text>
 		<flavor_text>Flying is the greatest taboo of any race that has encountered the Guardians.</flavor_text>
         <effects>
-            <blocker mode="Normal" />
+            <blocker mode="normal"/>
             <not_attacking mode="players" />
         </effects>
 	</card>

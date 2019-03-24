@@ -62,7 +62,23 @@ class Card:
     """
     def __init__(self, set_id, glob_id, set_name, name, civ, typ, race, cost, power, rarity, col_num,
                  artist, rules, flavor, effect):
-        # todo add doc
+        """
+        :param set_id: identification number of card-set
+        :param glob_id: identification number of card in all card-sets
+        :param set_name: name of card-set
+        :param name: name of card
+        :param civ: civilization of card
+        :param typ: type of card (creature, spell etc..)
+        :param race: race of card (if creature)
+        :param cost: cost of card in mana
+        :param power: power of card (if creature)
+        :param rarity: rarity of card
+        :param col_num: ?
+        :param artist: ?
+        :param rules: ?
+        :param flavor: ?
+        :param effect: ?
+        """
         self.id = set_id
         self.globid = glob_id
         self.set_name = set_name
@@ -78,6 +94,7 @@ class Card:
         self.rules_text = rules
         self.flavor_text = flavor
         self.effects, self.effects_json = self.parse_effects(effect)
+        print(self.effects_json)
         self.images = self.load_images(set_name, set_id)
 
     def parse_effects(self, effects):

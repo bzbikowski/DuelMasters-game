@@ -15,7 +15,7 @@ class MainMenu(QWidget):
     """
     def __init__(self, debug_mode, parent=None):
         """
-        Init all widgets and layout for the menu.
+        Initialize all widgets and layouts for the menu.
         """
         super(MainMenu, self).__init__(parent)
         self.is_debug_mode = debug_mode
