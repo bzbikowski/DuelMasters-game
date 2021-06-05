@@ -98,17 +98,17 @@ class Game(QWidget):
         - make a room (server)
         """
         self.server_button = QPushButton("Create a game room", self)
-        self.server_button.setFixedSize(1000, 300)
+        self.server_button.setFixedSize(1000, 200)
         self.server_button.move(int((self.width() - self.server_button.width()) / 2), 40)
         self.server_button.clicked.connect(self.wait_for_connection)
         self.server_button.setFont(QFont("Arial", 60))
         self.client_button = QPushButton("Connect to existing game", self)
-        self.client_button.setFixedSize(1000, 300)
-        self.client_button.move(int((self.width() - self.client_button.width()) / 2), 420)
+        self.client_button.setFixedSize(1000, 200)
+        self.client_button.move(int((self.width() - self.client_button.width()) / 2), 220)
         self.client_button.clicked.connect(self.connect_to_room)
         self.client_button.setFont(QFont("Arial", 60))
-        # self.back_button = QPushButton("Back", self)
-        # self.back_button.clicked.connect(self.back)
+        self.back_button = QPushButton("Back", self)
+        self.back_button.clicked.connect(lambda: print(self.child))
         
     def connect_to_room(self):
         """

@@ -1,5 +1,5 @@
-from PyQt5.QtCore import QIODevice, QDataStream, QByteArray
-from PyQt5.QtNetwork import QTcpServer, QHostAddress
+from PySide2.QtCore import QIODevice, QDataStream, QByteArray
+from PySide2.QtNetwork import QTcpServer, QHostAddress
 
 msg = "*beep*"
 

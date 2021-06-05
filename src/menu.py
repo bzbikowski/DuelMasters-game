@@ -58,7 +58,7 @@ class MainMenu(QWidget):
         if dm:
             self.log.setLevel(logging.DEBUG)
         else:
-            self.log.setLevel(logging.DEBUG)
+            self.log.setLevel(logging.INFO)
         time = datetime.datetime.now()
         terminal = logging.FileHandler('logs/{0}-{1}-{2}_{3}-{4}-{5}.log'.format(time.year, time.month, time.day, time.hour, time.minute, time.second))
         terminal.setLevel(logging.DEBUG)

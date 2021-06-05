@@ -38,6 +38,7 @@ class Server(QThread):
         return self.wifi_addr, self.ham_addr, self.port
 
     def conn_handle(self):
+        print("NEW_CONNECTION")
         self.socket = self.server.nextPendingConnection()
         if not self.socket.isValid():
             print("Critical error, do nothing")
@@ -48,44 +49,47 @@ class Server(QThread):
         self.parent.connected_with_player()
 
     def server_error_handle(self):
-        print("Jakiś error")
+        print("ERROR: server_error_handle")
 
     def socket_error_handle(self):
-        print("Jakis inny error")
+        print("ERROR: socket_error_handle")
 
     def __del__(self):
         self.server.close()
         self.wait()
 
     def run(self):
+        print("LOOKING_FOR_CONNECTION")
         if self.ham_addr == "0.0.0.0":
             self.server.listen(QHostAddress(self.wifi_addr), self.port)
         else:
             self.server.listen(QHostAddress(self.ham_addr), self.port)
 
     def send_data(self, data):
+        print("SENT")
         msg = ""
         for item in data:
             m = hex(int(item))[2:]
             while len(m) < 2:
                 m = "0" + m
             msg += m
-        print(msg)
         block = QByteArray()
         stream = QDataStream(block, QIODevice.WriteOnly)
-        stream.setVersion(QDataStream.Qt_5_10)
+        stream.setVersion(QDataStream.Qt_5_15)
         msg = bytes(msg, encoding='ascii')
         stream.writeString(msg)
         stream.device().seek(0)
+        print("SENT: " + msg)
 
     def receive_data(self):
+        print("RECEIVE")
         stream = QDataStream(self.socket)
-        stream.setVersion(QDataStream.Qt_5_10)
+        stream.setVersion(QDataStream.Qt_5_15)
         if self.socket.bytesAvailable() < 2:
             return
         data = stream.readUInt16()
         if self.socket.bytesAvailable() < data:
             return
         msg = str(data.readString(), encoding='ascii')
-        print(msg)
+        print("RECEIVED: " + msg)
         self.controller.received_message(msg)

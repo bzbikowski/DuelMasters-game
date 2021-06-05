@@ -2,6 +2,7 @@ import argparse
 import sys
 
 from PySide2.QtWidgets import QApplication
+from PySide2.QtGui import QGuiApplication
 
 from src.window import Window
 
@@ -14,7 +15,7 @@ def process_args():
     help | -h | --help - print to console help message
     """
     parser = argparse.ArgumentParser(prog="Duel Masters Game")
-    parser.add_argument("-d", "--debug", action="store", default="False", help="enable/disable debug mode")
+    parser.add_argument("-d", "--debug", action="store", default="True", help="enable/disable debug mode")
     parsed_args, unparsed_args = parser.parse_known_args()
     return parsed_args, unparsed_args
 
@@ -23,7 +24,7 @@ if __name__ == "__main__":
     parsed_args, unparsed_args = process_args()
     qt_args = sys.argv[:1] + unparsed_args
     app = QApplication(qt_args)
-    size = app.desktop().screenGeometry().getRect()[2:4]
-    qapp = Window(size, parsed_args)
-    qapp.show()
+    size = QGuiApplication.primaryScreen().availableGeometry()
+    window = Window((size.width(), size.height()), parsed_args)
+    window.show()
     sys.exit(app.exec_())

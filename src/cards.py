@@ -94,7 +94,7 @@ class Card:
         self.rules_text = rules
         self.flavor_text = flavor
         self.effects, self.effects_json = self.parse_effects(effect)
-        print(self.effects_json)
+        # print(self.effects_json)
         self.images = self.load_images(set_name, set_id)
 
     def parse_effects(self, effects):
