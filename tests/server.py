@@ -6,7 +6,7 @@ msg = "*beep*"
 if __name__ == "__main__":
     server = QTcpServer()
     server.setMaxPendingConnections(2)
-    server.listen(QHostAddress("192.168.10.44"), 10099)
+    server.listen(QHostAddress("192.168.56.101"), 10099)
     if server.waitForNewConnection(100000):
         socket = server.nextPendingConnection()
         print("Znaleziono cos")

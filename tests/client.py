@@ -3,17 +3,26 @@ from PySide2.QtCore import QThread, QIODevice, QDataStream, QByteArray
 
 msg = "*beep*"
 
+stream = QDataStream(socket)
+stream.setVersion(QDataStream.Qt_5_10)
+data = ""
+
 if __name__ == "__main__":
     socket = QTcpSocket()
-    socket.connectToHost(QHostAddress("192.168.10.44"), 10023, QIODevice.ReadWrite)
+    socket.connectToHost(QHostAddress("192.168.56.101"), 10099, QIODevice.ReadWrite)
+    socket.readyRead.connect(receive_data)
+
     if socket.waitForConnected(100000):
         while True:
-            stream = QDataStream(socket)
-            stream.setVersion(QDataStream.Qt_5_10)
-            if socket.bytesAvailable() < 2:
-                pass
-            data = stream.readUInt16()
-            if socket.bytesAvailable() < data:
-                pass
-            msg = str(data.readString(), encoding='ascii')
-            print(msg)
+            stream.startTransaction()
+            data = stream.readString()
+            if not stream.commitTransaction():
+                continue
+            print(data)
+
+def receive_data():
+    stream.startTransaction()
+    data += stream.readString()
+    if not stream.commitTransaction():
+        return
+    print(data)
