@@ -7,6 +7,8 @@ from PySide2.QtWidgets import QWidget, QPushButton, QGridLayout, QFileDialog, QM
 from src.database import Database
 from src.game import Game
 from src.manager import DeckManager
+from src.ui.ui_menu import Ui_Menu
+from src.connection import Connection
 
 
 class MainMenu(QWidget):
@@ -18,6 +20,8 @@ class MainMenu(QWidget):
         Initialize all widgets and layouts for the menu.
         """
         super(MainMenu, self).__init__(parent)
+        self.ui = Ui_Menu()
+        self.ui.setupUi(self)
         self.is_debug_mode = debug_mode
 
         self.game = None
@@ -25,27 +29,11 @@ class MainMenu(QWidget):
         self.window = None
         self.deck = []
         self.parent = parent
-        self.main_layout = QGridLayout(self)
 
-        game_button = QPushButton("New game", self)
-        game_button.setMinimumHeight(150)
-        game_button.clicked.connect(self.new_game)
-        self.main_layout.addWidget(game_button, 0, 0)
-
-        deck_button = QPushButton("Load deck", self)
-        deck_button.setMinimumHeight(150)
-        deck_button.clicked.connect(self.load_deck)
-        self.main_layout.addWidget(deck_button, 0, 1)
-        
-        manager_button = QPushButton("Deck manager", self)
-        manager_button.setMinimumHeight(150)
-        manager_button.clicked.connect(self.deck_window)
-        self.main_layout.addWidget(manager_button, 1, 0)
-        
-        exit_button = QPushButton("Exit app", self)
-        exit_button.setMinimumHeight(150)
-        exit_button.clicked.connect(self.exit_app)
-        self.main_layout.addWidget(exit_button, 1, 1)
+        self.ui.game_button.clicked.connect(self.new_game)
+        self.ui.deck_button.clicked.connect(self.load_deck)
+        self.ui.manager_button.clicked.connect(self.deck_window)
+        self.ui.exit_button.clicked.connect(self.exit_app)
 
         self.setup_logger(debug_mode)
         self.database = Database()
@@ -73,9 +61,17 @@ class MainMenu(QWidget):
         self.log.debug("Button start clicked")
         if len(self.deck) >= 40:
             self.log.info("Game class created")
-            self.game = Game(self.deck, self.database, self.is_debug_mode, self)
-            self.game.show()
-            self.parent.hide()
+            self.connection = Connection(self)
+            mode = self.connection.exec_()
+            if mode == 0:
+                self.show_window()
+            elif mode in [1, 2]:
+                self.game = Game(mode, self.deck, self.database, self.is_debug_mode, self)
+                # self.game.show()
+                self.parent.hide()
+            else:
+                print("Weird error")
+                sys.exit(99)
         else:
             self.log.warning("Deck incomplete.")
             _ = QMessageBox.information(self, "Information", "Minimum required deck size is 40 cards."

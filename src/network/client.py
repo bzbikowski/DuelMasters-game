@@ -1,10 +1,10 @@
-from PySide2.QtCore import QThread, QIODevice, QDataStream, QByteArray
+from PySide2.QtCore import QIODevice, QDataStream, QByteArray
 from PySide2.QtNetwork import QTcpSocket, QHostAddress, QAbstractSocket
 
 from src.controller import Controller
 
 
-class Client(QThread):
+class Client(QTcpSocket):
     """
     Client class for communication Client <-> Server.
     """
@@ -19,17 +19,16 @@ class Client(QThread):
         self.port = port
         self.parent = parent
         self.controller = Controller(parent)
-        self.socket = QTcpSocket()
-        self.socket.connected.connect(self.parent.connected_with_player)
-        self.socket.error.connect(self.server_error_handle)
-        self.socket.readyRead.connect(self.receive_data)
-        self.socket.disconnected.connect(self.disconnected)
-        # self.socket.bytesWritten.connect()
+        self.connected.connect(self.parent.connected_with_player)
+        self.error.connect(self.server_error_handle)
+        self.readyRead.connect(self.receive_data)
+        self.disconnected.connect(self.disconnected)
+        # self.bytesWritten.connect()
 
     def start_connection(self):
         print("START_CONNECTION")
-        self.socket.connectToHost(QHostAddress(self.address), self.port, QIODevice.ReadWrite)
-        self.socket.waitForConnected(10000)
+        self.connectToHost(QHostAddress(self.address), self.port, QIODevice.ReadWrite)
+        self.waitForConnected(10000)
 
     def send_data(self, data):
         print("SENT")
@@ -49,12 +48,12 @@ class Client(QThread):
 
     def receive_data(self):
         print("RECEIVE")
-        stream = QDataStream(self.socket)
+        stream = QDataStream(self)
         stream.setVersion(QDataStream.Qt_5_15)
-        if self.socket.bytesAvailable() < 2:
+        if self.bytesAvailable() < 2:
             return
         data = stream.readUInt16()
-        if self.socket.bytesAvailable() < data:
+        if self.bytesAvailable() < data:
             return
         msg = str(data.readString(), encoding='ascii')
         print("RECEIVED: " + msg)
@@ -65,13 +64,13 @@ class Client(QThread):
         if error == QAbstractSocket.RemoteHostClosedError:
             print("QAbstractSocket.RemoteHostClosedError")
         else:
-            print("Error occured: {}".format(self.socket.errorString()))
+            print("Error occured: {}".format(self.errorString()))
 
     def disconnected(self):
         print("DISCONNECTED")
 
-    def __del__(self):
-        self.wait()
+    # def __del__(self):
+    #     self.wait()
 
     def run(self):
         self.start_connection()

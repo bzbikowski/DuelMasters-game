@@ -1,7 +1,7 @@
 import logging
 import random
 
-from PySide2.QtCore import Qt, QTimer
+from PySide2.QtCore import Qt, QTimer, QThread
 from PySide2.QtGui import QBrush, QColor, QPen, QPixmap, QTransform, QImage, QFont
 from PySide2.QtWidgets import QWidget, QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, \
     QTextEdit, QLabel, QPushButton, QGraphicsRectItem, QGraphicsTextItem, QMessageBox
@@ -11,6 +11,7 @@ from src.logs import Logger
 from src.network.client import Client
 from src.network.server import Server
 from src.views import GameView, CardView, GraveyardView
+from src.server import ServerDialog
 
 
 class Game(QWidget):
@@ -18,13 +19,14 @@ class Game(QWidget):
     Main class in application.
     """
 
-    def __init__(self, deck, database, debug, parent=None):
+    def __init__(self, mode, deck, database, debug, parent=None):
         # todo change to sqlite
         super(Game, self).__init__()
-        width = 1360
-        height = 768
-        self.setFixedSize(width, height)
+        # width = 1360
+        # height = 768
+        # self.setFixedSize(width, height)
         self.log = None
+        self.mode = mode
         self.database = database
         # self.move((screen_width - self.width)/2, (screen_height - self.height)/2 - 20)
         self.setWindowTitle("Duel masters - Video game")
@@ -69,7 +71,11 @@ class Game(QWidget):
         self.setup_logger()
 
         self.cardlist = ParseXml().parseFile('res/cards.xml')
-        self.choose_connection()
+
+        if self.mode == 1:
+            self.wait_for_connection()
+        else:
+            self.connect_to_room()
 
     def setup_logger(self):
         self.log = logging.getLogger("dm_game")
@@ -85,39 +91,23 @@ class Game(QWidget):
     def closeEvent(self, event):
         """Close connection and return to menu"""
         if self.started:
-            if self.isServer:
-                self.server.wait()
+            if self.mode == 1:
+                self.server.close()
+                self.serverThread.terminate()
+                self.serverThread.wait()
+
             else:
-                self.client.wait()
+                self.client.abort()
+                self.clientThread.terminate()
+                self.clientThread.wait()
         self.parent.show_window()
 
-    def choose_connection(self):
-        """
-        Menu with two buttons to choose from:
-        - connect to other player (client)
-        - make a room (server)
-        """
-        self.server_button = QPushButton("Create a game room", self)
-        self.server_button.setFixedSize(1000, 200)
-        self.server_button.move(int((self.width() - self.server_button.width()) / 2), 40)
-        self.server_button.clicked.connect(self.wait_for_connection)
-        self.server_button.setFont(QFont("Arial", 60))
-        self.client_button = QPushButton("Connect to existing game", self)
-        self.client_button.setFixedSize(1000, 200)
-        self.client_button.move(int((self.width() - self.client_button.width()) / 2), 220)
-        self.client_button.clicked.connect(self.connect_to_room)
-        self.client_button.setFont(QFont("Arial", 60))
-        self.back_button = QPushButton("Back", self)
-        self.back_button.clicked.connect(lambda: print(self.child))
-        
     def connect_to_room(self):
         """
         Client side
         Enter ip address and port of computer, which you want to connect to
         """
         self.log.debug("Connecting to server...")
-        self.server_button.setVisible(False)
-        self.client_button.setVisible(False)
         self.ip_address_label = QLabel("Ip address: ", self)
         self.ip_address_label.move(200, 150)
         self.ip_address_label.setFont(QFont("Arial", 50))
@@ -158,59 +148,53 @@ class Game(QWidget):
         self.log.debug(f"Trying to connect to: {addr}, {port}")
         self.isServer = False
         self.client = Client(addr, port, self)
+        self.clientThread = QThread()
+        self.client.moveToThread(self.clientThread)
+        self.clientThread.started.connect(lambda: self.client.run())
         self.started = True
-        self.client.start()
+        self.clientThread.start()
 
     def wait_for_connection(self):
         """
         Server side
         Wait for connection from other client.
         """
-        self.server_button.setVisible(False)
-        self.client_button.setVisible(False)
-        self.ip_address_label = QLabel("Your address is xxx.xxx.xxx.xxx", self)
-        self.ip_address_label.setFont(QFont("Arial", 50))
-        self.ip_address_label.move(50, 50)
-        self.ip_address_label.setVisible(True)
-
-        self.port_label = QLabel("You are listining on port xxxxx", self)
-        self.port_label.setFont(QFont("Arial", 50))
-        self.port_label.move(50, 200)
-        self.port_label.setVisible(True)
-
-        self.status_label = QLabel("Waiting for connection...", self)
-        self.status_label.setFont(QFont("Arial", 50))
-        self.status_label.move(50, 400)
-        self.status_label.setVisible(True)
         self.server = Server(self)
-        ip_local, ip_ham, ip_port = self.server.find_ip()
+        self.server.connectionOk.connect(self.connected_with_player)
+
+        self.serverDialog = ServerDialog(self)
+        self.serverDialog.closing.connect(self.close)
+
+        ip_local, ip_port = self.server.find_ip()
         if ip_local == "0.0.0.0":
             _ = QMessageBox.information(self, "Information", "Couldn't find a valid ip address."
                                                              " Please check your connection.",
                                         QMessageBox.Ok, QMessageBox.NoButton)
             return
         else:
-            if ip_ham == "0.0.0.0":
-                self.ip_address_label.setText("Your address is {}".format(ip_local))
-                self.log.debug(f"You are listening on: {ip_local}, {ip_port}")
-            else:
-                self.ip_address_label.setText("Your address is {}".format(ip_ham))
-                self.log.debug(f"You are listening on: {ip_ham}, {ip_port}")
-        self.port_label.setText("You are listining on port {}".format(ip_port))
-        self.isServer = True
+            self.serverDialog.ui.ip_address_label.setText("Your address is {}".format(ip_local))
+            self.serverDialog.ui.port_label.setText("You are listining on port {}".format(ip_port))
+            self.serverDialog.ui.status_label.setText("Waiting for connection...")
+            self.log.debug(f"You are listening on: {ip_local}, {ip_port}")
+
+        self.serverThread = QThread()
+        self.server.moveToThread(self.serverThread)
+        self.serverThread.started.connect(lambda: self.server.run())
         self.started = True
-        self.server.start()
+        self.serverThread.start()
+        self.serverDialog.show()
         
     def connected_with_player(self):
         """
         If connection is successful, continue
         """
+        self.serverDialog.close()
         if self.debug_mode:
             self.client = Client("127.0.0.1", 10000, self)
             self.turn_states(0)
             self.log.debug("Debug mode.")
         else:
-            if self.isServer:
+            if self.mode == 1:
                 if random.random() < 0.5:
                     self.turn_states(0)
                     self.add_log("You start the game! Your turn.")

@@ -1,52 +1,48 @@
 import re
 
-from PySide2.QtCore import QThread, QIODevice, QDataStream, QByteArray
+from PySide2.QtCore import QIODevice, QDataStream, QByteArray, Signal
 from PySide2.QtNetwork import QTcpServer, QHostAddress, QNetworkInterface
 
 from src.controller import Controller
 
 
-class Server(QThread):
+class Server(QTcpServer):
     """
     Server class for communication Client <-> Server.
     """
+    connectionOk = Signal(None)
     def __init__(self, parent=None):
         super(Server, self).__init__()
         self.parent = parent
         self.socket = None
         self.controller = Controller(parent)
-        self.server = QTcpServer()
-        self.server.setMaxPendingConnections(2)
-        self.server.newConnection.connect(self.conn_handle)
-        self.server.acceptError.connect(self.server_error_handle)
+        self.setMaxPendingConnections(2)
+        self.newConnection.connect(self.conn_handle)
+        self.acceptError.connect(self.server_error_handle)
         self.connected = False
-        self.ham_addr = "0.0.0.0"
         self.wifi_addr = "0.0.0.0"
         self.port = 10023
 
     def find_ip(self):
-        ham_pat = r"^25\.[1-2]?[0-9]?[0-9]\.[1-2]?[0-9]?[0-9]\.[1-2]?[0-9]?[0-9]$"
-        wifi_pat = r"^192\.168\.[0-2]?[0-9]?[0-9]\.[0-2]?[0-9]?[0-9]$"
+        wifi_pat = r"^192\.168\.[0-2]?[0-9]?[0-9]\.[0-2]?[0-9]?[0-9]$" # Only for debbuging
         inet = QNetworkInterface().interfaceFromName("eth0")
-        addr = inet.allAddresses()
-        for add in addr:
-            add_str = add.toString()
-            if re.match(ham_pat, add_str):
-                self.ham_addr = add_str
-            elif re.match(wifi_pat, add_str):
-                self.wifi_addr = add_str
-        return self.wifi_addr, self.ham_addr, self.port
+        addresses = inet.allAddresses()
+        print("Found interfaces: " + str(addresses))
+        for addr in addresses:
+            addr_str = addr.toString()
+            if re.match(wifi_pat, addr_str):
+                self.wifi_addr = addr_str
+        return self.wifi_addr, self.port
 
     def conn_handle(self):
         print("NEW_CONNECTION")
-        self.socket = self.server.nextPendingConnection()
+        self.socket = self.nextPendingConnection()
         if not self.socket.isValid():
             print("Critical error, do nothing")
         self.socket.readyRead.connect(self.receive_data)
         self.socket.acceptError.connect(self.socket_error_handle)
-        # self.socket.disconnected.connect(self.disconnected)
-        # self.socket.bytesWritten.connect()
-        self.parent.connected_with_player()
+        self.socket.disconnected.connect(self.client_disconnected)
+        self.connectionOk.emit()
 
     def server_error_handle(self):
         print("ERROR: server_error_handle")
@@ -54,16 +50,15 @@ class Server(QThread):
     def socket_error_handle(self):
         print("ERROR: socket_error_handle")
 
-    def __del__(self):
-        self.server.close()
-        self.wait()
+    def client_disconnected(self):
+        print("ERROR: client_disconnected")
+
+    # def __del__(self):
+    #     self.close()
 
     def run(self):
         print("LOOKING_FOR_CONNECTION")
-        if self.ham_addr == "0.0.0.0":
-            self.server.listen(QHostAddress(self.wifi_addr), self.port)
-        else:
-            self.server.listen(QHostAddress(self.ham_addr), self.port)
+        self.listen(QHostAddress(self.wifi_addr), self.port)
 
     def send_data(self, data):
         print("SENT")
