@@ -3,19 +3,17 @@ import re
 from PySide2.QtCore import QIODevice, QDataStream, QByteArray, Signal
 from PySide2.QtNetwork import QTcpServer, QHostAddress, QNetworkInterface
 
-from src.controller import Controller
-
 
 class Server(QTcpServer):
     """
     Server class for communication Client <-> Server.
     """
     connectionOk = Signal(None)
+    messageReceived = Signal(str)
     def __init__(self, parent=None):
         super(Server, self).__init__()
         self.parent = parent
         self.socket = None
-        self.controller = Controller(parent)
         self.setMaxPendingConnections(2)
         self.newConnection.connect(self.conn_handle)
         self.acceptError.connect(self.server_error_handle)
@@ -90,4 +88,4 @@ class Server(QTcpServer):
             return
         msg = str(data.readString(), encoding='ascii')
         print("RECEIVED: " + msg)
-        self.controller.received_message(msg)
+        self.messageReceived.emit(msg)

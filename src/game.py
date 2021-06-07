@@ -1,7 +1,7 @@
 import logging
 import random
 
-from PySide2.QtCore import Qt, QTimer, QThread
+from PySide2.QtCore import Qt, QTimer, QThread, Slot
 from PySide2.QtGui import QBrush, QColor, QPen, QPixmap, QTransform, QImage, QFont
 from PySide2.QtWidgets import QWidget, QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, \
     QTextEdit, QLabel, QPushButton, QGraphicsRectItem, QGraphicsTextItem, QMessageBox
@@ -13,13 +13,13 @@ from src.network.server import Server
 from src.views import GameView, CardView, GraveyardView
 from src.serverdialog import ServerDialog
 from src.clientdialog import ClientDialog
+from src.controller import Controller
 
 
 class Game(QWidget):
     """
     Main class in application.
     """
-
     def __init__(self, mode, deck, database, debug, parent=None):
         # todo change to sqlite
         super(Game, self).__init__()
@@ -73,21 +73,20 @@ class Game(QWidget):
 
         self.cardlist = ParseXml().parseFile('res/cards.xml')
 
+        self.controller = Controller(self)
+
         if self.mode == 1:
             self.wait_for_connection()
         else:
             self.connect_to_room()
 
+    ## Internal
     def setup_logger(self):
         self.log = logging.getLogger("dm_game")
         if self.debug_mode:
             self.log.setLevel(logging.DEBUG)
         else:
             self.log.setLevel(logging.DEBUG)
-
-    def add_log(self, msg):
-        """Add log to log panel"""
-        self.log_panel.append(msg)
 
     def closeEvent(self, event):
         """Close connection and return to menu"""
@@ -118,6 +117,7 @@ class Game(QWidget):
         print("GAME - ERROR")
         self.close()
 
+    ## Game initialize functions - setup network connection
     def connect_to_room(self):
         """
         Client side
@@ -129,6 +129,7 @@ class Game(QWidget):
         self.clientDialog.show()
         self.log.debug("Connecting to server...")
 
+    @Slot(str, str)
     def start_connection(self, ip_address, port):
         """
         Client side
@@ -154,6 +155,7 @@ class Game(QWidget):
         """
         self.server = Server(self)
         self.server.connectionOk.connect(self.connected_with_player)
+        self.server.messageReceived.connect(self.controller.received_message)
 
         self.serverDialog = ServerDialog(self)
         self.serverDialog.closing.connect(self.close)
@@ -176,20 +178,16 @@ class Game(QWidget):
         self.started = True
         self.serverThread.start()
         self.serverDialog.show()
-        
+
     def connected_with_player(self):
         """
-        If connection is successful, continue
+        Connection is successful, start actual game
         """
         try:
             self.serverDialog.close()
         except:
             pass
-        # if self.debug_mode:
-        #     self.client = Client("127.0.0.1", 10000, self)
-        #     self.turn_states(0)
-        #     self.log.debug("Debug mode.")
-        # else:
+        self.show()
         if self.mode == 1:
             if random.random() < 0.5:
                 self.turn_states(0)
@@ -197,10 +195,10 @@ class Game(QWidget):
             else:
                 self.send_message(1)
                 self.add_log("Opponent starts the game.")
-        self.show()
         self.init_game()
         self.draw_screen()
 
+    ## Game functions
     def init_game(self):
         """
         Create initial structures and data for our starting game
@@ -499,6 +497,10 @@ class Game(QWidget):
                             self.highlight_card(x, x + 85, y, y + 115, QColor(0, 0, 255))
                             break
 
+    def add_log(self, msg):
+        """Add log to log panel"""
+        self.log_panel.append(msg)
+
     def find_card(self, iden):
         """
         Find informations about card of given id
@@ -534,7 +536,7 @@ class Game(QWidget):
         12,x,y - (info) ja atakuje swoją kartą x twoją kartę y na polu bitwy
         13,x - ja niszcze ci tarczę na pozycji x
         """
-        if self.isServer:
+        if self.mode == 1:
             self.server.send_data(msg)
         else:
             self.client.send_data(msg)

@@ -1,8 +1,6 @@
 from PySide2.QtCore import QIODevice, QDataStream, QByteArray, Signal
 from PySide2.QtNetwork import QTcpSocket, QHostAddress, QAbstractSocket
 
-from src.controller import Controller
-
 import logging
 
 
@@ -10,7 +8,7 @@ class Client(QTcpSocket):
     """
     Client class for communication Client <-> Server.
     """
-
+    messageReceived = Signal(str)
     def __init__(self, address, port, parent=None):
         """
         :param address: Address of the server
@@ -21,7 +19,6 @@ class Client(QTcpSocket):
         self.address = address
         self.port = port
         self.parent = parent
-        self.controller = Controller(parent)
         self.error.connect(self.server_error_handle)
         self.readyRead.connect(self.receive_data)
         self.disconnected.connect(self.disconnected_with_server)
@@ -67,7 +64,7 @@ class Client(QTcpSocket):
             return
         msg = str(data.readString(), encoding='ascii')
         self.log.debug("RECEIVED: " + msg)
-        self.controller.received_message(msg)
+        self.messageReceived.emit(msg)
 
     def server_error_handle(self, error):
         self.log.debug("ERROR")
