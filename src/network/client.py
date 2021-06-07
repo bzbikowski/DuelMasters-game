@@ -51,6 +51,7 @@ class Client(QTcpSocket):
         # msg = bytes(msg, encoding='ascii')
         stream.writeString(msg)
         stream.device().seek(0)
+        self.write(block)
         print("SENT: " + msg)
 
     def receive_data(self):
