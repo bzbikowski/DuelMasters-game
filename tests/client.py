@@ -17,7 +17,7 @@ class ChatClient(QWidget):
         self.send_button.clicked.connect(self.send)
         self.send_button.move(0, 400)
 
-        self.client = Client("192.168.56.101", 10099)
+        self.client = Client("192.168.56.101", 10023)
         self.client.run()
 
     def send(self):
