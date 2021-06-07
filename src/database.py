@@ -11,7 +11,7 @@ class Database(object):
         # db.setUserName(os.getenv("DB_LOG"))
         # db.setPassword(os.getenv("DB_PASS"))
         if not self.db.open():
-            print(db.lastError())
+            print(self.db.lastError())
             return
         if not self.check_if_initialized():
             ds_querry = QSqlQuery(self.db)

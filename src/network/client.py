@@ -35,7 +35,8 @@ class Client(QTcpSocket):
             self.port = int(self.port)
         self.connectToHost(QHostAddress(self.address), self.port, QIODevice.ReadWrite)
         print("WAIT_FOR_CONNECTED")
-        self.waitForConnected(10000)
+        if not self.waitForConnected(10000):
+            print("Critical error, do nothing")
 
     def send_data(self, data):
         print("SENT")
@@ -48,7 +49,6 @@ class Client(QTcpSocket):
         block = QByteArray()
         stream = QDataStream(block, QIODevice.WriteOnly)
         stream.setVersion(QDataStream.Qt_5_15)
-        # msg = bytes(msg, encoding='ascii')
         stream.writeString(msg)
         stream.device().seek(0)
         self.write(block)

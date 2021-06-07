@@ -71,7 +71,6 @@ class Server(QTcpServer):
         block = QByteArray()
         stream = QDataStream(block, QIODevice.WriteOnly)
         stream.setVersion(QDataStream.Qt_5_15)
-        msg = bytes(msg, encoding='ascii')
         stream.writeString(msg)
         stream.device().seek(0)
         self.socket.write(block)
