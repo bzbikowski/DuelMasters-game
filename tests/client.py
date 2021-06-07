@@ -8,6 +8,8 @@ class ChatClient(QWidget):
     def __init__(self):
         super(ChatClient, self).__init__()
 
+        self.resize(800, 600)
+
         self.line_edit = QLineEdit(self)
 
         self.send_button = QPushButton("Send", self)

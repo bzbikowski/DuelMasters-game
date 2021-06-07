@@ -6,6 +6,8 @@ class ChatServer(QWidget):
     def __init__(self):
         super(ChatServer, self).__init__()
 
+        self.resize(800, 600)
+
         self.chat_feed = QTextEdit(self)
 
         self.server = Server()
