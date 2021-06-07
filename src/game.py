@@ -61,12 +61,12 @@ class Game(QWidget):
         self.view_scene = GameView(self)
         self.view.setScene(self.view_scene)
         self.view_scene.setBackgroundBrush(QBrush(QColor(0, 0, 0)))
-        self.view.setVisible(False)
+        # self.view.setVisible(True)
 
         self.preview_scene = QGraphicsScene()
         self.preview.setScene(self.preview_scene)
         self.preview_scene.setBackgroundBrush(QBrush(QColor(0, 0, 0)))
-        self.preview.setVisible(False)
+        # self.preview.setVisible(False)
 
         self.log_panel = Logger()
         self.setup_logger()
