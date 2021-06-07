@@ -91,6 +91,7 @@ class Game(QWidget):
 
     def closeEvent(self, event):
         """Close connection and return to menu"""
+        print("GAME - CLOSING")
         if self.started:
             if self.mode == 1:
                 self.server.close()
@@ -102,6 +103,14 @@ class Game(QWidget):
                 self.clientThread.terminate()
                 self.clientThread.wait()
         self.parent.show_window()
+
+    def handle_disconnect(self):
+        print("GAME - DISCONNECTED")
+        self.close()
+
+    def handle_error(self):
+        print("GAME - ERROR")
+        self.close()
 
     def connect_to_room(self):
         """
@@ -124,6 +133,8 @@ class Game(QWidget):
         self.isServer = False
         self.client = Client(ip_address, port, self)
         self.client.connected.connect(self.connected_with_player)
+        self.client.disconnected.connect(self.handle_disconnect)
+        self.client.error.connect(self.handle_error)
         self.clientThread = QThread()
         self.client.moveToThread(self.clientThread)
         self.clientThread.started.connect(lambda: self.client.run())
