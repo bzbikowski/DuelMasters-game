@@ -11,9 +11,11 @@ class ChatClient(QWidget):
         self.resize(800, 600)
 
         self.line_edit = QLineEdit(self)
+        self.line_edit.move(0, 0)
 
         self.send_button = QPushButton("Send", self)
         self.send_button.clicked.connect(self.send)
+        self.send_button.move(0, 400)
 
         self.client = Client("192.168.56.101", 10099)
         self.client.run()

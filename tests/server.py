@@ -9,6 +9,8 @@ class ChatServer(QWidget):
         self.resize(800, 600)
 
         self.chat_feed = QTextEdit(self)
+        self.chat_feed.resize(800, 600)
+        self.chat_feed.move(0, 0)
 
         self.server = Server()
         self.server.messageReceived.connect(self.handle_message)
