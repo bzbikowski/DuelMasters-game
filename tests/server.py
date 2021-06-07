@@ -1,23 +1,24 @@
-from PySide2.QtCore import QIODevice, QDataStream, QByteArray
-from PySide2.QtNetwork import QTcpServer, QHostAddress
-import time
+import sys
+from PySide2.QtWidgets import QApplication, QTextEdit, QWidget
+from src.network.server import Server
 
-msg = "*beep*"
+class ChatServer(QWidget):
+    def __init__(self):
+        super(ChatServer, self).__init__()
+
+        self.chat_feed = QTextEdit(self)
+
+        self.server = Server()
+        self.server.messageReceived.connect(self.handle_message)
+        self.server.run()
+
+    def handle_message(self, msg):
+        self.chat_feed.setText(self.chat_feed.toPlainText() + msg)
+    
 
 if __name__ == "__main__":
-    server = QTcpServer()
-    server.setMaxPendingConnections(2)
-    server.listen(QHostAddress("192.168.56.101"), 10099)
-    if server.waitForNewConnection(100000):
-        print("NEW HOST")
-        socket = server.nextPendingConnection()
-        while True:
-            block = QByteArray()
-            stream = QDataStream(block, QIODevice.WriteOnly)
-            stream.setVersion(QDataStream.Qt_5_10)
-            stream.writeString(msg)
-            stream.device().seek(0)
-            socket.write(block)
-            print("PING")
-            time.sleep(10)
-        socket.disconnectFromHost()
+    app = QApplication(sys.argv[:1])
+    window = ChatServer()
+    window.show()
+    sys.exit(app.exec_())
+

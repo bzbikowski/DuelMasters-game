@@ -1,36 +1,30 @@
-from PySide2.QtNetwork import QTcpSocket, QTcpServer, QHostAddress, QNetworkInterface, QAbstractSocket
-from PySide2.QtCore import QThread, QIODevice, QDataStream, QByteArray
 import sys
+sys.path.insert(0, "D:\Projects\DuelMasters-game\src")
+from PySide2.QtWidgets import QApplication, QLineEdit, QPushButton, QWidget
 
-msg = "*beep*"
+from src.network.client import Client
 
-data = ""
+class ChatClient(QWidget):
+    def __init__(self):
+        super(ChatClient, self).__init__()
 
-def receive_data():
-    print(socket.readAll())
-    #stream.startTransaction()
-    #data += stream.readString()
-    #print("PARTIAL: " + data)
-    #if not stream.commitTransaction():
-    #    return
-    #print("FINAL: " + data)
+        self.line_edit = QLineEdit(self)
 
-def disconnected():
-    print("DISC")
-    sys.exit(1)
+        self.send_button = QPushButton("Send", self)
+        self.send_button.clicked.connect(self.send)
 
-def error_handle(err):
-    print(err)
-    sys.exit(1)
+        self.client = Client("192.168.56.101", 10099)
+        self.client.run()
+
+    def send(self):
+        data = self.line_edit.text()
+        self.client.send_data(data)
+        self.line_edit.setText("")
+    
 
 if __name__ == "__main__":
-    socket = QTcpSocket() 
-    socket.readyRead.connect(receive_data)
-    socket.disconnected.connect(disconnected)
-    socket.errorOccurred.connect(error_handle)
-    stream = QDataStream(socket)
-    stream.setVersion(QDataStream.Qt_5_10)
-    socket.connectToHost(QHostAddress("192.168.56.101"), 10099, QIODevice.ReadWrite)
-    if socket.waitForConnected(100000):
-        while True:
-            pass
+    app = QApplication(sys.argv[:1])
+    window = ChatClient()
+    window.show()
+    sys.exit(app.exec_())
+
