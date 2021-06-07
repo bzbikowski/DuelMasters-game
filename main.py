@@ -15,7 +15,7 @@ def process_args():
     help | -h | --help - print to console help message
     """
     parser = argparse.ArgumentParser(prog="Duel Masters Game")
-    parser.add_argument("-d", "--debug", action="store", default="False", help="enable/disable debug mode")
+    parser.add_argument("-d", "--debug", action="store", default="True", help="enable/disable debug mode")
     parsed_args, unparsed_args = parser.parse_known_args()
     return parsed_args, unparsed_args
 

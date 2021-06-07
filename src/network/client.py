@@ -1,4 +1,4 @@
-from PySide2.QtCore import QIODevice, QDataStream, QByteArray
+from PySide2.QtCore import QIODevice, QDataStream, QByteArray, Signal
 from PySide2.QtNetwork import QTcpSocket, QHostAddress, QAbstractSocket
 
 from src.controller import Controller
@@ -19,14 +19,15 @@ class Client(QTcpSocket):
         self.port = port
         self.parent = parent
         self.controller = Controller(parent)
-        self.connected.connect(self.parent.connected_with_player)
         self.error.connect(self.server_error_handle)
         self.readyRead.connect(self.receive_data)
-        self.disconnected.connect(self.disconnected)
+        self.disconnected.connect(self.disconnected_with_server)
         # self.bytesWritten.connect()
 
     def start_connection(self):
         print("START_CONNECTION")
+        if type(self.port) == str:
+            self.port = int(self.port)
         self.connectToHost(QHostAddress(self.address), self.port, QIODevice.ReadWrite)
         self.waitForConnected(10000)
 
@@ -66,7 +67,7 @@ class Client(QTcpSocket):
         else:
             print("Error occured: {}".format(self.errorString()))
 
-    def disconnected(self):
+    def disconnected_with_server(self):
         print("DISCONNECTED")
 
     # def __del__(self):

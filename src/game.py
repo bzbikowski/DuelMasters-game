@@ -11,7 +11,8 @@ from src.logs import Logger
 from src.network.client import Client
 from src.network.server import Server
 from src.views import GameView, CardView, GraveyardView
-from src.server import ServerDialog
+from src.serverdialog import ServerDialog
+from src.clientdialog import ClientDialog
 
 
 class Game(QWidget):
@@ -107,47 +108,22 @@ class Game(QWidget):
         Client side
         Enter ip address and port of computer, which you want to connect to
         """
+        self.clientDialog = ClientDialog(self)
+        self.clientDialog.closing.connect(self.close)
+        self.clientDialog.paramsReady.connect(self.start_connection)
+        self.clientDialog.show()
         self.log.debug("Connecting to server...")
-        self.ip_address_label = QLabel("Ip address: ", self)
-        self.ip_address_label.move(200, 150)
-        self.ip_address_label.setFont(QFont("Arial", 50))
-        self.ip_address_label.setVisible(True)
-        self.ip_address_field = QTextEdit(self)
-        self.ip_address_field.move(600, 150)
-        self.ip_address_field.setFont(QFont("Arial", 50))
-        self.ip_address_field.setFixedSize(550, 100)
-        self.ip_address_field.setVisible(True)
-        self.port_label = QLabel("Port: ", self)
-        self.port_label.move(390, 360)
-        self.port_label.setFont(QFont("Arial", 50))
-        self.port_label.setVisible(True)
-        self.port_field = QTextEdit(self)
-        self.port_field.move(600, 360)
-        self.port_field.setFont(QFont("Arial", 50))
-        self.port_field.setFixedSize(550, 100)
-        self.port_field.setVisible(True)
-        self.ok_button = QPushButton("Accept", self)
-        self.ok_button.setFixedSize(600, 140)
-        self.ok_button.move(int((self.width() - self.ok_button.width()) / 2), 560)
-        if self.debug_mode:
-            self.ok_button.clicked.connect(self.connected_with_player)
-        else:
-            self.ok_button.clicked.connect(self.start_connection)
-        self.ok_button.setVisible(True)
 
-    def start_connection(self):
+    def start_connection(self, ip_address, port):
         """
         Client side
         Connect with the server
         """
-        try:
-            addr = self.ip_address_field.toPlainText()
-            port = int(self.port_field.toPlainText())
-        except:
-            return
-        self.log.debug(f"Trying to connect to: {addr}, {port}")
+        self.clientDialog.close()
+        self.log.debug(f"Trying to connect to: {ip_address}, {port}")
         self.isServer = False
-        self.client = Client(addr, port, self)
+        self.client = Client(ip_address, port, self)
+        self.client.connected.connect(self.connected_with_player)
         self.clientThread = QThread()
         self.client.moveToThread(self.clientThread)
         self.clientThread.started.connect(lambda: self.client.run())
@@ -188,19 +164,22 @@ class Game(QWidget):
         """
         If connection is successful, continue
         """
-        self.serverDialog.close()
-        if self.debug_mode:
-            self.client = Client("127.0.0.1", 10000, self)
-            self.turn_states(0)
-            self.log.debug("Debug mode.")
-        else:
-            if self.mode == 1:
-                if random.random() < 0.5:
-                    self.turn_states(0)
-                    self.add_log("You start the game! Your turn.")
-                else:
-                    self.send_message(1)
-                    self.add_log("Opponent starts the game.")
+        try:
+            self.serverDialog.close()
+        except:
+            pass
+        # if self.debug_mode:
+        #     self.client = Client("127.0.0.1", 10000, self)
+        #     self.turn_states(0)
+        #     self.log.debug("Debug mode.")
+        # else:
+        if self.mode == 1:
+            if random.random() < 0.5:
+                self.turn_states(0)
+                self.add_log("You start the game! Your turn.")
+            else:
+                self.send_message(1)
+                self.add_log("Opponent starts the game.")
         self.clear_window()
         self.init_game()
         self.draw_screen()
