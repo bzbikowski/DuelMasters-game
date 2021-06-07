@@ -30,15 +30,15 @@ class Client(QTcpSocket):
         self.log.setLevel(logging.DEBUG)
 
     def start_connection(self):
-        self.log.debug("START_CONNECTION")
+        print("START_CONNECTION")
         if type(self.port) == str:
             self.port = int(self.port)
         self.connectToHost(QHostAddress(self.address), self.port, QIODevice.ReadWrite)
-        self.log.debug("WAIT_FOR_CONNECTED")
+        print("WAIT_FOR_CONNECTED")
         self.waitForConnected(10000)
 
     def send_data(self, data):
-        self.log.debug("SENT")
+        print("SENT")
         msg = ""
         for item in data:
             m = hex(int(item))[2:]
@@ -51,10 +51,10 @@ class Client(QTcpSocket):
         # msg = bytes(msg, encoding='ascii')
         stream.writeString(msg)
         stream.device().seek(0)
-        self.log.debug("SENT: " + msg)
+        print("SENT: " + msg)
 
     def receive_data(self):
-        self.log.debug("RECEIVE")
+        print("RECEIVE")
         stream = QDataStream(self)
         stream.setVersion(QDataStream.Qt_5_15)
         if self.bytesAvailable() < 2:
@@ -63,18 +63,18 @@ class Client(QTcpSocket):
         if self.bytesAvailable() < data:
             return
         msg = str(data.readString(), encoding='ascii')
-        self.log.debug("RECEIVED: " + msg)
+        print("RECEIVED: " + msg)
         self.messageReceived.emit(msg)
 
     def server_error_handle(self, error):
-        self.log.debug("ERROR")
+        print("ERROR")
         if error == QAbstractSocket.RemoteHostClosedError:
-            self.log.debug("QAbstractSocket.RemoteHostClosedError")
+            print("QAbstractSocket.RemoteHostClosedError")
         else:
-            self.log.debug("Error occured: {}".format(self.errorString()))
+            print("Error occured: {}".format(self.errorString()))
 
     def disconnected_with_server(self):
-        self.log.debug("DISCONNECTED")
+        print("DISCONNECTED")
 
     # def __del__(self):
     #     self.wait()
