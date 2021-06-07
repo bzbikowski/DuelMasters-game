@@ -94,12 +94,18 @@ class Game(QWidget):
         print("GAME - CLOSING")
         if self.started:
             if self.mode == 1:
-                self.server.close()
+                try:
+                    self.server.close()
+                except RuntimeError:
+                    print("Server alreeady deleted")
                 self.serverThread.terminate()
                 self.serverThread.wait()
 
             else:
-                self.client.abort()
+                try:
+                    self.client.abort()
+                except RuntimeError:
+                    print("Client alreeady deleted")
                 self.clientThread.terminate()
                 self.clientThread.wait()
         self.parent.show_window()
