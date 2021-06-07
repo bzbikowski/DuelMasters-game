@@ -84,8 +84,8 @@ class Server(QTcpServer):
         if self.socket.bytesAvailable() < 2:
             return
         data = stream.readString()
-        if self.socket.bytesAvailable() < data:
-            return
+        # if self.socket.bytesAvailable() < len(data):
+        #     return
         msg = str(data)
         print("RECEIVED: " + msg)
         self.messageReceived.emit(msg)
