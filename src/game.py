@@ -97,16 +97,16 @@ class Game(QWidget):
                     self.server.close()
                 except RuntimeError:
                     print("Server alreeady deleted")
-                self.serverThread.terminate()
-                self.serverThread.wait()
+                # self.serverThread.terminate()
+                # self.serverThread.wait()
 
             else:
                 try:
                     self.client.abort()
                 except RuntimeError:
                     print("Client alreeady deleted")
-                self.clientThread.terminate()
-                self.clientThread.wait()
+                # self.clientThread.terminate()
+                # self.clientThread.wait()
         self.parent.show_window()
 
     def handle_disconnect(self):
@@ -142,11 +142,12 @@ class Game(QWidget):
         self.client.connected.connect(self.connected_with_player)
         self.client.disconnected.connect(self.handle_disconnect)
         self.client.error.connect(self.handle_error)
-        self.clientThread = QThread()
-        self.client.moveToThread(self.clientThread)
-        self.clientThread.started.connect(lambda: self.client.run())
+        # self.clientThread = QThread()
+        # self.client.moveToThread(self.clientThread)
+        # self.clientThread.started.connect(lambda: self.client.run())
+        self.client.run()
         self.started = True
-        self.clientThread.start()
+        # self.clientThread.start()
 
     def wait_for_connection(self):
         """
@@ -172,11 +173,12 @@ class Game(QWidget):
             self.serverDialog.ui.status_label.setText("Waiting for connection...")
             self.log.debug(f"You are listening on: {ip_local}, {ip_port}")
 
-        self.serverThread = QThread()
-        self.server.moveToThread(self.serverThread)
-        self.serverThread.started.connect(lambda: self.server.run())
+        # self.serverThread = QThread()
+        # self.server.moveToThread(self.serverThread)
+        # self.serverThread.started.connect(lambda: self.server.run())
+        self.server.run()
         self.started = True
-        self.serverThread.start()
+        # self.serverThread.start()
         self.serverDialog.show()
 
     def connected_with_player(self):
