@@ -86,6 +86,6 @@ class Server(QTcpServer):
         data = stream.readUInt16()
         if self.socket.bytesAvailable() < data:
             return
-        msg = str(data, encoding='ascii')
+        msg = str(data)
         print("RECEIVED: " + msg)
         self.messageReceived.emit(msg)
