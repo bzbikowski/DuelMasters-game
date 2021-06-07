@@ -39,7 +39,7 @@ class Server(QTcpServer):
         if not self.socket.waitForConnected(10000):
             print("Critical error, do nothing")
         self.socket.readyRead.connect(self.receive_data)
-        self.socket.acceptError.connect(self.socket_error_handle)
+        self.socket.error.connect(self.socket_error_handle)
         self.socket.disconnected.connect(self.client_disconnected)
         print("CONNECTION_OK")
         self.connectionOk.emit()
