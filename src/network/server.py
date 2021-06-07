@@ -37,11 +37,13 @@ class Server(QTcpServer):
     def conn_handle(self):
         print("NEW_CONNECTION")
         self.socket = self.nextPendingConnection()
+        print("SOCKET_READY")
         if not self.socket.isValid():
             print("Critical error, do nothing")
         self.socket.readyRead.connect(self.receive_data)
         self.socket.acceptError.connect(self.socket_error_handle)
         self.socket.disconnected.connect(self.client_disconnected)
+        print("CONNECTION_OK")
         self.connectionOk.emit()
 
     def server_error_handle(self):

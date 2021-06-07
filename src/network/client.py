@@ -3,6 +3,8 @@ from PySide2.QtNetwork import QTcpSocket, QHostAddress, QAbstractSocket
 
 from src.controller import Controller
 
+import logging
+
 
 class Client(QTcpSocket):
     """
@@ -15,6 +17,7 @@ class Client(QTcpSocket):
         :param port: Port to connect to
         """
         super(Client, self).__init__()
+        self.log = None
         self.address = address
         self.port = port
         self.parent = parent
@@ -22,17 +25,23 @@ class Client(QTcpSocket):
         self.error.connect(self.server_error_handle)
         self.readyRead.connect(self.receive_data)
         self.disconnected.connect(self.disconnected_with_server)
+        self.setup_logger()
         # self.bytesWritten.connect()
 
+    def setup_logger(self):
+        self.log = logging.getLogger("dm_game")
+        self.log.setLevel(logging.DEBUG)
+
     def start_connection(self):
-        print("START_CONNECTION")
+        self.log.debug("START_CONNECTION")
         if type(self.port) == str:
             self.port = int(self.port)
         self.connectToHost(QHostAddress(self.address), self.port, QIODevice.ReadWrite)
+        self.log.debug("WAIT_FOR_CONNECTED")
         self.waitForConnected(10000)
 
     def send_data(self, data):
-        print("SENT")
+        self.log.debug("SENT")
         msg = ""
         for item in data:
             m = hex(int(item))[2:]
@@ -45,10 +54,10 @@ class Client(QTcpSocket):
         # msg = bytes(msg, encoding='ascii')
         stream.writeString(msg)
         stream.device().seek(0)
-        print("SENT: " + msg)
+        self.log.debug("SENT: " + msg)
 
     def receive_data(self):
-        print("RECEIVE")
+        self.log.debug("RECEIVE")
         stream = QDataStream(self)
         stream.setVersion(QDataStream.Qt_5_15)
         if self.bytesAvailable() < 2:
@@ -57,18 +66,18 @@ class Client(QTcpSocket):
         if self.bytesAvailable() < data:
             return
         msg = str(data.readString(), encoding='ascii')
-        print("RECEIVED: " + msg)
+        self.log.debug("RECEIVED: " + msg)
         self.controller.received_message(msg)
 
     def server_error_handle(self, error):
-        print("ERROR")
+        self.log.debug("ERROR")
         if error == QAbstractSocket.RemoteHostClosedError:
-            print("QAbstractSocket.RemoteHostClosedError")
+            self.log.debug("QAbstractSocket.RemoteHostClosedError")
         else:
-            print("Error occured: {}".format(self.errorString()))
+            self.log.debug("Error occured: {}".format(self.errorString()))
 
     def disconnected_with_server(self):
-        print("DISCONNECTED")
+        self.log.debug("DISCONNECTED")
 
     # def __del__(self):
     #     self.wait()

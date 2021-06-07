@@ -191,21 +191,9 @@ class Game(QWidget):
             else:
                 self.send_message(1)
                 self.add_log("Opponent starts the game.")
-        self.clear_window()
+        self.show()
         self.init_game()
         self.draw_screen()
-        
-    def clear_window(self):
-        """
-        Prepare gui for game screen
-        """
-        self.ip_address_field.setVisible(False)
-        self.ip_address_label.setVisible(False)
-        self.port_field.setVisible(False)
-        self.port_label.setVisible(False)
-        self.ok_button.setVisible(False)
-        self.view.setVisible(True)
-        self.preview.setVisible(True)
 
     def init_game(self):
         """
