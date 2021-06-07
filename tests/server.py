@@ -13,6 +13,7 @@ class ChatServer(QWidget):
         self.chat_feed.move(0, 0)
 
         self.server = Server()
+        self.server.find_ip()
         self.server.messageReceived.connect(self.handle_message)
         self.server.run()
 
