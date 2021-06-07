@@ -60,10 +60,10 @@ class Client(QTcpSocket):
         stream.setVersion(QDataStream.Qt_5_15)
         if self.bytesAvailable() < 2:
             return
-        data = stream.readUInt16()
-        if self.bytesAvailable() < data:
-            return
-        msg = str(data.readString(), encoding='ascii')
+        data = stream.readString()
+        # if self.bytesAvailable() < data:
+        #     return
+        msg = str(data)
         print("RECEIVED: " + msg)
         self.messageReceived.emit(msg)
 
