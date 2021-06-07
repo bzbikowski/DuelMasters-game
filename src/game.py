@@ -61,12 +61,10 @@ class Game(QWidget):
         self.view_scene = GameView(self)
         self.view.setScene(self.view_scene)
         self.view_scene.setBackgroundBrush(QBrush(QColor(0, 0, 0)))
-        # self.view.setVisible(True)
 
         self.preview_scene = QGraphicsScene()
         self.preview.setScene(self.preview_scene)
         self.preview_scene.setBackgroundBrush(QBrush(QColor(0, 0, 0)))
-        # self.preview.setVisible(False)
 
         self.log_panel = Logger()
         self.setup_logger()
@@ -142,6 +140,7 @@ class Game(QWidget):
         self.client.connected.connect(self.connected_with_player)
         self.client.disconnected.connect(self.handle_disconnect)
         self.client.error.connect(self.handle_error)
+        self.client.messageReceived.connect(self.controller.received_message)
         # self.clientThread = QThread()
         # self.client.moveToThread(self.clientThread)
         # self.clientThread.started.connect(lambda: self.client.run())
