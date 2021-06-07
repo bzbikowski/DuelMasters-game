@@ -83,7 +83,7 @@ class Server(QTcpServer):
         stream.setVersion(QDataStream.Qt_5_15)
         if self.socket.bytesAvailable() < 2:
             return
-        data = stream.readUInt16()
+        data = stream.readString()
         if self.socket.bytesAvailable() < data:
             return
         msg = str(data)
