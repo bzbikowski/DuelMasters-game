@@ -179,6 +179,7 @@ class Game(QWidget):
         self.show()
         if self.mode == 1:
             if random.random() < 0.5:
+                self.send_message(0)
                 self.turn_states(0)
                 self.add_log("You start the game! Your turn.")
             else:
@@ -503,7 +504,7 @@ class Game(QWidget):
     def send_message(self, *msg):
         """
         Messages, which are sent to opponent:
-        0 - przeciwnik wygrał
+        0 - you start the game
         1 - przeciwnik zaczyna grę
         2 - koniec mojej tury
         3 - ja dobieram kartę
@@ -618,17 +619,18 @@ class Game(QWidget):
         """Draw a top card from your deck and add it to your hand"""
         if not len(self.deck) == 0:
             card = self.deck.pop(0)
-            self.add_log("Dobierasz karte {}.".format(self.find_card(card).name))
+            self.add_log("You draw a card {}.".format(self.find_card(card).name))
             self.hand.append(card)
             self.send_message(3)
         else:
+            self.add_log("You don't have enough cards to draw from. You lose!")
             self.lose()
-            self.send_message(0)
+            # self.send_message(0)
         self.refresh_screen()
 
     def m_end_turn(self):
         # end your turn
-        self.add_log("Koniec tury.")
+        self.add_log("End of your turn.")
         self.send_message(2)
         self.your_turn = False
 

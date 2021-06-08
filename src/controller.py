@@ -20,20 +20,28 @@ class Controller:
         print("CONTROLLER - MSG: " + str(msg))
         if command == 0:
             # 0 - you win
-            self.master.win()
+            # self.master.win()
+            # 0 - opponent start the game
+            self.master.add_log("Opponent starts the game.")
         elif command == 1:
             # 1 - you start the game
+            self.master.add_log("You start the game! Your turn.")
             self.master.turn_states(0)
         elif command == 2:
             # 2 - start of your turn
+            self.master.add_log("Your turn.")
             self.master.turn_states(1)
         elif command == 3:
             # 3 - opponent draws a card
+            self.master.add_log("Opponent draw a card")
             self.master.opp_hand.append(-1)
         elif command == 4:
             # 4,x,y - opponent plays a card with x id on y spot on gameboard
             c_id = int(msg[:2], base=16)
             c_pos = int(msg[2:4], base=16)
+            print("CARD ID: " + str(c_id))
+            print("CARD POS: " + str(c_pos))
+            self.master.add_log("Opponent played a card")
             self.master.opp_bfield[c_pos] = c_id
         elif command == 5:
             # 5,v,x,y - player v picks up card from x space from y spot to his hand
