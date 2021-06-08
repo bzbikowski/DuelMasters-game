@@ -181,10 +181,10 @@ class Game(QWidget):
             if random.random() < 0.5:
                 self.send_message(0)
                 self.turn_states(0)
-                self.add_log("You start the game! Your turn.")
+                self.add_log("You start the game! Your turn.", False)
             else:
                 self.send_message(1)
-                self.add_log("Opponent starts the game.")
+                self.add_log("Opponent starts the game.", False)
         self.init_game()
         self.draw_screen()
 
@@ -487,10 +487,11 @@ class Game(QWidget):
                             self.highlight_card(x, x + 85, y, y + 115, QColor(0, 0, 255))
                             break
 
-    def add_log(self, msg):
+    def add_log(self, msg, refresh=True):
         """Add log to log panel"""
         self.log_panel.append(msg)
-        self.refresh_screen()
+        if refresh:
+            self.refresh_screen()
 
     def find_card(self, iden):
         """
