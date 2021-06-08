@@ -31,7 +31,7 @@ class GameView(QGraphicsScene):
                 menu.addAction(end_action)
             if self.parent.debug_mode:
                 draw_action = QAction("Draw a card")
-                draw_action.triggered.connect(self.parent.draw_a_card)
+                draw_action.triggered.connect(self.parent.m_draw_a_card)
                 menu.addAction(draw_action)
             end_action = QAction("End turn")
             end_action.triggered.connect(self.parent.m_end_turn)
