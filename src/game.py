@@ -490,6 +490,7 @@ class Game(QWidget):
     def add_log(self, msg):
         """Add log to log panel"""
         self.log_panel.append(msg)
+        self.refresh_screen()
 
     def find_card(self, iden):
         """
