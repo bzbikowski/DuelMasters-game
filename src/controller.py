@@ -90,7 +90,7 @@ class Controller:
         elif command == 7:
             # 7,x - opponent adds card x from his hand to mana
             c_id = int(msg[:2], base=16)
-            self.master.opp_mana.append([c_id, False])
+            self.master.opp_mana.append([c_id, True])
             self.master.opp_hand.pop(0)
             self.master.refresh_screen()
         elif command == 8:

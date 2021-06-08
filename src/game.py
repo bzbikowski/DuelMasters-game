@@ -206,7 +206,7 @@ class Game(QWidget):
         self.bfield = [-1, -1, -1, -1, -1, -1]
         self.graveyard = []
         self.opp_shields = [True, True, True, True, True]
-        self.opp_mana = [[0, True], [1, True]]
+        self.opp_mana = []
         self.opp_hand = [-1, -1, -1, -1, -1]
         self.opp_bfield = [-1, -1, -1, -1, -1, -1]
         self.opp_graveyard = []
