@@ -16,6 +16,8 @@ class Controller:
         """
         command = int(msg[:2], base=16)
         msg = msg[2:]
+        print("CONTROLLER - COMMAND: " + command)
+        print("CONTROLLER - MSG: " + msg)
         if command == 0:
             # 0 - you win
             self.master.win()

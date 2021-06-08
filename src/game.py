@@ -94,17 +94,13 @@ class Game(QWidget):
                 try:
                     self.server.close()
                 except RuntimeError:
-                    print("Server alreeady deleted")
-                # self.serverThread.terminate()
-                # self.serverThread.wait()
+                    print("Server already deleted")
 
             else:
                 try:
                     self.client.abort()
                 except RuntimeError:
-                    print("Client alreeady deleted")
-                # self.clientThread.terminate()
-                # self.clientThread.wait()
+                    print("Client already deleted")
         self.parent.show_window()
 
     def handle_disconnect(self):
@@ -141,12 +137,8 @@ class Game(QWidget):
         self.client.disconnected.connect(self.handle_disconnect)
         self.client.error.connect(self.handle_error)
         self.client.messageReceived.connect(self.controller.received_message)
-        # self.clientThread = QThread()
-        # self.client.moveToThread(self.clientThread)
-        # self.clientThread.started.connect(lambda: self.client.run())
         self.client.run()
         self.started = True
-        # self.clientThread.start()
 
     def wait_for_connection(self):
         """
@@ -172,12 +164,8 @@ class Game(QWidget):
             self.serverDialog.ui.status_label.setText("Waiting for connection...")
             self.log.debug(f"You are listening on: {ip_local}, {ip_port}")
 
-        # self.serverThread = QThread()
-        # self.server.moveToThread(self.serverThread)
-        # self.serverThread.started.connect(lambda: self.server.run())
         self.server.run()
         self.started = True
-        # self.serverThread.start()
         self.serverDialog.show()
 
     def connected_with_player(self):
@@ -581,18 +569,6 @@ class Game(QWidget):
         for i in range(len(items)-2):
             self.preview_scene.removeItem(items[i])
 
-    def draw_a_card(self):
-        """Draw a top card from your deck and add it to your hand"""
-        if not len(self.deck) == 0:
-            card = self.deck.pop(0)
-            self.add_log("Dobierasz karte {}.".format(self.find_card(card).name))
-            self.hand.append(card)
-            self.send_message(3)
-        else:
-            self.lose()
-            self.send_message(0)
-        self.refresh_screen()
-
     def summon_effect(self, card_id):
         """Check and trigger the effects of played card"""
         card = self.find_card(card_id)
@@ -637,6 +613,18 @@ class Game(QWidget):
 
     #   MENU METHODS
     #####################################################
+
+    def m_draw_a_card(self):
+        """Draw a top card from your deck and add it to your hand"""
+        if not len(self.deck) == 0:
+            card = self.deck.pop(0)
+            self.add_log("Dobierasz karte {}.".format(self.find_card(card).name))
+            self.hand.append(card)
+            self.send_message(3)
+        else:
+            self.lose()
+            self.send_message(0)
+        self.refresh_screen()
 
     def m_end_turn(self):
         # end your turn
