@@ -80,12 +80,12 @@ class Game(QWidget):
         if self.started:
             if self.mode == 1:
                 try:
-                    self.server.close()
+                    self.server.close_connection()
                 except RuntimeError:
                     print("Server already deleted")
             else:
                 try:
-                    self.client.abort()
+                    self.client.disconnectFromHost()
                 except RuntimeError:
                     print("Client already deleted")
         self.parent.show_window()
