@@ -1,7 +1,7 @@
 import logging
 import random
 
-from PySide2.QtCore import Qt, QTimer, QThread, Slot
+from PySide2.QtCore import Qt, QTimer, QThread, Slot, Signal
 from PySide2.QtGui import QBrush, QColor, QPen, QPixmap, QTransform, QImage, QFont
 from PySide2.QtWidgets import QWidget, QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, \
     QTextEdit, QLabel, QPushButton, QGraphicsRectItem, QGraphicsTextItem, QMessageBox
@@ -14,23 +14,23 @@ from src.views import GameView, CardView, GraveyardView
 from src.serverdialog import ServerDialog
 from src.clientdialog import ClientDialog
 from src.controller import Controller
+from src.ui.ui_game import Ui_Game
 
 
 class Game(QWidget):
     """
     Main class in application.
     """
+    yourTurn = Signal(bool)
     def __init__(self, mode, deck, database, debug, parent=None):
         # todo change to sqlite
         super(Game, self).__init__()
-        # width = 1360
-        # height = 768
-        # self.setFixedSize(width, height)
+        self.ui = Ui_Game()
+        self.ui.setupUi(self)
         self.log = None
         self.mode = mode
         self.database = database
         # self.move((screen_width - self.width)/2, (screen_height - self.height)/2 - 20)
-        self.setWindowTitle("Duel masters - Video game")
         self.debug_mode = debug
         self.locked = False
         self.isServer = False
@@ -44,26 +44,14 @@ class Game(QWidget):
         self.focus_request = False
         self.select_mode = False
         self.card_to_choose = 0
-
-        self.view = QGraphicsView(self)
-        self.view.setSceneRect(0, 0, 1024, 768)
-        self.view.setFixedSize(1024, 768)
-        self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-
-        self.preview = QGraphicsView(self)
-        self.preview.move(1024, 0)
-        self.preview.setFixedSize(336, 768)
-        self.preview.setSceneRect(0, 0, 336, 768)
-        self.preview.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.preview.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.turn_count = 0
 
         self.view_scene = GameView(self)
-        self.view.setScene(self.view_scene)
+        self.ui.view.setScene(self.view_scene)
         self.view_scene.setBackgroundBrush(QBrush(QColor(0, 0, 0)))
 
         self.preview_scene = QGraphicsScene()
-        self.preview.setScene(self.preview_scene)
+        self.ui.preview.setScene(self.preview_scene)
         self.preview_scene.setBackgroundBrush(QBrush(QColor(0, 0, 0)))
 
         self.log_panel = Logger()
@@ -84,7 +72,7 @@ class Game(QWidget):
         if self.debug_mode:
             self.log.setLevel(logging.DEBUG)
         else:
-            self.log.setLevel(logging.DEBUG)
+            self.log.setLevel(logging.INFO)
 
     def closeEvent(self, event):
         """Close connection and return to menu"""
@@ -95,7 +83,6 @@ class Game(QWidget):
                     self.server.close()
                 except RuntimeError:
                     print("Server already deleted")
-
             else:
                 try:
                     self.client.abort()
@@ -177,14 +164,18 @@ class Game(QWidget):
         except:
             pass
         self.show()
+        self.log.info(f"Found opponent. Game is being started.")
         if self.mode == 1:
             if random.random() < 0.5:
                 self.send_message(0)
                 self.turn_states(0)
                 self.add_log("You start the game! Your turn.", False)
+                self.log.info(f"Turn {self.turn_count}: Host turn.")
             else:
                 self.send_message(1)
+                self.yourTurn.emit(False)
                 self.add_log("Opponent starts the game.", False)
+                self.log.info(f"Turn {self.turn_count}: Opponent turn.")
         self.init_game()
         self.draw_screen()
 
@@ -193,6 +184,7 @@ class Game(QWidget):
         """
         Create initial structures and data for our starting game
         """
+        self.log.debug(f"Initializing variables.")
         self.dict_civ = {"Light": 0, "Nature": 1, "Darkness": 2, "Fire": 3, "Water": 4}
         random.shuffle(self.deck)
         self.shields = []
@@ -219,6 +211,7 @@ class Game(QWidget):
         self.proxy = self.preview_scene.addWidget(self.extend_logs_button)
         self.change_button_state = True
         self.selected_card = []
+        self.log.debug(f"Initializing of the variables is finished.")
 
     def start_time(self):
         """
@@ -239,6 +232,7 @@ class Game(QWidget):
         """
         Draw all elements into the screen.
         """
+        self.log.debug(f"Redrawing all elements into the screen.")
         # your shields
         self.add_shield_to_scene(self.shields, "yu_sh")
         # opponent's shields
@@ -300,6 +294,7 @@ class Game(QWidget):
                 tekst.setTextWidth(x_width-20)
                 self.preview_scene.addItem(tekst)
                 y_pos -= 60
+        self.log.debug(f"Redrawing finished.")
 
     def get_pixmap_card(self, card_id, res='low_res'):
         """Get pixmap of card from the database"""
@@ -533,18 +528,17 @@ class Game(QWidget):
         else:
             self.client.send_data(msg)
         
-    def turn_states(self, state):
+    def turn_states(self, state): # TODO: change state to boolean, and name?
         """
         Set state of on start of your turn:
-        0 -> pierwsza runda w grze
-        1 -> dobierz kartę + rzucanie many/czary/creatury
+        0 -> first round of the game - don't draw a card
+        1 -> every other round - draw a card
         """
-        if state == 0:
-            self.card_to_mana = 1
-            self.your_turn = True
-        elif state == 1:
+        if state == 1:
             self.m_draw_a_card()
-            self.your_turn = True
+        self.card_to_mana = 1
+        self.your_turn = True
+        self.yourTurn.emit(True)
 
     def win(self):
         """Do someting when you win"""
@@ -635,6 +629,7 @@ class Game(QWidget):
         self.add_log("End of your turn.")
         self.send_message(2)
         self.your_turn = False
+        self.yourTurn.emit(False)
 
     def m_accept_cards(self):
         self.fun_to_call(_, False)

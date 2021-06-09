@@ -11,7 +11,9 @@ class GameView(QGraphicsScene):
     def __init__(self, parent=None):
         # todo something is breaking when clicked on card
         super(GameView, self).__init__(parent)
+        self.disable_ui = False
         self.parent = parent
+        self.parent.yourTurn.connect(self.handle_turn)
 
     def mousePressEvent(self, event):
         if self.parent.focus_request:
@@ -24,6 +26,8 @@ class GameView(QGraphicsScene):
         if point is not self.parent.background:
             point.contextMenuEvent(event)
         else:
+            if self.disable_ui:
+                return
             menu = QMenu()
             if self.parent.select_mode and len(self.parent.selected_card) == self.parent.card_to_choose:
                 end_action = QAction("Accept cards")
@@ -37,6 +41,12 @@ class GameView(QGraphicsScene):
             end_action.triggered.connect(self.parent.m_end_turn)
             menu.addAction(end_action)
             menu.exec_(QCursor.pos())
+
+    def handle_turn(self, your_turn):
+        if your_turn:
+            self.disable_ui = False
+        else:
+            self.disable_ui = True
 
 
 class CardView(QGraphicsPixmapItem):
@@ -56,7 +66,9 @@ class CardView(QGraphicsPixmapItem):
         super(CardView, self).__init__()
         self.set = set
         self.iden = iden
+        self.disable_ui = False
         self.parent = parent
+        self.parent.yourTurn.connect(self.handle_turn)
         self.card = None
 
     def mousePressEvent(self, event):
@@ -73,6 +85,8 @@ class CardView(QGraphicsPixmapItem):
         self.card = card
 
     def contextMenuEvent(self, event):
+        if self.disable_ui:
+            return
         menu = QMenu()
         if self.parent.select_mode and self.set in self.parent.type_to_choose:
             choose_action = QAction("Choose a card")
@@ -161,7 +175,13 @@ class CardView(QGraphicsPixmapItem):
             menu.addAction(look_action)
         menu.exec_(QCursor.pos())
 
-        
+    def handle_turn(self, your_turn):
+        if your_turn:
+            self.disable_ui = False
+        else:
+            self.disable_ui = True
+
+            
 class GraveyardView(QWidget):
     """
     Unfinished graveyard
