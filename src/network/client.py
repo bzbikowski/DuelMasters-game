@@ -19,7 +19,7 @@ class Client(QTcpSocket):
         self.address = address
         self.port = port
         self.parent = parent
-        self.error.connect(self.server_error_handle)
+        self.error.connect(self.error_handle)
         self.readyRead.connect(self.receive_data)
         self.disconnected.connect(self.disconnected_with_server)
         self.setup_logger()
@@ -35,8 +35,8 @@ class Client(QTcpSocket):
         self.connectToHost(QHostAddress(self.address), self.port, QIODevice.ReadWrite)
         self.log.debug(f"Validate connection")
         if not self.waitForConnected(10000):
-            self.log.error(f"Couldn't create a valid connection to host {self.address}:{self.port}. Exiting...")
-            self.close()
+            self.log.error(f"Couldn't create a valid connection to host {self.address}:{self.port}.")
+            self.abort()
 
     def send_data(self, data):
         msg = ""
@@ -63,18 +63,18 @@ class Client(QTcpSocket):
         self.log.debug(f"Received from opponent data: {msg}")
         self.messageReceived.emit(msg)
 
-    def server_error_handle(self, error):
-        if error == QAbstractSocket.RemoteHostClosedError:
-            self.log.debug(f"QAbstractSocket.RemoteHostClosedError: {self.errorString()}")
-            self.log.error("Opponent closed the connection. Exiting...")
-        else:
-            self.log.debug(self.errorString())
-            self.log.error("Unknown error happened with connection. Exiting...")
-        self.close()
+    def error_handle(self, error):
+        # TODO: custom handling of the error
+        self.log.debug(f"{self.error()}: {self.errorString()}")
+        # if error == QAbstractSocket.RemoteHostClosedError:
+        #     self.log.debug(f"QAbstractSocket.RemoteHostClosedError: {self.errorString()}")
+        #     self.log.error("Opponent closed the connection.")
+        self.log.error(f"Error happened with connection to the opponent. Reason: {self.errorString()}")
+        self.abort()
 
     def disconnected_with_server(self):
-        self.log.error("The connection was closed with the opponent. Exiting...")
-        self.close()
+        self.log.error("The connection was closed with the opponent.")
+        self.abort()
 
     def run(self):
         self.start_connection()
