@@ -73,7 +73,7 @@ class Client(QTcpSocket):
         self.close()
 
     def disconnected_with_server(self):
-        self.log.error("You disconnected with the opponent. Exiting...")
+        self.log.error("The connection was closed with the opponent. Exiting...")
         self.close()
 
     def run(self):

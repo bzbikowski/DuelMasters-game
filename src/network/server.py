@@ -53,8 +53,9 @@ class Server(QTcpServer):
     def client_disconnected(self):
         print("ERROR: client_disconnected")
 
-    # def __del__(self):
-    #     self.close()
+    def __del__(self):
+        self.socket.disconnectFromHost()
+        self.close()
 
     def run(self):
         print("LOOKING_FOR_CONNECTION")

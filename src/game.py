@@ -117,7 +117,6 @@ class Game(QWidget):
         Connect with the server
         """
         self.clientDialog.close()
-        self.log.debug(f"Trying to connect to: {ip_address}, {port}")
         self.isServer = False
         self.client = Client(ip_address, port, self)
         self.client.connected.connect(self.connected_with_player)
