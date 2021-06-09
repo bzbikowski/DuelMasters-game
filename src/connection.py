@@ -4,9 +4,9 @@ from PySide2.QtWidgets import QDialog
 from PySide2.QtWidgets import QDialog
 from src.ui.ui_connection import Ui_ConnectionMenu
 
-class Connection(QDialog):
+class ConnectionDialog(QDialog):
     def __init__(self, parent=None):
-        super(Connection, self).__init__(parent)
+        super(ConnectionDialog, self).__init__(parent)
         self.ui = Ui_ConnectionMenu()
         self.ui.setupUi(self)
         self.ui.server_button.clicked.connect(self.server_mode)

@@ -22,7 +22,7 @@ class Server(QTcpServer):
         self.port = 10023
 
     def find_ip(self):
-        wifi_pat = r"^192\.168\.[0-2]?[0-9]?[0-9]\.[0-2]?[0-9]?[0-9]$" # Only for debbuging
+        wifi_pat = r"^192\.168\.[0-2]?[0-9]?[0-9]\.[0-2]?[0-9]?[0-9]$" # TODO: used only for debbuging
         inet = QNetworkInterface().interfaceFromName("eth0")
         addresses = inet.allAddresses()
         print("Found interfaces: " + str(addresses))

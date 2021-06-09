@@ -162,9 +162,9 @@ class Game(QWidget):
         try:
             self.serverDialog.close()
         except:
-            pass
+            self.log.debug(f"Client mode, so server dialog was not open and can't be closed.")
         self.show()
-        self.log.info(f"Found opponent. Game is being started.")
+        self.log.info("Found opponent. Game is being started.")
         if self.mode == 1:
             if random.random() < 0.5:
                 self.send_message(0)

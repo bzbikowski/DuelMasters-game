@@ -23,23 +23,22 @@ class Client(QTcpSocket):
         self.readyRead.connect(self.receive_data)
         self.disconnected.connect(self.disconnected_with_server)
         self.setup_logger()
-        # self.bytesWritten.connect()
 
     def setup_logger(self):
         self.log = logging.getLogger("dm_game")
         self.log.setLevel(logging.DEBUG)
 
     def start_connection(self):
-        print("START_CONNECTION")
+        self.log.debug(f"Starting a connection to {self.address}:{self.port}")
         if type(self.port) == str:
             self.port = int(self.port)
         self.connectToHost(QHostAddress(self.address), self.port, QIODevice.ReadWrite)
-        print("WAIT_FOR_CONNECTED")
+        self.log.debug(f"Validate connection")
         if not self.waitForConnected(10000):
-            print("Critical error, do nothing")
+            self.log.error(f"Couldn't create a valid connection to host {self.address}:{self.port}. Exiting...")
+            self.close()
 
     def send_data(self, data):
-        print("SENT")
         msg = ""
         for item in data:
             m = hex(int(item))[2:]
@@ -52,33 +51,30 @@ class Client(QTcpSocket):
         stream.writeString(msg)
         stream.device().seek(0)
         self.write(block)
-        print("SENT: " + msg)
+        self.log.debug(f"Sent to opponent data: {msg}")
 
     def receive_data(self):
-        print("RECEIVE")
         stream = QDataStream(self)
         stream.setVersion(QDataStream.Qt_5_15)
         if self.bytesAvailable() < 2:
             return
         data = stream.readString()
-        # if self.bytesAvailable() < data:
-        #     return
         msg = str(data)
-        print("RECEIVED: " + msg)
+        self.log.debug(f"Received from opponent data: {msg}")
         self.messageReceived.emit(msg)
 
     def server_error_handle(self, error):
-        print("ERROR")
         if error == QAbstractSocket.RemoteHostClosedError:
-            print("QAbstractSocket.RemoteHostClosedError")
+            self.log.debug(f"QAbstractSocket.RemoteHostClosedError: {self.errorString()}")
+            self.log.error("Opponent closed the connection. Exiting...")
         else:
-            print("Error occured: {}".format(self.errorString()))
+            self.log.debug(self.errorString())
+            self.log.error("Unknown error happened with connection. Exiting...")
+        self.close()
 
     def disconnected_with_server(self):
-        print("DISCONNECTED")
-
-    # def __del__(self):
-    #     self.wait()
+        self.log.error("You disconnected with the opponent. Exiting...")
+        self.close()
 
     def run(self):
         self.start_connection()
