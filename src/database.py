@@ -45,8 +45,7 @@ class Database(object):
                 querry.bindValue(":rules", card.rules_text)
                 querry.bindValue(":flavor", card.flavor_text)
                 querry.bindValue(":effects", card.effects_json)
-                querry.bindValue(":high", card.images['low'])
-                # todo create high resolution cards and change low to high
+                querry.bindValue(":high", card.images['high'])
                 querry.bindValue(":low", card.images['low'])
                 querry.bindValue(":set_name", card.set_name)
                 ok = querry.exec_()

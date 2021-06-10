@@ -94,7 +94,6 @@ class Card:
         self.rules_text = rules
         self.flavor_text = flavor
         self.effects, self.effects_json = self.parse_effects(effect)
-        # print(self.effects_json)
         self.images = self.load_images(set_name, set_id)
 
     def parse_effects(self, effects):
@@ -107,7 +106,7 @@ class Card:
 
     def load_images(self, set_name, set_id):
         images = {}
-        sizes = ["low"]
+        sizes = ["low", "high"]
         for size in sizes:
             path = f"res//img//{set_name}//{str(set_id)}//{size}.jpg"
             file = QFile(path)

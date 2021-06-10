@@ -231,7 +231,6 @@ class Game(QWidget):
         """
         Draw all elements into the screen.
         """
-        self.log.debug(f"Redrawing all elements into the screen.")
         # your shields
         self.add_shield_to_scene(self.shields, "yu_sh")
         # opponent's shields
@@ -293,13 +292,13 @@ class Game(QWidget):
                 tekst.setTextWidth(x_width-20)
                 self.preview_scene.addItem(tekst)
                 y_pos -= 60
-        self.log.debug(f"Redrawing finished.")
 
     def get_pixmap_card(self, card_id, res='low_res'):
         """Get pixmap of card from the database"""
         pixmap = QPixmap()
         if not pixmap.loadFromData(self.database.getdata(card_id, res)):
-            raise Exception("Brak obrazka")
+            self.log.error(f"No image available for card {card_id}")
+            exit(0)
         return pixmap
         
     def card_clicked(self, x, y, c_id=None):

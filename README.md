@@ -24,3 +24,8 @@ Run ```pip install -r requirements.txt``` to install all required libraries in y
 * all minor and major changes with graphics and GUI
 * creating your own avatar and cardback
 * popup help messages
+
+
+Card images were taken from:
+* https://duelmasters.fandom.com/wiki/Duel_Masters_Wiki
+* http://www.ccgdb.com/duelmasters/
