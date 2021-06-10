@@ -1,3 +1,4 @@
+from PySide2.QtCore import QObject, Slot
 from PySide2.QtGui import QCursor, QTransform
 from PySide2.QtWidgets import QGraphicsScene, QGraphicsPixmapItem, QMenu, QAction, QWidget
 
@@ -26,7 +27,7 @@ class GameView(QGraphicsScene):
         if point is not self.parent.background:
             point.contextMenuEvent(event)
         else:
-            if self.disable_ui:
+            if not self.parent.your_turn:
                 return
             menu = QMenu()
             if self.parent.select_mode and len(self.parent.selected_card) == self.parent.card_to_choose:
@@ -42,6 +43,7 @@ class GameView(QGraphicsScene):
             menu.addAction(end_action)
             menu.exec_(QCursor.pos())
 
+    @Slot(bool)
     def handle_turn(self, your_turn):
         if your_turn:
             self.disable_ui = False
@@ -68,7 +70,6 @@ class CardView(QGraphicsPixmapItem):
         self.iden = iden
         self.disable_ui = False
         self.parent = parent
-        self.parent.yourTurn.connect(self.handle_turn)
         self.card = None
 
     def mousePressEvent(self, event):
@@ -85,7 +86,7 @@ class CardView(QGraphicsPixmapItem):
         self.card = card
 
     def contextMenuEvent(self, event):
-        if self.disable_ui:
+        if not self.parent.your_turn:
             return
         menu = QMenu()
         if self.parent.select_mode and self.set in self.parent.type_to_choose:
@@ -174,12 +175,6 @@ class CardView(QGraphicsPixmapItem):
             look_action.triggered.connect(lambda: self.parent.m_look_graveyard(self.set))
             menu.addAction(look_action)
         menu.exec_(QCursor.pos())
-
-    def handle_turn(self, your_turn):
-        if your_turn:
-            self.disable_ui = False
-        else:
-            self.disable_ui = True
 
             
 class GraveyardView(QWidget):

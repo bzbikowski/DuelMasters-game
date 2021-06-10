@@ -75,7 +75,10 @@ class Server(QTcpServer):
         self.close_connection()
 
     def close_connection(self):
-        self.socket.disconnectFromHost()
+        try:
+            self.socket.disconnectFromHost()
+        except AttributeError as e:
+            pass
         self.clientError.emit()
         self.close()
 

@@ -104,7 +104,7 @@ class Game(QWidget):
         Client side
         Enter ip address and port of computer, which you want to connect to
         """
-        self.clientDialog = ClientDialog(self)
+        self.clientDialog = ClientDialog()
         self.clientDialog.closing.connect(self.close)
         self.clientDialog.paramsReady.connect(self.start_connection)
         self.clientDialog.show()
@@ -136,7 +136,7 @@ class Game(QWidget):
         self.server.messageReceived.connect(self.controller.received_message)
         self.server.clientError.connect(self.close)
 
-        self.serverDialog = ServerDialog(self)
+        self.serverDialog = ServerDialog()
         self.serverDialog.closing.connect(self.close)
 
         ip_local, ip_port = self.server.find_ip()
@@ -210,7 +210,6 @@ class Game(QWidget):
         self.proxy = self.preview_scene.addWidget(self.extend_logs_button)
         self.change_button_state = True
         self.selected_card = []
-        self.log.debug(f"Initializing of the variables is finished.")
 
     def start_time(self):
         """
@@ -533,6 +532,7 @@ class Game(QWidget):
         1 -> every other round - draw a card
         """
         if state == 1:
+            self.card_to_draw = 1
             self.m_draw_a_card()
         self.card_to_mana = 1
         self.your_turn = True
@@ -611,6 +611,9 @@ class Game(QWidget):
 
     def m_draw_a_card(self):
         """Draw a top card from your deck and add it to your hand"""
+        # Check if you are allowed to draw a card
+        if self.card_to_draw == 0:
+            return
         if not len(self.deck) == 0:
             card = self.deck.pop(0)
             self.add_log("You draw a card {}.".format(self.find_card(card).name))
@@ -619,10 +622,11 @@ class Game(QWidget):
         else:
             self.add_log("You don't have enough cards to draw from. You lose!")
             self.lose()
-            # self.send_message(0)
+        self.card_to_draw -= 1
         self.refresh_screen()
 
     def m_end_turn(self):
+        # TODO: in the future, ask if you really want to end the turn when none action were taken
         # end your turn
         self.add_log("End of your turn.")
         self.send_message(2)
