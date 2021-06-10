@@ -12,6 +12,7 @@ class Server(QTcpServer):
     """
     connectionOk = Signal(None)
     messageReceived = Signal(str)
+    clientError = Signal(None)
     def __init__(self, parent=None):
         super(Server, self).__init__()
         self.log = None
@@ -33,7 +34,7 @@ class Server(QTcpServer):
         wifi_pat = r"^192\.168\.[0-2]?[0-9]?[0-9]\.[0-2]?[0-9]?[0-9]$" # TODO: 192.168.* used only for debbuging
         inet = QNetworkInterface().interfaceFromName("eth0")
         addresses = inet.allAddresses()
-        self.log.debug(f"Found interfaces: {str(addresses)}")
+        self.log.debug(f"Found interfaces: {str([addr.toString() for addr in addresses])}")
         for addr in addresses:
             addr_str = addr.toString()
             if re.match(wifi_pat, addr_str):
@@ -44,7 +45,7 @@ class Server(QTcpServer):
     def conn_handle(self):
         self.log.info("Found new connection")
         self.socket = self.nextPendingConnection()
-        client_ip_address = self.socket.localAddress()
+        client_ip_address = self.socket.localAddress().toString()
         client_port = self.socket.localPort()
         self.log.debug(f"Client IP address and port: {client_ip_address}:{client_port}")
         if not self.socket.waitForConnected(10000):
@@ -75,6 +76,7 @@ class Server(QTcpServer):
 
     def close_connection(self):
         self.socket.disconnectFromHost()
+        self.clientError.emit()
         self.close()
 
     def run(self):

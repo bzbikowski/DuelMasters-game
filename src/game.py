@@ -134,6 +134,7 @@ class Game(QWidget):
         self.server = Server(self)
         self.server.connectionOk.connect(self.connected_with_player)
         self.server.messageReceived.connect(self.controller.received_message)
+        self.server.clientError.connect(self.close)
 
         self.serverDialog = ServerDialog(self)
         self.serverDialog.closing.connect(self.close)
@@ -148,7 +149,6 @@ class Game(QWidget):
             self.serverDialog.ui.ip_address_label.setText("Your address is {}".format(ip_local))
             self.serverDialog.ui.port_label.setText("You are listining on port {}".format(ip_port))
             self.serverDialog.ui.status_label.setText("Waiting for connection...")
-            self.log.debug(f"You are listening on: {ip_local}, {ip_port}")
 
         self.server.run()
         self.started = True

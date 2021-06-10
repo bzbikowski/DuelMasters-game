@@ -13,7 +13,7 @@ class Logger(object):
         return len(self.logs)
 
     def append(self, msg):
-        self.logs.append(msg)
+        self.logs.appendleft(msg)
 
     def __getitem__(self, item):
         return self.logs[item]
