@@ -609,7 +609,7 @@ class Game(QWidget):
             self.type_to_choose = ["yu_bf", "op_bf"]
             self.fun_to_call = self.teleport
         else:
-            print(f"Teleport this cards to hand: {self.selected_cards}")
+            print(f"Teleport this cards to hand: {self.selected_card}")
             for card in self.selected_card:
                 self.m_return_card_to_hand(card[0], card[1])
             self.selected_card = []
@@ -682,8 +682,6 @@ class Game(QWidget):
 
     def m_choose_card(self, set, iden):
         self.selected_card.append([set, iden])
-        print(f"SELECTED CARDS: {str(self.selected_card)}")
-        print(f"CARDS TO CHOOSE: {self.card_to_choose}")
         self.refresh_screen()
         
     def m_return_card_to_hand(self, set, iden):
