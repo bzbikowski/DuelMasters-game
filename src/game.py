@@ -682,6 +682,7 @@ class Game(QWidget):
     def m_choose_card(self, set, iden):
         self.selected_card.append([set, iden])
         print(f"SELECTED CARDS: {str(self.selected_card)}")
+        print(f"CARDS TO CHOOSE: {self.card_to_choose}")
         self.refresh_screen()
         
     def m_return_card_to_hand(self, set, iden):
