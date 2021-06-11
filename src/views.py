@@ -30,8 +30,8 @@ class GameView(QGraphicsScene):
             if not self.parent.your_turn:
                 return
             menu = QMenu()
-            print(f"BOARD: SELECT MODE - {len(self.parent.selected_card)} == {self.parent.card_to_choose}")
-            if self.parent.select_mode and len(self.parent.selected_card) == self.parent.card_to_choose:
+            print(f"BOARD: SELECT MODE - {str(self.parent.select_mode)}, {len(self.parent.selected_card)} == {self.parent.card_to_choose}")
+            if self.parent.select_mode == True and len(self.parent.selected_card) == self.parent.card_to_choose:
                 accept_action = QAction("Accept cards")
                 accept_action.triggered.connect(self.parent.m_accept_cards)
                 menu.addAction(accept_action)
