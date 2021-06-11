@@ -266,7 +266,7 @@ class Game(QWidget):
         # change max number of logs to display
         if self.change_button_state:
             self.extend_logs_button.setText("+")
-            self.proxy.setPos(20, 700)
+            self.proxy.setPos(20, 540)
         else:
             self.extend_logs_button.setText("*")
             self.proxy.setPos(20, 20)
@@ -470,10 +470,12 @@ class Game(QWidget):
                 card.set_card(item)
                 pixmap = self.get_pixmap_card(arr[i])
                 card.setPixmap(pixmap)
-                card.setPos(x + i * 95, y)  # pole potworów twoje
+                card.setPos(x + i * 95, y)
                 self.view_scene.addItem(card)
+
             if not len(self.selected_card) == 0:
                 for sel_card in self.selected_card:
+                    print(f"SELECTED CARD: {sel_card[0]} {sel_card[1]}; i + 1 = {i + 1}")
                     if sel_card[0] == type:
                         if sel_card[1] == i + 1:
                             self.highlight_card(x, x + 85, y, y + 115, QColor(0, 0, 255))
@@ -531,6 +533,7 @@ class Game(QWidget):
         0 -> first round of the game - don't draw a card
         1 -> every other round - draw a card
         """
+        # TODO: unlock and untap all your mana
         if state == 1:
             self.card_to_draw = 1
             self.m_draw_a_card()
@@ -566,10 +569,13 @@ class Game(QWidget):
 
     def summon_effect(self, card_id):
         """Check and trigger the effects of played card"""
+        # TODO: debug this
         card = self.find_card(card_id)
+        print(f"Effects of card {card}: {str(card.effects)}")
         for effect in card.effects:
             if "teleport" in effect.keys():
                 count = effect["teleport"]["count"]
+                print(f"Teleport {count}")
                 self.teleport(count)
             if "destroy_blockers" in effect.keys():
                 if effect["destroy_blockers"]["mode"] == "all":
@@ -577,6 +583,7 @@ class Game(QWidget):
 
     def message_screen_request(self, bg_color, frame_color, text):
         """Message box for displaying important information. After one click it disappears."""
+        # TODO: Debug why the box is not appearing
         bg = QGraphicsRectItem(100, 100, 200, 200)
         bg.setBrush(QBrush(bg_color))
         self.view_scene.addItem(bg)
@@ -586,6 +593,7 @@ class Game(QWidget):
         text = QGraphicsTextItem(text)
         text.setPos(110, 110)
         self.view_scene.addItem(text)
+        print("printed message box")
         self.focus_request = True
         self.select_mode = True
 
@@ -594,12 +602,14 @@ class Game(QWidget):
 
     def teleport(self, count, firsttime=True):
         if firsttime:
+            print("First time teleport - show message screen")
             self.message_screen_request(QColor(55, 55, 55), QColor(255, 0, 0),
                                         f"Choose {count} cards in the battlefield to activate the effect.")
             self.card_to_choose = count
             self.type_to_choose = ["yu_bf", "op_bf"]
             self.fun_to_call = self.teleport
         else:
+            print(f"Teleport this cards to hand: {self.selected_cards}")
             for card in self.selected_card:
                 self.m_return_card_to_hand(card[0], card[1])
             self.selected_card = []
@@ -634,6 +644,7 @@ class Game(QWidget):
         self.yourTurn.emit(False)
 
     def m_accept_cards(self):
+        print("ALL CARD SELECTED - TRIGGER ACTION")
         self.fun_to_call(_, False)
         
     def m_summon_card(self, iden):
@@ -642,27 +653,35 @@ class Game(QWidget):
         for item in self.weights:
             sum += item
         if sum >= int(card.cost) and not self.weights[self.dict_civ[card.civ]] == 0:
-            # todo ztapuj mane na polu bitwy
+            # TODO: if card was summoned successfully, mark that mana as locked
             if card.typ == "Creature":
                 for i in range(len(self.bfield) - 1):
+                    # Look for free space on the board (value -1)
                     if self.bfield[i] == -1:
                         card = self.hand.pop(iden - 1)
                         self.bfield[i] = card
+                        self.log.info(f"You've played a creature {card}")
+                        self.add_log(f"You have played {card} on position {i}")
                         self.send_message(4, card, i)
-                        # efekt podczas zagrania
                         self.summon_effect(card)
                         break
             elif card.typ == "Spell":
+                # Spells are played on 6th space, separate of creature ones
                 if self.bfield[5] == -1:
                     card = self.hand.pop(iden - 1)
                     self.bfield[5] = card
+                    self.log.info(f"You've played a spell {card}")
+                    self.add_log(f"You have played spell {card}")
                     self.send_message(4, card, 5)
+                    self.summon_effect(card)
         else:
+            # Not enough mana tapped, do nothing
             return
         self.refresh_screen()
 
     def m_choose_card(self, set, iden):
         self.selected_card.append([set, iden])
+        print(f"SELECTED CARDS: {str(self.selected_card)}")
         self.refresh_screen()
         
     def m_return_card_to_hand(self, set, iden):
