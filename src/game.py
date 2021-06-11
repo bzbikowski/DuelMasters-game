@@ -475,7 +475,6 @@ class Game(QWidget):
 
             if not len(self.selected_card) == 0:
                 for sel_card in self.selected_card:
-                    print(f"SELECTED CARD: {sel_card[0]} {sel_card[1]}; i + 1 = {i + 1}")
                     if sel_card[0] == type:
                         if sel_card[1] == i + 1:
                             self.highlight_card(x, x + 85, y, y + 115, QColor(0, 0, 255))

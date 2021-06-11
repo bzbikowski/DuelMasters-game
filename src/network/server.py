@@ -110,3 +110,9 @@ class Server(QTcpServer):
         msg = str(data)
         self.log.debug(f"Received from opponent data: {msg}")
         self.messageReceived.emit(msg)
+        # Make sure all data was processed
+        if self.socket.bytesAvailable() > 0:
+            data = stream.readString()
+            msg = str(data)
+            self.log.debug(f"2Received from opponent data: {msg}")
+            self.messageReceived.emit(msg)
