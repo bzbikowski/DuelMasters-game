@@ -62,6 +62,12 @@ class Client(QTcpSocket):
         msg = str(data)
         self.log.debug(f"Received from opponent data: {msg}")
         self.messageReceived.emit(msg)
+        # Make sure all data was processed
+        if self.bytesAvailable() > 0:
+            data = stream.readString()
+            msg = str(data)
+            self.log.debug(f"2Received from opponent data: {msg}")
+            self.messageReceived.emit(msg)
 
     def error_handle(self, error):
         # TODO: custom handling of the error
