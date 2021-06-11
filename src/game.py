@@ -576,7 +576,7 @@ class Game(QWidget):
             if "teleport" in effect.keys():
                 count = int(effect["teleport"]["count"])
                 print(f"Teleport {count}")
-                self.teleport(count)
+                self.teleport(True, count)
             if "destroy_blockers" in effect.keys():
                 if effect["destroy_blockers"]["mode"] == "all":
                     self.destroy_blocker(-1)
@@ -600,7 +600,7 @@ class Game(QWidget):
     #  EFFECT METHODS
     #####################################################
 
-    def teleport(self, count, firsttime=True):
+    def teleport(self, firsttime, count=0):
         if firsttime:
             print("First time teleport - show message screen")
             self.message_screen_request(QColor(55, 55, 55), QColor(255, 0, 0),
@@ -645,7 +645,8 @@ class Game(QWidget):
 
     def m_accept_cards(self):
         print("ALL CARD SELECTED - TRIGGER ACTION")
-        self.fun_to_call(_, False)
+        # TODO: it cannot be empty
+        self.fun_to_call(False)
         
     def m_summon_card(self, iden):
         card = self.find_card(self.hand[iden - 1])
