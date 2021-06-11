@@ -140,7 +140,7 @@ class CardView(QGraphicsPixmapItem):
             menu.addAction(destroy_action)
         elif self.set == 'op_mn':
             return_action = QAction("Return a card to hand")
-            return_action.triggered.connect(lambda: self.parent.m_opp_return_card_to_hand(self.set, self.iden))
+            return_action.triggered.connect(lambda: self.parent.m_return_card_to_hand(self.set, self.iden))
             menu.addAction(return_action)
             destroy_action = QAction("Move a card to graveyard")
             destroy_action.triggered.connect(lambda: self.parent.m_opp_move_to_graveyard(self.set, self.iden))
@@ -162,7 +162,7 @@ class CardView(QGraphicsPixmapItem):
             select_action.triggered.connect(lambda: self.parent.m_attack_opp_creature(self.iden))
             menu.addAction(select_action)
             return_action = QAction("Return a card to hand")
-            return_action.triggered.connect(lambda: self.parent.m_opp_return_card_to_hand(self.set, self.iden))
+            return_action.triggered.connect(lambda: self.parent.m_return_card_to_hand(self.set, self.iden))
             menu.addAction(return_action)
             destroy_action = QAction("Move a card to graveyard")
             destroy_action.triggered.connect(lambda: self.parent.m_opp_move_to_graveyard(self.set, self.iden))

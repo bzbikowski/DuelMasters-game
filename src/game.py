@@ -685,6 +685,7 @@ class Game(QWidget):
         self.refresh_screen()
         
     def m_return_card_to_hand(self, set, iden):
+        # Action: Return a card to hand 
         if set == "yu_bf":
             card = self.bfield[iden-1]
             self.bfield[iden-1] = -1
@@ -696,6 +697,14 @@ class Game(QWidget):
                 self.weights[self.dict_civ[self.find_card(card[0]).civ]] -= 1
             self.hand.append(card[0])
             self.send_message(5, 1, 0, iden-1)
+        elif set == "op_mn":
+            self.opp_mana.pop(iden-1)
+            self.send_message(5, 0, 0, iden - 1)
+            self.opp_hand.append(-1)
+        elif set == "op_bf":
+            self.opp_bfield[iden - 1] = -1
+            self.send_message(5, 0, 1, iden - 1)
+            self.opp_hand.append(-1)
         self.refresh_screen()
         
     def m_move_to_graveyard(self, set, iden):
@@ -772,16 +781,6 @@ class Game(QWidget):
         
     def m_opp_look_at_shield(self, iden):
         self.send_message(11, 1, iden)
-        
-    def m_opp_return_card_to_hand(self, set, iden):
-        if set == "op_mn":
-            self.opp_mana.pop(iden-1)
-            self.send_message(5, 0, 0, iden - 1)
-        elif set == "op_bf":
-            self.opp_bfield[iden - 1] = -1
-            self.send_message(5, 0, 1, iden - 1)
-        self.opp_hand.append(-1)
-        self.refresh_screen()
         
     def m_opp_move_to_graveyard(self, set, iden):
         if set == "op_mn":
