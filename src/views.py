@@ -35,6 +35,8 @@ class GameView(QGraphicsScene):
                 print("SELECT MODE IS OK")
             if len(self.parent.selected_card) == self.parent.card_to_choose:
                 print("AMOUNT IS OK")
+            if type(self.parent.card_to_choose) == str:
+                print("I AM STRING")
             if self.parent.select_mode == True and len(self.parent.selected_card) == self.parent.card_to_choose:
                 print("Action added")
                 accept_action = QAction("Accept cards")
