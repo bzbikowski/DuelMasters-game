@@ -31,14 +31,7 @@ class GameView(QGraphicsScene):
                 return
             menu = QMenu()
             print(f"BOARD: SELECT MODE - {str(self.parent.select_mode)}, {len(self.parent.selected_card)} == {self.parent.card_to_choose}")
-            if self.parent.select_mode == True:
-                print("SELECT MODE IS OK")
-            if len(self.parent.selected_card) == self.parent.card_to_choose:
-                print("AMOUNT IS OK")
-            if type(self.parent.card_to_choose) == str:
-                print("I AM STRING")
-            if self.parent.select_mode == True and len(self.parent.selected_card) == self.parent.card_to_choose:
-                print("Action added")
+            if self.parent.select_mode and len(self.parent.selected_card) == self.parent.card_to_choose:
                 accept_action = QAction("Accept cards")
                 accept_action.triggered.connect(self.parent.m_accept_cards)
                 menu.addAction(accept_action)

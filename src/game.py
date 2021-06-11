@@ -574,7 +574,7 @@ class Game(QWidget):
         print(f"Effects of card {card}: {str(card.effects)}")
         for effect in card.effects:
             if "teleport" in effect.keys():
-                count = effect["teleport"]["count"]
+                count = int(effect["teleport"]["count"])
                 print(f"Teleport {count}")
                 self.teleport(count)
             if "destroy_blockers" in effect.keys():
