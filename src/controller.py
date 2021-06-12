@@ -155,7 +155,7 @@ class Controller:
             # 113,x - opponent draw to hand destroyed x shield
             # TODO: check if this command is expected
             c_pos = int(msg[:2], base=16)
-            self.opp_shields[c_pos] = False
+            self.master.opp_shields[c_pos] = False
             self.master.opp_hand.append(-1)
             self.master.add_log("Opponent picked up shield {c_pos} to his hand.")
             self.master.your_turn = True
@@ -164,7 +164,7 @@ class Controller:
             # TODO: check if this command is expected
             c_pos = int(msg[:2], base=16)
             c_id = int(msg[2:4], base=16)
-            self.opp_shields[c_pos] = False
+            self.master.opp_shields[c_pos] = False
             # TODO: show the card like opponent has played it
             self.master.add_log(f"Opponent played a card {c_id} from his {c_pos} shield")
 
