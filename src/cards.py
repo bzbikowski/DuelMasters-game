@@ -16,7 +16,7 @@ class ParseXml:
             cardsets = file.getElementsByTagName('cardset')
             for cardset in cardsets:
                 id = 0
-                if cardset.getAttribute('setname') == 'Base set':
+                if cardset.getAttribute('setname') == 'Base Set':
                     setname = "base_set"
                 else:
                     setname = cardset.getAttribute('setname')
@@ -114,6 +114,7 @@ class Card:
             path = f"res//img//{set_name}//{str(set_id)}//{size}.jpg"
             file = QFile(path)
             if not file.open(QIODevice.ReadOnly):
+                print(f"ERROR: couldn't open file {path}")
                 return
             images[size] = file.readAll()
         return images
