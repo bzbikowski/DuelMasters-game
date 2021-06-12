@@ -496,6 +496,9 @@ class Game(QWidget):
             if card.id == iden:
                 return card
 
+    def get_status_of_shield(self, iden):
+        return self.shields[iden - 1][1]
+
     def send_message(self, *msg):
         """
         Messages, which are sent to opponent:

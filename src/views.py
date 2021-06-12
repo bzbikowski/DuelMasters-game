@@ -105,8 +105,8 @@ class CardView(QGraphicsPixmapItem):
             menu.addAction(hand_action)
         elif self.set == 'yu_sh':
             # TODO: if shield was destroyed, it's your time to decide what to do with it
-            print(self.parent.shields[self.iden][1], self.iden)
-            if self.parent.shields[self.iden][1] == False:
+            print(self.parent.get_status_of_shield(self.iden), self.iden)
+            if self.parent.get_status_of_shield(self.iden) == False:
                 add_shield_to_hand_action = QAction('Add to hand')
                 add_shield_to_hand_action.triggered.connect(lambda: self.parent.m_return_shield_to_hand(self.iden))
                 menu.addAction(add_shield_to_hand_action)
