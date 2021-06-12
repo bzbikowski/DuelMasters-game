@@ -653,7 +653,7 @@ class Game(QWidget):
         self.fun_to_call(False)
         if self.spell_played:
             # Move spell to graveyard after usage
-            self.m_move_to_graveyard("yu_bf", 5)
+            self.m_move_to_graveyard("yu_bf", 6)
             self.spell_played = False
         
     def m_summon_card(self, iden):
