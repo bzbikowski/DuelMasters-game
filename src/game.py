@@ -42,7 +42,7 @@ class Game(QWidget):
         self.your_turn = False
         self.selected_card = None
         self.focus_request = False
-        self.select_mode = False
+        self.select_mode = 0 # 0 - no select mode, 1 - effects, 2 - creature
         self.card_to_choose = 0
         self.turn_count = 0
         self.spell_played = None
@@ -570,7 +570,6 @@ class Game(QWidget):
 
     def summon_effect(self, card_id):
         """Check and trigger the effects of played card"""
-        # TODO: debug this
         card = self.find_card(card_id)
         print(f"Effects of card {card}: {str(card.effects)}")
         for effect in card.effects:
@@ -578,6 +577,10 @@ class Game(QWidget):
                 count = int(effect["teleport"]["count"])
                 print(f"Teleport {count}")
                 self.teleport(True, count)
+            if "draw" in effect.keys():
+                count = int(effect["draw"]["count"])
+                print(f"Draw {count}")
+                self.draw_cards(count)
             if "destroy_blockers" in effect.keys():
                 if effect["destroy_blockers"]["mode"] == "all":
                     self.destroy_blocker(-1)
@@ -599,7 +602,7 @@ class Game(QWidget):
         self.view_scene.addItem(text)
         print("printed message box")
         self.focus_request = True
-        self.select_mode = True
+        self.select_mode = 1
 
     #  EFFECT METHODS
     #####################################################
@@ -618,8 +621,13 @@ class Game(QWidget):
                 self.m_return_card_to_hand(card[0], card[1])
             self.selected_card = []
             self.type_to_choose = []
-            self.select_mode = False
+            self.select_mode = 0
             self.refresh_screen()
+
+    def draw_cards(self, count):
+        self.card_to_draw += count
+        while self.card_to_draw > 0:
+            self.m_draw_a_card()
 
     #   MENU METHODS
     #####################################################
@@ -691,8 +699,9 @@ class Game(QWidget):
         self.refresh_screen()
 
     def m_choose_card(self, set, iden):
-        # don't choose the same card twice
+        # Action: Choose a card as a target for e.g. effect, attack
         if [set, iden] in self.selected_card:
+            # can't choose the same card twice
             return
         self.selected_card.append([set, iden])
         self.refresh_screen()
@@ -721,6 +730,7 @@ class Game(QWidget):
         self.refresh_screen()
         
     def m_move_to_graveyard(self, set, iden):
+        # Action: Move a card to the graveyard
         if set == "yu_bf":
             self.graveyard.append(self.bfield[iden - 1])
             self.bfield[iden - 1] = -1
@@ -731,10 +741,17 @@ class Game(QWidget):
                 self.weights[self.dict_civ[self.find_card(card[0]).civ]] -= 1
             self.graveyard.append(card[0])
             self.send_message(6, 1, 0, iden - 1)
+        elif set == "op_mn":
+            self.opp_graveyard.append(self.opp_mana.pop(iden-1)[0])
+            self.send_message(6, 0, 0, iden - 1)
+        elif set == "op_bf":
+            self.opp_graveyard.append(self.opp_bfield[iden - 1])
+            self.opp_bfield[iden - 1] = -1
+            self.send_message(6, 0, 1, iden - 1)
         self.refresh_screen()
         
     def m_add_to_mana(self, iden):
-        if self.card_to_mana > 0 or self.debug_mode:
+        if self.card_to_mana > 0:
             card = self.hand.pop(iden-1)
             self.mana.append([card, True])
             self.card_to_mana -= 1
@@ -771,39 +788,44 @@ class Game(QWidget):
         self.send_message(10, iden-1)
         self.refresh_screen()
         
-    def m_attack_with_creature(self, iden):
-        self.selected_card = [self.bfield[iden-1], iden-1]
-        
-    def m_attack_opp_creature(self, iden):
-        if self.selected_card is not None:
+    def m_attack_creature(self, set, iden):
+        if set == "yo_bf":
+            # Action: select your creature to attack another creature
+            self.selected_card = [(set, iden)]
+            self.select_mode = 2
+        elif set == "op_bf":
+            # Action: attack creature with your creature
+            if len(self.selected_card) == 0 or not self.select_mode == 2:
+                # None of the attacking creatures is selected
+                return
+            your_card = self.bfield[self.selected_card[0][1]]
             opp_card = self.opp_bfield[iden-1]
-            if self.cardlist[opp_card].power < self.cardlist[self.selected_card[0]].power:
-                #trafiony zatopiony
+            self.send_message(12, self.selected_card[0], opp_card) # Inform opponent about the attack
+            if self.cardlist[opp_card].power < self.cardlist[your_card].power:
+                # Your creature wins
+                self.m_move_to_graveyard("op_bf", iden)
                 self.send_message(6, 0, 1, iden-1)
-            elif self.cardlist[opp_card].power == self.cardlist[self.selected_card[0]].power:
-                #oba zniszczone
+                self.add_log("Your creature destroyed ...") # TODO
+            elif self.cardlist[opp_card].power == self.cardlist[your_card].power:
+                # Both are destroyed
+                self.m_move_to_graveyard("yo_bf", self.selected_card[0][1])
+                self.m_move_to_graveyard("op_bf", iden)
                 self.send_message(6, 0, 1, iden-1)
-                self.send_message(6, 1, 1, self.selected_card[1])
+                self.send_message(6, 1, 1, self.selected_card[0][1])
+                self.add_log("Both creatures were destoyed ...") # TODO
             else:
-                self.send_message(6, 1, 1, self.selected_card[1])
-                #giniesz
-            self.send_message(12, self.selected_card[0], opp_card)
-        
+                # Your creature dies
+                self.m_move_to_graveyard("yo_bf", self.selected_card[0][1])
+                self.send_message(6, 1, 1, self.selected_card[0][1])
+                self.add_log("Your creature was destoyed ...") # TODO
+            self.select_mode = 0
+            self.selected_card = []
+   
     def m_opp_look_at_hand(self, iden):
         self.send_message(11, 0, iden)
         
     def m_opp_look_at_shield(self, iden):
         self.send_message(11, 1, iden)
-        
-    def m_opp_move_to_graveyard(self, set, iden):
-        if set == "op_mn":
-            self.opp_graveyard.append(self.opp_mana.pop(iden-1)[0])
-            self.send_message(6, 0, 0, iden - 1)
-        elif set == "op_bf":
-            self.opp_graveyard.append(self.opp_bfield[iden - 1])
-            self.opp_bfield[iden - 1] = -1
-            self.send_message(6, 0, 1, iden - 1)
-        self.refresh_screen()
         
     def m_opp_shield_attack(self, iden):
         if self.selected_card is not None:

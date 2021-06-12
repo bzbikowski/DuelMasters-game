@@ -1442,7 +1442,8 @@ Choose 1 of your opponent's creatures in the battle zone and tap it.</rules_text
 		artist="Eiji Kaneda">
 		<rules_text>When you put this creature into the battle zone, you may draw a card.</rules_text>
 		<flavor_text>Liquid People freely control liquid. For them, water is armor and shield.</flavor_text>
-        		<effects>
+        <effects>
+			<draw count="1" />
 		</effects>
 	</card>
 

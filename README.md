@@ -24,7 +24,12 @@ Run ```pip install -r requirements.txt``` to install all required libraries in y
 * all minor and major changes with graphics and GUI
 * creating your own avatar and cardback
 * popup help messages
-* add high resolution and size cards for manager 
+* add high resolution and size cards for manager
+* implement debug mode as separate window with commands without restrictions
+
+Effects implemented:
+* teleport cards from bf to hand (test mana teleport and your cards teleport)
+* draw cards (test if working)
 
 
 Card images were taken from:

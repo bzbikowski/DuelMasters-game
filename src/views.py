@@ -31,8 +31,8 @@ class GameView(QGraphicsScene):
                 return
             menu = QMenu()
             print(f"BOARD: SELECT MODE - {str(self.parent.select_mode)}, {len(self.parent.selected_card)} == {self.parent.card_to_choose}")
-            if self.parent.select_mode and len(self.parent.selected_card) == self.parent.card_to_choose:
-                accept_action = QAction("Accept cards")
+            if self.parent.select_mode == 1and len(self.parent.selected_card) == self.parent.card_to_choose:
+                accept_action = QAction("Trigger effect")
                 accept_action.triggered.connect(self.parent.m_accept_cards)
                 menu.addAction(accept_action)
             if self.parent.debug_mode:
@@ -90,7 +90,7 @@ class CardView(QGraphicsPixmapItem):
         if not self.parent.your_turn:
             return
         menu = QMenu()
-        if self.parent.select_mode and self.set in self.parent.type_to_choose:
+        if self.parent.select_mode == 1 and self.set in self.parent.type_to_choose:
             choose_action = QAction("Choose a card")
             choose_action.triggered.connect(lambda: self.parent.m_choose_card(self.set, self.iden))
             menu.addAction(choose_action)
@@ -143,11 +143,11 @@ class CardView(QGraphicsPixmapItem):
             return_action.triggered.connect(lambda: self.parent.m_return_card_to_hand(self.set, self.iden))
             menu.addAction(return_action)
             destroy_action = QAction("Move a card to graveyard")
-            destroy_action.triggered.connect(lambda: self.parent.m_opp_move_to_graveyard(self.set, self.iden))
+            destroy_action.triggered.connect(lambda: self.parent.m_move_to_graveyard(self.set, self.iden))
             menu.addAction(destroy_action)
         elif self.set == 'yu_bf':
-            attack_action = QAction("Attack")
-            attack_action.triggered.connect(lambda: self.parent.m_attack_with_creature(self.iden))
+            attack_action = QAction("Attack with this creature")
+            attack_action.triggered.connect(lambda: self.parent.m_attack_creature(self.set, self.iden))
             menu.addAction(attack_action)
             target_action = QAction("Target this card")
             menu.addAction(target_action)
@@ -159,13 +159,13 @@ class CardView(QGraphicsPixmapItem):
             menu.addAction(destroy_action)
         elif self.set == 'op_bf':
             select_action = QAction("Target card to attack/cast")
-            select_action.triggered.connect(lambda: self.parent.m_attack_opp_creature(self.iden))
+            select_action.triggered.connect(lambda: self.parent.m_attack_creature(self.set, self.iden))
             menu.addAction(select_action)
             return_action = QAction("Return a card to hand")
             return_action.triggered.connect(lambda: self.parent.m_return_card_to_hand(self.set, self.iden))
             menu.addAction(return_action)
             destroy_action = QAction("Move a card to graveyard")
-            destroy_action.triggered.connect(lambda: self.parent.m_opp_move_to_graveyard(self.set, self.iden))
+            destroy_action.triggered.connect(lambda: self.parent.m_move_to_graveyard(self.set, self.iden))
             menu.addAction(destroy_action)
         elif self.set == 'op_gv':
             look_action = QAction('Look at opponent graveyard')

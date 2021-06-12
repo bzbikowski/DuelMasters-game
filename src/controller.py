@@ -39,8 +39,7 @@ class Controller:
             # 4,x,y - opponent plays a card with x id on y spot on gameboard
             c_id = int(msg[:2], base=16)
             c_pos = int(msg[2:4], base=16)
-            print("CARD ID: " + str(c_id))
-            print("CARD POS: " + str(c_pos))
+            print(f"COMMAND CARD PLAYED - CARD ID {str(c_id)}, CARD POS: {str(c_pos)}")
             self.master.opp_bfield[c_pos] = c_id
             self.master.add_log("Opponent played a card.")
         elif command == 5:
