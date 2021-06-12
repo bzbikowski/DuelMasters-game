@@ -45,6 +45,7 @@ class Game(QWidget):
         self.select_mode = False
         self.card_to_choose = 0
         self.turn_count = 0
+        self.spell_played = None
 
         self.view_scene = GameView(self)
         self.ui.view.setScene(self.view_scene)
@@ -209,6 +210,7 @@ class Game(QWidget):
         self.extend_logs_button.clicked.connect(self.change_logs_size)
         self.proxy = self.preview_scene.addWidget(self.extend_logs_button)
         self.change_button_state = True
+        self.spell_played = False
         self.selected_card = []
 
     def start_time(self):
@@ -648,8 +650,11 @@ class Game(QWidget):
 
     def m_accept_cards(self):
         print("ALL CARD SELECTED - TRIGGER ACTION")
-        # TODO: it cannot be empty
         self.fun_to_call(False)
+        if self.spell_played:
+            # Move spell to graveyard after usage
+            self.m_move_to_graveyard("yu_bf", 5)
+            self.spell_played = False
         
     def m_summon_card(self, iden):
         card = self.find_card(self.hand[iden - 1])
@@ -671,12 +676,14 @@ class Game(QWidget):
                         break
             elif card.typ == "Spell":
                 # Spells are played on 6th space, separate of creature ones
+                # TODO: if spell was used, remove it automaticly to the graveyard
                 if self.bfield[5] == -1:
                     card = self.hand.pop(iden - 1)
                     self.bfield[5] = card
                     self.log.info(f"You've played a spell {card}")
                     self.add_log(f"You have played spell {card}")
                     self.send_message(4, card, 5)
+                    self.spell_played = True
                     self.summon_effect(card)
         else:
             # Not enough mana tapped, do nothing
