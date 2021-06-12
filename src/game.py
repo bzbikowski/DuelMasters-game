@@ -617,25 +617,29 @@ class Game(QWidget):
 
     def teleport(self, firsttime, count=0):
         if firsttime:
-            print("First time teleport - show message screen")
             self.message_screen_request(QColor(55, 55, 55), QColor(255, 0, 0),
                                         f"Choose {count} cards in the battlefield to activate the effect.")
             self.card_to_choose = count
             self.type_to_choose = ["yu_bf", "op_bf"]
             self.fun_to_call = self.teleport
         else:
-            print(f"Teleport this cards to hand: {self.selected_card}")
             for card in self.selected_card:
                 self.m_return_card_to_hand(card[0], card[1])
             self.selected_card = []
             self.type_to_choose = []
             self.select_mode = 0
+            if self.your_turn == 2:
+                self.your_turn = 0
+                self.send_message(213)
             self.refresh_screen()
 
     def draw_cards(self, count):
         self.card_to_draw += count
         while self.card_to_draw > 0:
             self.m_draw_a_card()
+        if self.your_turn == 2:
+            self.your_turn = 0
+            self.send_message(213)
 
     #   MENU METHODS
     #####################################################
@@ -692,7 +696,6 @@ class Game(QWidget):
                         break
             elif card.typ == "Spell":
                 # Spells are played on 6th space, separate of creature ones
-                # TODO: if spell was used, remove it automaticly to the graveyard
                 if self.bfield[5] == -1:
                     card = self.hand.pop(iden - 1)
                     self.bfield[5] = card
@@ -763,8 +766,8 @@ class Game(QWidget):
                     self.bfield[i] = card
                     self.send_message(4, card, i)
                     self.summon_effect(card)
-                    self.send_message(213)
                     break
+        self.refresh_screen()
 
     def m_move_to_graveyard(self, set, iden):
         # Action: Move a card to the graveyard
@@ -838,11 +841,15 @@ class Game(QWidget):
         your_card = self.bfield[self.selected_card[0][1]-1]
         opp_card = self.opp_bfield[iden-1]
         self.send_message(12, your_card, opp_card) # Inform opponent about the attack
-        if self.cardlist[opp_card].power < self.cardlist[your_card].power:
+        your_power = int(self.cardlist[your_card].power)
+        for effect in self.cardlist[your_card].effects:
+            if "powerattacker" in effect.keys():
+                your_power += int(effect["powerattacker"]["power"])
+        if int(self.cardlist[opp_card].power) < your_power:
             # Your creature wins
             self.m_move_to_graveyard("op_bf", iden)
             self.add_log("Your creature {your_card} destroyed opponent {opp_card}") # TODO
-        elif self.cardlist[opp_card].power == self.cardlist[your_card].power:
+        elif int(self.cardlist[opp_card].power) == your_power:
             # Both are destroyed
             self.m_move_to_graveyard("yu_bf", self.selected_card[0][1])
             self.m_move_to_graveyard("op_bf", iden)

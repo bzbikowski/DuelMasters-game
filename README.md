@@ -30,6 +30,7 @@ Run ```pip install -r requirements.txt``` to install all required libraries in y
 Effects implemented:
 * teleport cards from bf to hand (test mana teleport and your cards teleport)
 * draw cards (test if working)
+* power attacker (test if working)
 
 
 Card images were taken from:
