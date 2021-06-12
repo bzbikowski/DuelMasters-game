@@ -807,19 +807,15 @@ class Game(QWidget):
             if self.cardlist[opp_card].power < self.cardlist[your_card].power:
                 # Your creature wins
                 self.m_move_to_graveyard("op_bf", iden)
-                self.send_message(6, 0, 1, iden-1)
                 self.add_log("Your creature destroyed ...") # TODO
             elif self.cardlist[opp_card].power == self.cardlist[your_card].power:
                 # Both are destroyed
                 self.m_move_to_graveyard("yu_bf", self.selected_card[0][1])
                 self.m_move_to_graveyard("op_bf", iden)
-                self.send_message(6, 0, 1, iden-1)
-                self.send_message(6, 1, 1, self.selected_card[0][1]-1)
                 self.add_log("Both creatures were destoyed ...") # TODO
             else:
                 # Your creature dies
                 self.m_move_to_graveyard("yu_bf", self.selected_card[0][1])
-                self.send_message(6, 1, 1, self.selected_card[0][1]-1)
                 self.add_log("Your creature was destoyed ...") # TODO
             self.select_mode = 0
             self.selected_card = []
