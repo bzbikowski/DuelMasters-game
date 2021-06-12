@@ -791,36 +791,34 @@ class Game(QWidget):
     def m_attack_creature(self, set, iden):
         if set == "yu_bf":
             # Action: select your creature to attack another creature
-            print(f"ATTACK WITH {set} {iden}")
             self.selected_card = [(set, iden)]
             self.select_mode = 2
         elif set == "op_bf":
             # Action: attack creature with your creature
-            print("ATTACKING")
             if len(self.selected_card) == 0 or not self.select_mode == 2:
                 # None of the attacking creatures is selected
-                print(f"{str(self.selected_card)}, {self.select_mode}")
                 return
             your_card = self.bfield[self.selected_card[0][1]-1]
             opp_card = self.opp_bfield[iden-1]
             print(f"MY CARD: {your_card}")
             print(f"OPP CARD: {opp_card}")
             # self.send_message(12, self.selected_card[0], opp_card) # Inform opponent about the attack
+            # TODO: DEBUG
             if self.cardlist[opp_card].power < self.cardlist[your_card].power:
                 # Your creature wins
-                self.m_move_to_graveyard("op_bf", iden-1)
+                self.m_move_to_graveyard("op_bf", iden)
                 self.send_message(6, 0, 1, iden-1)
                 self.add_log("Your creature destroyed ...") # TODO
             elif self.cardlist[opp_card].power == self.cardlist[your_card].power:
                 # Both are destroyed
-                self.m_move_to_graveyard("yu_bf", self.selected_card[0][1]-1)
-                self.m_move_to_graveyard("op_bf", iden-1)
+                self.m_move_to_graveyard("yu_bf", self.selected_card[0][1])
+                self.m_move_to_graveyard("op_bf", iden)
                 self.send_message(6, 0, 1, iden-1)
                 self.send_message(6, 1, 1, self.selected_card[0][1]-1)
                 self.add_log("Both creatures were destoyed ...") # TODO
             else:
                 # Your creature dies
-                self.m_move_to_graveyard("yu_bf", self.selected_card[0][1]-1)
+                self.m_move_to_graveyard("yu_bf", self.selected_card[0][1])
                 self.send_message(6, 1, 1, self.selected_card[0][1]-1)
                 self.add_log("Your creature was destoyed ...") # TODO
             self.select_mode = 0
