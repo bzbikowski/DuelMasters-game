@@ -14,7 +14,6 @@ class GameView(QGraphicsScene):
         super(GameView, self).__init__(parent)
         self.disable_ui = False
         self.parent = parent
-        self.parent.yourTurn.connect(self.handle_turn)
 
     def mousePressEvent(self, event):
         if self.parent.focus_request:
@@ -27,7 +26,7 @@ class GameView(QGraphicsScene):
         if point is not self.parent.background:
             point.contextMenuEvent(event)
         else:
-            if not self.parent.your_turn:
+            if self.parent.your_turn == 0:
                 return
             menu = QMenu()
             print(f"BOARD: SELECT MODE - {str(self.parent.select_mode)}, {len(self.parent.selected_card)} == {self.parent.card_to_choose}")
@@ -43,13 +42,6 @@ class GameView(QGraphicsScene):
             end_action.triggered.connect(self.parent.m_end_turn)
             menu.addAction(end_action)
             menu.exec_(QCursor.pos())
-
-    @Slot(bool)
-    def handle_turn(self, your_turn):
-        if your_turn:
-            self.disable_ui = False
-        else:
-            self.disable_ui = True
 
 
 class CardView(QGraphicsPixmapItem):
@@ -87,7 +79,7 @@ class CardView(QGraphicsPixmapItem):
         self.card = card
 
     def contextMenuEvent(self, event):
-        if not self.parent.your_turn:
+        if self.parent.your_turn == 0:
             return
         menu = QMenu()
         if self.parent.select_mode == 1 and self.set in self.parent.type_to_choose:

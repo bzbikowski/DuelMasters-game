@@ -21,7 +21,6 @@ class Game(QWidget):
     """
     Main class in application.
     """
-    yourTurn = Signal(bool)
     def __init__(self, mode, deck, database, debug, parent=None):
         # todo change to sqlite
         super(Game, self).__init__()
@@ -39,7 +38,7 @@ class Game(QWidget):
         self.deck = deck
         self.card_to_draw = 0
         self.card_to_mana = 0
-        self.your_turn = False
+        self.your_turn = 0 # 0 - not your turn, 1 - your turn, 2 - special turn
         self.selected_card = None
         self.focus_request = False
         self.select_mode = 0 # 0 - no select mode, 1 - effects, 2 - creature
@@ -173,7 +172,6 @@ class Game(QWidget):
                 self.log.info(f"Turn {self.turn_count}: Host turn.")
             else:
                 self.send_message(1)
-                self.yourTurn.emit(False)
                 self.add_log("Opponent starts the game.", False)
                 self.log.info(f"Turn {self.turn_count}: Opponent turn.")
         self.init_game()
@@ -539,8 +537,7 @@ class Game(QWidget):
             self.card_to_draw = 1
             self.m_draw_a_card()
         self.card_to_mana = 1
-        self.your_turn = True
-        self.yourTurn.emit(True)
+        self.your_turn = 1
 
     def win(self):
         """Do someting when you win"""
@@ -587,8 +584,10 @@ class Game(QWidget):
 
     def shield_destroyed(self, iden):
         self.shields[iden][1] = False
-        card_id = self.shields[iden][0]
-        self.send_message(113, iden, card_id)
+        self.your_turn = 2
+        self.add_log("One of your shield was destroyed. Decide what to do with it.")
+        # card_id = self.shields[iden][0]
+        # self.send_message(113, iden, card_id)
         # TODO: add a menu options to either draw a card or play it if it has shield trigger
 
     def message_screen_request(self, bg_color, frame_color, text):
@@ -659,7 +658,7 @@ class Game(QWidget):
         # end your turn
         self.add_log("End of your turn.")
         self.send_message(2)
-        self.your_turn = False
+        self.your_turn = 0
         self.yourTurn.emit(False)
 
     def m_accept_cards(self):
@@ -740,7 +739,7 @@ class Game(QWidget):
         card = self.shields[iden-1][0]
         self.shields[iden-1][0] = -1
         self.hand.append(card)
-        self.send_message(113, iden, -1)
+        self.send_message(113, iden)
         self.refresh_screen()
 
     def m_play_destroyed_shield(self, set, iden):
@@ -858,7 +857,7 @@ class Game(QWidget):
         # TODO: check if attacking card has shield breaker effect
         if self.opp_shields[iden-1]:
             self.send_message(13, iden-1)
-            self.your_turn = False
+            self.your_turn = 0
         # TODO: block any actions until 113 command
    
     def m_opp_look_at_hand(self, iden):
