@@ -57,7 +57,7 @@ class Client(QTcpSocket):
         stream = QDataStream(self)
         stream.setVersion(QDataStream.Qt_5_15)
         # Make sure all data was processed
-        while self.socket.bytesAvailable() > 0:
+        while self.bytesAvailable() > 0:
             data = stream.readString()
             msg = str(data)
             self.log.debug(f"Received from opponent data: {msg}")

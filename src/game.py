@@ -477,7 +477,7 @@ class Game(QWidget):
                     if sel_card[0] == type:
                         if sel_card[1] == i + 1:
                             # TODO: remove highlight when card was e.g. teleported to hand
-                            self.highlight_card(x, x + 85, y, y + 115, QColor(0, 0, 255))
+                            self.highlight_card(x + i * 95, x + i * 95 + 85, y, y + 115, QColor(0, 0, 255))
                             break
 
     def add_log(self, msg, refresh=True):
@@ -684,6 +684,9 @@ class Game(QWidget):
         self.refresh_screen()
 
     def m_choose_card(self, set, iden):
+        # don't choose the same card twice
+        if [set, iden] in self.selected_card:
+            return
         self.selected_card.append([set, iden])
         self.refresh_screen()
         
