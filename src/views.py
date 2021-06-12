@@ -117,8 +117,10 @@ class CardView(QGraphicsPixmapItem):
                 add_shield_to_hand_action = QAction('Add to hand')
                 add_shield_to_hand_action.triggered.connect(lambda: self.parent.m_return_shield_to_hand(self.iden))
                 menu.addAction(add_shield_to_hand_action)
+                # TODO: check if shield trigger, if yes, show that option
+                # TODO: if creature and there is no space, hide this option
                 use_effect_from_shield = QAction('Trigger it\'s effect')
-                # use_effect_from_shield.triggered.connect(lambda: self.parent.m_look_at_shield(self.iden))
+                use_effect_from_shield.triggered.connect(lambda: self.parent.m_play_destroyed_shield(self.set, self.iden))
                 menu.addAction(use_effect_from_shield)
             peek_action = QAction('Look at shield')
             peek_action.triggered.connect(lambda: self.parent.m_look_at_shield(self.iden))

@@ -736,12 +736,31 @@ class Game(QWidget):
         self.refresh_screen()
         
     def m_return_shield_to_hand(self, iden):
-        # Action: Return a card to hand
+        # Action: Return card under destroyed shield to hand
         card = self.shields[iden-1][0]
         self.shields[iden-1][0] = -1
         self.hand.append(card)
+        self.send_message(113, iden, -1)
         self.refresh_screen()
-    
+
+    def m_play_destroyed_shield(self, set, iden):
+        # Action: Play a shield with shield trigger
+        card = self.shields[iden-1][0]
+        self.shields[iden-1][0] = -1
+        if self.cardlist[card].typ == 'Spell':
+            self.bfield[5] = card
+            self.send_message(4, card, 5)
+            self.spell_played = True
+            self.summon_effect(card)
+        elif self.cardlist[card].typ == 'Creature':
+            # Handled in menu if there is space left
+            for i in range(len(self.bfield) - 1):
+                # Look for free space on the board (value -1)
+                if self.bfield[i] == -1:
+                    self.bfield[i] = card
+                    self.send_message(4, card, i)
+                    self.summon_effect(card)
+
     def m_move_to_graveyard(self, set, iden):
         # Action: Move a card to the graveyard
         if set == "yu_bf":
