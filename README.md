@@ -16,14 +16,15 @@ Run ```pip install -r requirements.txt``` to install all required libraries in y
 * add information about the game
 * complete graveyard feature
 * complete logs system
-* refactor all views
+* ~~refactor all views~~
 * refactor tcp error system
 * complete whole documentation for project
 * make all effects for all cards
-* check tcp connection with other player
+* ~~check tcp connection with other player~~
 * all minor and major changes with graphics and GUI
 * creating your own avatar and cardback
 * popup help messages
+* add high resolution and size cards for manager 
 
 
 Card images were taken from:

@@ -16,7 +16,10 @@ class ParseXml:
             cardsets = file.getElementsByTagName('cardset')
             for cardset in cardsets:
                 id = 0
-                setname = cardset.getAttribute('setname')
+                if cardset.getAttribute('setname') == 'Base set':
+                    setname = "base_set"
+                else:
+                    setname = cardset.getAttribute('setname')
                 cards = cardset.getElementsByTagName('card')
                 for card in cards:
                     cardname = card.getAttribute('name')
@@ -106,7 +109,7 @@ class Card:
 
     def load_images(self, set_name, set_id):
         images = {}
-        sizes = ["low", "high"]
+        sizes = ["low", "medium", "high"]
         for size in sizes:
             path = f"res//img//{set_name}//{str(set_id)}//{size}.jpg"
             file = QFile(path)

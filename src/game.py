@@ -328,7 +328,7 @@ class Game(QWidget):
         """
         Draw a preview of the clicked card on preview side of the screen
         """
-        pixmap = self.get_pixmap_card(card_id, 'high_res')
+        pixmap = self.get_pixmap_card(card_id, 'medium_res')
         card_prev = QGraphicsPixmapItem(pixmap)
         card_prev.setPos(0, 0)
         self.preview_scene.addItem(card_prev)

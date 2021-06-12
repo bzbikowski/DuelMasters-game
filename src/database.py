@@ -21,7 +21,7 @@ class Database(object):
             cd_querry = QSqlQuery(self.db)
             q = """CREATE TABLE card(id integer not null primary key autoincrement, name varchar(50), civilization varchar(10), type varchar(10),
                                race varchar(30), cost int, power int, rarity varchar(5), collector_number varchar(5),
-                               artist varchar(50), rules text, flavor text, effects json_text, high_res blob,
+                               artist varchar(50), rules text, flavor text, effects json_text, high_res blob, medium_res blob,
                                low_res blob, cardset int, foreign key (cardset) references dataset(id));"""
             ok = cd_querry.exec_(q)
             if not ok:
@@ -29,8 +29,8 @@ class Database(object):
             for card in ParseXml().parseFile("res//cards.xml"):
                 querry = QSqlQuery(self.db)
                 q = "INSERT INTO card (name, civilization, type, race, cost, power, rarity, collector_number, artist," \
-                    " rules, flavor, effects, high_res, low_res, cardset) values (:name, :civ, :type, :race, :cost," \
-                    " :power, :rarity, :col_num, :artist, :rules, :flavor, :effects, :high, :low," \
+                    " rules, flavor, effects, high_res, medium_res, low_res, cardset) values (:name, :civ, :type, :race, :cost," \
+                    " :power, :rarity, :col_num, :artist, :rules, :flavor, :effects, :high, :medium, :low," \
                     " (SELECT id FROM dataset WHERE name == :set_name));"
                 querry.prepare(q)
                 querry.bindValue(":name", card.name)
@@ -46,6 +46,7 @@ class Database(object):
                 querry.bindValue(":flavor", card.flavor_text)
                 querry.bindValue(":effects", card.effects_json)
                 querry.bindValue(":high", card.images['high'])
+                querry.bindValue(":medium", card.images['medium'])
                 querry.bindValue(":low", card.images['low'])
                 querry.bindValue(":set_name", card.set_name)
                 ok = querry.exec_()
