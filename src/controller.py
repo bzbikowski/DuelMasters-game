@@ -145,12 +145,28 @@ class Controller:
             # TODO: show a card, if shield trigger do something
             # TODO: implement command 113 - send to opponent id of card under shield
             self.master.add_log(f"Opponent attacked your shield at posision {c_pos}.")
+            self.master.shield_destroyed(c_pos)
         elif command == 111:
+            # 111,x - 
             # TODO: check if this command is expected
             c_id = int(msg[:2], base=16)
             # TODO: split command to separate hand and shield
             # TODO: show in the UI what the card actually is
             self.master.add_log(f"The choosen card is {c_id}")
+        elif command == 113:
+            # 113,x,y - opponent decided what to do with destroyed shield
+            # y - if -1, draw to hand, else id of played card
+            # TODO: check if this command is expected
+            c_pos = int(msg[:2], base=16)
+            c_id = int(msg[2:4], base=16)
+            self.opp_shields[c_pos] = False
+            if c_id == -1:
+                self.master.opp_hand.append(-1)
+                self.master.add_log("Opponent picked up shield {c_pos} to his hand.")
+            else:
+                # TODO: show the card like opponent has played it
+                self.master.add_log(f"Opponent played a card {c_id} from his {c_pos} shield")
+            
 
 
 

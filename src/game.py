@@ -585,6 +585,12 @@ class Game(QWidget):
                 if effect["destroy_blockers"]["mode"] == "all":
                     self.destroy_blocker(-1)
 
+    def shield_destroyed(self, iden):
+        self.shields[iden][1] = False
+        card_id = self.shields[iden][0]
+        self.send_message(113, iden, card_id)
+        # TODO: add a menu options to either draw a card or play it if it has shield trigger
+
     def message_screen_request(self, bg_color, frame_color, text):
         """Message box for displaying important information. After one click it disappears."""
         # TODO: Debug why the box is not appearing
@@ -729,6 +735,13 @@ class Game(QWidget):
             self.opp_hand.append(-1)
         self.refresh_screen()
         
+    def m_return_shield_to_hand(self, iden):
+        # Action: Return a card to hand
+        card = self.shields[iden-1][0]
+        self.shields[iden-1][0] = -1
+        self.hand.append(card)
+        self.refresh_screen()
+    
     def m_move_to_graveyard(self, set, iden):
         # Action: Move a card to the graveyard
         if set == "yu_bf":
@@ -788,51 +801,52 @@ class Game(QWidget):
         self.send_message(10, iden-1)
         self.refresh_screen()
         
+    def m_select_creature(self, set, iden):
+        # Action: select your creature to attack another creature or shield
+        self.selected_card = [(set, iden)]
+        self.select_mode = 2
+
     def m_attack_creature(self, set, iden):
-        if set == "yu_bf":
-            # Action: select your creature to attack another creature
-            self.selected_card = [(set, iden)]
-            self.select_mode = 2
-        elif set == "op_bf":
-            # Action: attack creature with your creature
-            if len(self.selected_card) == 0 or not self.select_mode == 2:
-                # None of the attacking creatures is selected
-                return
-            your_card = self.bfield[self.selected_card[0][1]-1]
-            opp_card = self.opp_bfield[iden-1]
-            print(f"MY CARD: {your_card}")
-            print(f"OPP CARD: {opp_card}")
-            # self.send_message(12, self.selected_card[0], opp_card) # Inform opponent about the attack
-            # TODO: DEBUG
-            if self.cardlist[opp_card].power < self.cardlist[your_card].power:
-                # Your creature wins
-                self.m_move_to_graveyard("op_bf", iden)
-                self.add_log("Your creature destroyed ...") # TODO
-            elif self.cardlist[opp_card].power == self.cardlist[your_card].power:
-                # Both are destroyed
-                self.m_move_to_graveyard("yu_bf", self.selected_card[0][1])
-                self.m_move_to_graveyard("op_bf", iden)
-                self.add_log("Both creatures were destoyed ...") # TODO
-            else:
-                # Your creature dies
-                self.m_move_to_graveyard("yu_bf", self.selected_card[0][1])
-                self.add_log("Your creature was destoyed ...") # TODO
-            self.select_mode = 0
-            self.selected_card = []
+        # Action: attack creature with your creature
+        if len(self.selected_card) == 0 or not self.select_mode == 2:
+            # None of the attacking creatures is selected
+            return
+        your_card = self.bfield[self.selected_card[0][1]-1]
+        opp_card = self.opp_bfield[iden-1]
+        self.send_message(12, your_card, opp_card) # Inform opponent about the attack
+        if self.cardlist[opp_card].power < self.cardlist[your_card].power:
+            # Your creature wins
+            self.m_move_to_graveyard("op_bf", iden)
+            self.add_log("Your creature {your_card} destroyed opponent {opp_card}") # TODO
+        elif self.cardlist[opp_card].power == self.cardlist[your_card].power:
+            # Both are destroyed
+            self.m_move_to_graveyard("yu_bf", self.selected_card[0][1])
+            self.m_move_to_graveyard("op_bf", iden)
+            self.add_log("Both creatures were destoyed ...") # TODO
+        else:
+            # Your creature dies
+            self.m_move_to_graveyard("yu_bf", self.selected_card[0][1])
+            self.add_log("Your creature was destoyed ...") # TODO
+        self.select_mode = 0
+        self.selected_card = []
+
+    def m_shield_attack(self, iden):
+        # TODO: sprawdz czy moze atakować i czy przeciwnik ma blokery
+        if len(self.selected_card) == 0 or not self.select_mode == 2:
+            # None of the attacking creatures is selected
+            return
+        # TODO: check if opponent have any blockers
+        # TODO: check if attacking card has shield breaker effect
+        if self.opp_shields[iden-1]:
+            self.send_message(13, iden-1)
+            self.your_turn = False
+        # TODO: block any actions until 113 command
    
     def m_opp_look_at_hand(self, iden):
         self.send_message(11, 0, iden)
         
     def m_opp_look_at_shield(self, iden):
         self.send_message(11, 1, iden)
-        
-    def m_opp_shield_attack(self, iden):
-        if self.selected_card is not None:
-            # todo sprawdz czy moze atakować i czy przeciwnik ma blokery
-            pass
-
-            if self.opp_shields[iden-1]:
-                self.send_message(13, iden-1)
         
     def m_look_graveyard(self, set):
         if set == "op_gv":

@@ -112,6 +112,14 @@ class CardView(QGraphicsPixmapItem):
             hand_action.triggered.connect(lambda: self.parent.m_opp_look_at_hand(-1))
             menu.addAction(hand_action)
         elif self.set == 'yu_sh':
+            # TODO: if shield was destroyed, it's your time to decide what to do with it
+            if self.parent.shields[self.iden][1] == False:
+                add_shield_to_hand_action = QAction('Add to hand')
+                add_shield_to_hand_action.triggered.connect(lambda: self.parent.m_return_shield_to_hand(self.iden))
+                menu.addAction(add_shield_to_hand_action)
+                use_effect_from_shield = QAction('Trigger it\'s effect')
+                # use_effect_from_shield.triggered.connect(lambda: self.parent.m_look_at_shield(self.iden))
+                menu.addAction(use_effect_from_shield)
             peek_action = QAction('Look at shield')
             peek_action.triggered.connect(lambda: self.parent.m_look_at_shield(self.iden))
             menu.addAction(peek_action)
@@ -119,12 +127,12 @@ class CardView(QGraphicsPixmapItem):
             put_action.triggered.connect(lambda: self.parent.m_put_shield(self.iden))
             menu.addAction(put_action)
         elif self.set == 'op_sh':
+            select_action = QAction('Select shield to attack')
+            select_action.triggered.connect(lambda: self.parent.m_shield_attack(self.iden))
+            menu.addAction(select_action)
             peek_action = QAction('Look at shield')
             peek_action.triggered.connect(lambda: self.parent.m_opp_look_at_shield(self.iden))
             menu.addAction(peek_action)
-            select_action = QAction('Select shield to attack')
-            select_action.triggered.connect(lambda: self.parent.m_opp_shield_attack(self.iden))
-            menu.addAction(select_action)
         elif self.set == 'yu_mn':
             tap_action = QAction("Tap mana")
             tap_action.triggered.connect(lambda: self.parent.m_tap_card(self.set, self.iden))
@@ -147,7 +155,7 @@ class CardView(QGraphicsPixmapItem):
             menu.addAction(destroy_action)
         elif self.set == 'yu_bf':
             attack_action = QAction("Attack with this creature")
-            attack_action.triggered.connect(lambda: self.parent.m_attack_creature(self.set, self.iden))
+            attack_action.triggered.connect(lambda: self.parent.m_select_creature(self.set, self.iden))
             menu.addAction(attack_action)
             #target_action = QAction("Target this card")
             #menu.addAction(target_action)
