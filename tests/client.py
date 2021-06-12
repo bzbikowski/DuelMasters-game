@@ -1,19 +1,34 @@
-from PyQt5.QtNetwork import QTcpSocket, QTcpServer, QHostAddress, QNetworkInterface, QAbstractSocket
-from PyQt5.QtCore import QThread, QIODevice, QDataStream, QByteArray
+import sys
+sys.path.insert(0, "D:\Projects\DuelMasters-game\src")
+from PySide2.QtWidgets import QApplication, QLineEdit, QPushButton, QWidget
 
-msg = "*beep*"
+from src.network.client import Client
+
+class ChatClient(QWidget):
+    def __init__(self):
+        super(ChatClient, self).__init__()
+
+        self.resize(800, 600)
+
+        self.line_edit = QLineEdit(self)
+        self.line_edit.move(0, 0)
+
+        self.send_button = QPushButton("Send", self)
+        self.send_button.clicked.connect(self.send)
+        self.send_button.move(0, 400)
+
+        self.client = Client("192.168.56.101", 10023)
+        self.client.run()
+
+    def send(self):
+        data = self.line_edit.text()
+        self.client.send_data(data)
+        self.line_edit.setText("")
+    
 
 if __name__ == "__main__":
-    socket = QTcpSocket()
-    socket.connectToHost(QHostAddress("192.168.10.44"), 10023, QIODevice.ReadWrite)
-    if socket.waitForConnected(100000):
-        while True:
-            stream = QDataStream(self.socket)
-            stream.setVersion(QDataStream.Qt_5_10)
-            if self.socket.bytesAvailable() < 2:
-                pass
-            data = stream.readUInt16()
-            if self.socket.bytesAvailable() < data:
-                pass
-            msg = str(data.readString(), encoding='ascii')
-            print(msg)
+    app = QApplication(sys.argv[:1])
+    window = ChatClient()
+    window.show()
+    sys.exit(app.exec_())
+

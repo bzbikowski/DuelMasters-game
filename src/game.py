@@ -1,7 +1,7 @@
 import logging
 import random
 
-from PySide2.QtCore import Qt, QTimer
+from PySide2.QtCore import Qt, QTimer, QThread, Slot, Signal
 from PySide2.QtGui import QBrush, QColor, QPen, QPixmap, QTransform, QImage, QFont
 from PySide2.QtWidgets import QWidget, QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, \
     QTextEdit, QLabel, QPushButton, QGraphicsRectItem, QGraphicsTextItem, QMessageBox
@@ -11,23 +11,26 @@ from src.logs import Logger
 from src.network.client import Client
 from src.network.server import Server
 from src.views import GameView, CardView, GraveyardView
+from src.serverdialog import ServerDialog
+from src.clientdialog import ClientDialog
+from src.controller import Controller
+from src.ui.ui_game import Ui_Game
 
 
 class Game(QWidget):
     """
     Main class in application.
     """
-
-    def __init__(self, deck, database, debug, parent=None):
+    yourTurn = Signal(bool)
+    def __init__(self, mode, deck, database, debug, parent=None):
         # todo change to sqlite
         super(Game, self).__init__()
-        width = 1360
-        height = 768
-        self.setFixedSize(width, height)
+        self.ui = Ui_Game()
+        self.ui.setupUi(self)
         self.log = None
+        self.mode = mode
         self.database = database
         # self.move((screen_width - self.width)/2, (screen_height - self.height)/2 - 20)
-        self.setWindowTitle("Duel masters - Video game")
         self.debug_mode = debug
         self.locked = False
         self.isServer = False
@@ -41,202 +44,146 @@ class Game(QWidget):
         self.focus_request = False
         self.select_mode = False
         self.card_to_choose = 0
-
-        self.view = QGraphicsView(self)
-        self.view.setSceneRect(0, 0, 1024, 768)
-        self.view.setFixedSize(1024, 768)
-        self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-
-        self.preview = QGraphicsView(self)
-        self.preview.move(1024, 0)
-        self.preview.setFixedSize(336, 768)
-        self.preview.setSceneRect(0, 0, 336, 768)
-        self.preview.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.preview.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.turn_count = 0
 
         self.view_scene = GameView(self)
-        self.view.setScene(self.view_scene)
+        self.ui.view.setScene(self.view_scene)
         self.view_scene.setBackgroundBrush(QBrush(QColor(0, 0, 0)))
-        self.view.setVisible(False)
 
         self.preview_scene = QGraphicsScene()
-        self.preview.setScene(self.preview_scene)
+        self.ui.preview.setScene(self.preview_scene)
         self.preview_scene.setBackgroundBrush(QBrush(QColor(0, 0, 0)))
-        self.preview.setVisible(False)
 
         self.log_panel = Logger()
         self.setup_logger()
 
         self.cardlist = ParseXml().parseFile('res/cards.xml')
-        self.choose_connection()
 
+        self.controller = Controller(self)
+
+        if self.mode == 1:
+            self.wait_for_connection()
+        else:
+            self.connect_to_room()
+
+    ## Internal
     def setup_logger(self):
         self.log = logging.getLogger("dm_game")
         if self.debug_mode:
             self.log.setLevel(logging.DEBUG)
         else:
-            self.log.setLevel(logging.DEBUG)
-
-    def add_log(self, msg):
-        """Add log to log panel"""
-        self.log_panel.append(msg)
+            self.log.setLevel(logging.INFO)
 
     def closeEvent(self, event):
         """Close connection and return to menu"""
+        print("GAME - CLOSING")
         if self.started:
-            if self.isServer:
-                self.server.wait()
+            if self.mode == 1:
+                try:
+                    self.server.close_connection()
+                except RuntimeError:
+                    print("Server already deleted")
             else:
-                self.client.wait()
+                try:
+                    self.client.disconnectFromHost()
+                except RuntimeError:
+                    print("Client already deleted")
         self.parent.show_window()
 
-    def choose_connection(self):
-        """
-        Menu with two buttons to choose from:
-        - connect to other player (client)
-        - make a room (server)
-        """
-        self.server_button = QPushButton("Create a game room", self)
-        self.server_button.setFixedSize(1000, 300)
-        self.server_button.move(int((self.width() - self.server_button.width()) / 2), 40)
-        self.server_button.clicked.connect(self.wait_for_connection)
-        self.server_button.setFont(QFont("Arial", 60))
-        self.client_button = QPushButton("Connect to existing game", self)
-        self.client_button.setFixedSize(1000, 300)
-        self.client_button.move(int((self.width() - self.client_button.width()) / 2), 420)
-        self.client_button.clicked.connect(self.connect_to_room)
-        self.client_button.setFont(QFont("Arial", 60))
-        # self.back_button = QPushButton("Back", self)
-        # self.back_button.clicked.connect(self.back)
-        
+    def handle_disconnect(self):
+        print("GAME - DISCONNECTED")
+        self.close()
+
+    def handle_error(self):
+        print("GAME - ERROR")
+        self.close()
+
+    ## Game initialize functions - setup network connection
     def connect_to_room(self):
         """
         Client side
         Enter ip address and port of computer, which you want to connect to
         """
+        self.clientDialog = ClientDialog()
+        self.clientDialog.closing.connect(self.close)
+        self.clientDialog.paramsReady.connect(self.start_connection)
+        self.clientDialog.show()
         self.log.debug("Connecting to server...")
-        self.server_button.setVisible(False)
-        self.client_button.setVisible(False)
-        self.ip_address_label = QLabel("Ip address: ", self)
-        self.ip_address_label.move(200, 150)
-        self.ip_address_label.setFont(QFont("Arial", 50))
-        self.ip_address_label.setVisible(True)
-        self.ip_address_field = QTextEdit(self)
-        self.ip_address_field.move(600, 150)
-        self.ip_address_field.setFont(QFont("Arial", 50))
-        self.ip_address_field.setFixedSize(550, 100)
-        self.ip_address_field.setVisible(True)
-        self.port_label = QLabel("Port: ", self)
-        self.port_label.move(390, 360)
-        self.port_label.setFont(QFont("Arial", 50))
-        self.port_label.setVisible(True)
-        self.port_field = QTextEdit(self)
-        self.port_field.move(600, 360)
-        self.port_field.setFont(QFont("Arial", 50))
-        self.port_field.setFixedSize(550, 100)
-        self.port_field.setVisible(True)
-        self.ok_button = QPushButton("Accept", self)
-        self.ok_button.setFixedSize(600, 140)
-        self.ok_button.move(int((self.width() - self.ok_button.width()) / 2), 560)
-        if self.debug_mode:
-            self.ok_button.clicked.connect(self.connected_with_player)
-        else:
-            self.ok_button.clicked.connect(self.start_connection)
-        self.ok_button.setVisible(True)
 
-    def start_connection(self):
+    @Slot(str, str)
+    def start_connection(self, ip_address, port):
         """
         Client side
         Connect with the server
         """
-        try:
-            addr = self.ip_address_field.toPlainText()
-            port = int(self.port_field.toPlainText())
-        except:
-            return
-        self.log.debug(f"Trying to connect to: {addr}, {port}")
+        self.clientDialog.close()
         self.isServer = False
-        self.client = Client(addr, port, self)
+        self.client = Client(ip_address, port, self)
+        self.client.connected.connect(self.connected_with_player)
+        self.client.disconnected.connect(self.handle_disconnect)
+        self.client.error.connect(self.handle_error)
+        self.client.messageReceived.connect(self.controller.received_message)
+        self.client.run()
         self.started = True
-        self.client.start()
 
     def wait_for_connection(self):
         """
         Server side
         Wait for connection from other client.
         """
-        self.server_button.setVisible(False)
-        self.client_button.setVisible(False)
-        self.ip_address_label = QLabel("Your address is xxx.xxx.xxx.xxx", self)
-        self.ip_address_label.setFont(QFont("Arial", 50))
-        self.ip_address_label.move(50, 50)
-        self.ip_address_label.setVisible(True)
-
-        self.port_label = QLabel("You are listining on port xxxxx", self)
-        self.port_label.setFont(QFont("Arial", 50))
-        self.port_label.move(50, 200)
-        self.port_label.setVisible(True)
-
-        self.status_label = QLabel("Waiting for connection...", self)
-        self.status_label.setFont(QFont("Arial", 50))
-        self.status_label.move(50, 400)
-        self.status_label.setVisible(True)
         self.server = Server(self)
-        ip_local, ip_ham, ip_port = self.server.find_ip()
+        self.server.connectionOk.connect(self.connected_with_player)
+        self.server.messageReceived.connect(self.controller.received_message)
+        self.server.clientError.connect(self.close)
+
+        self.serverDialog = ServerDialog()
+        self.serverDialog.closing.connect(self.close)
+
+        ip_local, ip_port = self.server.find_ip()
         if ip_local == "0.0.0.0":
             _ = QMessageBox.information(self, "Information", "Couldn't find a valid ip address."
                                                              " Please check your connection.",
                                         QMessageBox.Ok, QMessageBox.NoButton)
             return
         else:
-            if ip_ham == "0.0.0.0":
-                self.ip_address_label.setText("Your address is {}".format(ip_local))
-                self.log.debug(f"You are listening on: {ip_local}, {ip_port}")
-            else:
-                self.ip_address_label.setText("Your address is {}".format(ip_ham))
-                self.log.debug(f"You are listening on: {ip_ham}, {ip_port}")
-        self.port_label.setText("You are listining on port {}".format(ip_port))
-        self.isServer = True
+            self.serverDialog.ui.ip_address_label.setText("Your address is {}".format(ip_local))
+            self.serverDialog.ui.port_label.setText("You are listining on port {}".format(ip_port))
+            self.serverDialog.ui.status_label.setText("Waiting for connection...")
+
+        self.server.run()
         self.started = True
-        self.server.start()
-        
+        self.serverDialog.show()
+
     def connected_with_player(self):
         """
-        If connection is successful, continue
+        Connection is successful, start actual game
         """
-        if self.debug_mode:
-            self.client = Client("127.0.0.1", 10000, self)
-            self.turn_states(0)
-            self.log.debug("Debug mode.")
-        else:
-            if self.isServer:
-                if random.random() < 0.5:
-                    self.turn_states(0)
-                    self.add_log("You start the game! Your turn.")
-                else:
-                    self.send_message(1)
-                    self.add_log("Opponent starts the game.")
-        self.clear_window()
+        try:
+            self.serverDialog.close()
+        except:
+            self.log.debug(f"Client mode, so server dialog was not open and can't be closed.")
+        self.show()
+        self.log.info("Found opponent. Game is being started.")
+        if self.mode == 1:
+            if random.random() < 0.5:
+                self.send_message(0)
+                self.turn_states(0)
+                self.add_log("You start the game! Your turn.", False)
+                self.log.info(f"Turn {self.turn_count}: Host turn.")
+            else:
+                self.send_message(1)
+                self.yourTurn.emit(False)
+                self.add_log("Opponent starts the game.", False)
+                self.log.info(f"Turn {self.turn_count}: Opponent turn.")
         self.init_game()
         self.draw_screen()
-        
-    def clear_window(self):
-        """
-        Prepare gui for game screen
-        """
-        self.ip_address_field.setVisible(False)
-        self.ip_address_label.setVisible(False)
-        self.port_field.setVisible(False)
-        self.port_label.setVisible(False)
-        self.ok_button.setVisible(False)
-        self.view.setVisible(True)
-        self.preview.setVisible(True)
 
+    ## Game functions
     def init_game(self):
         """
         Create initial structures and data for our starting game
         """
+        self.log.debug(f"Initializing variables.")
         self.dict_civ = {"Light": 0, "Nature": 1, "Darkness": 2, "Fire": 3, "Water": 4}
         random.shuffle(self.deck)
         self.shields = []
@@ -250,7 +197,7 @@ class Game(QWidget):
         self.bfield = [-1, -1, -1, -1, -1, -1]
         self.graveyard = []
         self.opp_shields = [True, True, True, True, True]
-        self.opp_mana = [[0, True], [1, True]]
+        self.opp_mana = []
         self.opp_hand = [-1, -1, -1, -1, -1]
         self.opp_bfield = [-1, -1, -1, -1, -1, -1]
         self.opp_graveyard = []
@@ -319,7 +266,7 @@ class Game(QWidget):
         # change max number of logs to display
         if self.change_button_state:
             self.extend_logs_button.setText("+")
-            self.proxy.setPos(20, 700)
+            self.proxy.setPos(20, 540)
         else:
             self.extend_logs_button.setText("*")
             self.proxy.setPos(20, 20)
@@ -349,7 +296,8 @@ class Game(QWidget):
         """Get pixmap of card from the database"""
         pixmap = QPixmap()
         if not pixmap.loadFromData(self.database.getdata(card_id, res)):
-            raise Exception("Brak obrazka")
+            self.log.error(f"No image available for card {card_id}")
+            exit(0)
         return pixmap
         
     def card_clicked(self, x, y, c_id=None):
@@ -443,7 +391,6 @@ class Game(QWidget):
             card = self.find_card(arr[i][0])
             item.set_card(card)
             pixmap = self.get_pixmap_card(arr[i][0])
-            # pixmap = QPixmap(card.image)
             if type == "yu_mn":
                 transform = QTransform().rotate(180)
                 pixmap = pixmap.transformed(transform)
@@ -522,14 +469,22 @@ class Game(QWidget):
                 card.set_card(item)
                 pixmap = self.get_pixmap_card(arr[i])
                 card.setPixmap(pixmap)
-                card.setPos(x + i * 95, y)  # pole potworów twoje
+                card.setPos(x + i * 95, y)
                 self.view_scene.addItem(card)
+
             if not len(self.selected_card) == 0:
                 for sel_card in self.selected_card:
                     if sel_card[0] == type:
                         if sel_card[1] == i + 1:
-                            self.highlight_card(x, x + 85, y, y + 115, QColor(0, 0, 255))
+                            # TODO: remove highlight when card was e.g. teleported to hand
+                            self.highlight_card(x + i * 95, x + i * 95 + 85, y, y + 115, QColor(0, 0, 255))
                             break
+
+    def add_log(self, msg, refresh=True):
+        """Add log to log panel"""
+        self.log_panel.append(msg)
+        if refresh:
+            self.refresh_screen()
 
     def find_card(self, iden):
         """
@@ -544,7 +499,7 @@ class Game(QWidget):
     def send_message(self, *msg):
         """
         Messages, which are sent to opponent:
-        0 - przeciwnik wygrał
+        0 - you start the game
         1 - przeciwnik zaczyna grę
         2 - koniec mojej tury
         3 - ja dobieram kartę
@@ -566,23 +521,24 @@ class Game(QWidget):
         12,x,y - (info) ja atakuje swoją kartą x twoją kartę y na polu bitwy
         13,x - ja niszcze ci tarczę na pozycji x
         """
-        if self.isServer:
+        if self.mode == 1:
             self.server.send_data(msg)
         else:
             self.client.send_data(msg)
         
-    def turn_states(self, state):
+    def turn_states(self, state): # TODO: change state to boolean, and name?
         """
         Set state of on start of your turn:
-        0 -> pierwsza runda w grze
-        1 -> dobierz kartę + rzucanie many/czary/creatury
+        0 -> first round of the game - don't draw a card
+        1 -> every other round - draw a card
         """
-        if state == 0:
-            self.card_to_mana = 1
-            self.your_turn = True
-        elif state == 1:
+        # TODO: unlock and untap all your mana
+        if state == 1:
+            self.card_to_draw = 1
             self.m_draw_a_card()
-            self.your_turn = True
+        self.card_to_mana = 1
+        self.your_turn = True
+        self.yourTurn.emit(True)
 
     def win(self):
         """Do someting when you win"""
@@ -610,71 +566,90 @@ class Game(QWidget):
         for i in range(len(items)-2):
             self.preview_scene.removeItem(items[i])
 
-    def draw_a_card(self):
-        """Draw a top card from your deck and add it to your hand"""
-        if not len(self.deck) == 0:
-            card = self.deck.pop(0)
-            self.add_log("Dobierasz karte {}.".format(self.find_card(card).name))
-            self.hand.append(card)
-            self.send_message(3)
-        else:
-            self.lose()
-            self.send_message(0)
-        self.refresh_screen()
-
     def summon_effect(self, card_id):
         """Check and trigger the effects of played card"""
+        # TODO: debug this
         card = self.find_card(card_id)
+        print(f"Effects of card {card}: {str(card.effects)}")
         for effect in card.effects:
             if "teleport" in effect.keys():
-                count = effect["teleport"]["count"]
-                self.teleport(count)
+                count = int(effect["teleport"]["count"])
+                print(f"Teleport {count}")
+                self.teleport(True, count)
             if "destroy_blockers" in effect.keys():
                 if effect["destroy_blockers"]["mode"] == "all":
                     self.destroy_blocker(-1)
 
     def message_screen_request(self, bg_color, frame_color, text):
         """Message box for displaying important information. After one click it disappears."""
+        # TODO: Debug why the box is not appearing
         bg = QGraphicsRectItem(100, 100, 200, 200)
         bg.setBrush(QBrush(bg_color))
+        bg.setZValue(1.0)
         self.view_scene.addItem(bg)
         frame = QGraphicsRectItem(99, 99, 202, 202)
         frame.setPen(QPen(frame_color))
+        frame.setZValue(2.0)
         self.view_scene.addItem(frame)
         text = QGraphicsTextItem(text)
         text.setPos(110, 110)
+        text.setZValue(3.0)
         self.view_scene.addItem(text)
+        print("printed message box")
         self.focus_request = True
         self.select_mode = True
 
     #  EFFECT METHODS
     #####################################################
 
-    def teleport(self, count, firsttime=True):
+    def teleport(self, firsttime, count=0):
         if firsttime:
+            print("First time teleport - show message screen")
             self.message_screen_request(QColor(55, 55, 55), QColor(255, 0, 0),
                                         f"Choose {count} cards in the battlefield to activate the effect.")
             self.card_to_choose = count
             self.type_to_choose = ["yu_bf", "op_bf"]
             self.fun_to_call = self.teleport
         else:
+            print(f"Teleport this cards to hand: {self.selected_card}")
             for card in self.selected_card:
                 self.m_return_card_to_hand(card[0], card[1])
             self.selected_card = []
             self.type_to_choose = []
             self.select_mode = False
+            self.refresh_screen()
 
     #   MENU METHODS
     #####################################################
 
+    def m_draw_a_card(self):
+        """Draw a top card from your deck and add it to your hand"""
+        # Check if you are allowed to draw a card
+        if self.card_to_draw == 0:
+            return
+        if not len(self.deck) == 0:
+            card = self.deck.pop(0)
+            self.add_log("You draw a card {}.".format(self.find_card(card).name))
+            self.hand.append(card)
+            self.send_message(3)
+        else:
+            self.add_log("You don't have enough cards to draw from. You lose!")
+            self.lose()
+        self.card_to_draw -= 1
+        self.refresh_screen()
+
     def m_end_turn(self):
+        # TODO: in the future, ask if you really want to end the turn when none action were taken
         # end your turn
-        self.add_log("Koniec tury.")
+        self.add_log("End of your turn.")
         self.send_message(2)
         self.your_turn = False
+        self.yourTurn.emit(False)
 
     def m_accept_cards(self):
-        self.fun_to_call(_, False)
+        print("ALL CARD SELECTED - TRIGGER ACTION")
+        # TODO: it cannot be empty
+        self.fun_to_call(False)
         
     def m_summon_card(self, iden):
         card = self.find_card(self.hand[iden - 1])
@@ -682,30 +657,41 @@ class Game(QWidget):
         for item in self.weights:
             sum += item
         if sum >= int(card.cost) and not self.weights[self.dict_civ[card.civ]] == 0:
-            # todo ztapuj mane na polu bitwy
+            # TODO: if card was summoned successfully, mark that mana as locked
             if card.typ == "Creature":
                 for i in range(len(self.bfield) - 1):
+                    # Look for free space on the board (value -1)
                     if self.bfield[i] == -1:
                         card = self.hand.pop(iden - 1)
                         self.bfield[i] = card
+                        self.log.info(f"You've played a creature {card}")
+                        self.add_log(f"You have played {card} on position {i}")
                         self.send_message(4, card, i)
-                        # efekt podczas zagrania
                         self.summon_effect(card)
                         break
             elif card.typ == "Spell":
+                # Spells are played on 6th space, separate of creature ones
                 if self.bfield[5] == -1:
                     card = self.hand.pop(iden - 1)
                     self.bfield[5] = card
+                    self.log.info(f"You've played a spell {card}")
+                    self.add_log(f"You have played spell {card}")
                     self.send_message(4, card, 5)
+                    self.summon_effect(card)
         else:
+            # Not enough mana tapped, do nothing
             return
         self.refresh_screen()
 
     def m_choose_card(self, set, iden):
+        # don't choose the same card twice
+        if [set, iden] in self.selected_card:
+            return
         self.selected_card.append([set, iden])
         self.refresh_screen()
         
     def m_return_card_to_hand(self, set, iden):
+        # Action: Return a card to hand 
         if set == "yu_bf":
             card = self.bfield[iden-1]
             self.bfield[iden-1] = -1
@@ -717,6 +703,14 @@ class Game(QWidget):
                 self.weights[self.dict_civ[self.find_card(card[0]).civ]] -= 1
             self.hand.append(card[0])
             self.send_message(5, 1, 0, iden-1)
+        elif set == "op_mn":
+            self.opp_mana.pop(iden-1)
+            self.send_message(5, 0, 0, iden - 1)
+            self.opp_hand.append(-1)
+        elif set == "op_bf":
+            self.opp_bfield[iden - 1] = -1
+            self.send_message(5, 0, 1, iden - 1)
+            self.opp_hand.append(-1)
         self.refresh_screen()
         
     def m_move_to_graveyard(self, set, iden):
@@ -793,16 +787,6 @@ class Game(QWidget):
         
     def m_opp_look_at_shield(self, iden):
         self.send_message(11, 1, iden)
-        
-    def m_opp_return_card_to_hand(self, set, iden):
-        if set == "op_mn":
-            self.opp_mana.pop(iden-1)
-            self.send_message(5, 0, 0, iden - 1)
-        elif set == "op_bf":
-            self.opp_bfield[iden - 1] = -1
-            self.send_message(5, 0, 1, iden - 1)
-        self.opp_hand.append(-1)
-        self.refresh_screen()
         
     def m_opp_move_to_graveyard(self, set, iden):
         if set == "op_mn":

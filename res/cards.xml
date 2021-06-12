@@ -512,7 +512,7 @@ Search your deck. You may take a card from your deck and put it into your hand. 
 		<rules_text>Choose up to 2 creatures in the battle zone and return them to their owners' hands.</rules_text>
 		<flavor_text>"Start all over from your previous life!" -Crystal Lancer</flavor_text>
         <effects>
-            <return from="battlefield" side="both" count="2" />
+            <teleport count="2" />
         </effects>
 	</card>
 
@@ -1540,7 +1540,8 @@ This creature can't attack.</rules_text>
 		
 Choose 1 creature in the battle zone and return it to its owner's hand.</rules_text>
 		<flavor_text></flavor_text>
-        		<effects>
+        <effects>
+			<teleport count="1" />
 		</effects>
 	</card>
 

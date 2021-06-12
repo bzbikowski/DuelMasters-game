@@ -5,3 +5,10 @@ venv/
 .venv/
 logs/
 dataset.db
+Duel-masters-game.cflags
+Duel-masters-game.config
+Duel-masters-game.creator
+Duel-masters-game.creator.user
+Duel-masters-game.cxxflags
+Duel-masters-game.files
+Duel-masters-game.includes

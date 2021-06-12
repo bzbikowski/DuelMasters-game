@@ -1,3 +1,4 @@
+from PySide2.QtCore import QObject, Slot
 from PySide2.QtGui import QCursor, QTransform
 from PySide2.QtWidgets import QGraphicsScene, QGraphicsPixmapItem, QMenu, QAction, QWidget
 
@@ -11,7 +12,9 @@ class GameView(QGraphicsScene):
     def __init__(self, parent=None):
         # todo something is breaking when clicked on card
         super(GameView, self).__init__(parent)
+        self.disable_ui = False
         self.parent = parent
+        self.parent.yourTurn.connect(self.handle_turn)
 
     def mousePressEvent(self, event):
         if self.parent.focus_request:
@@ -24,19 +27,29 @@ class GameView(QGraphicsScene):
         if point is not self.parent.background:
             point.contextMenuEvent(event)
         else:
+            if not self.parent.your_turn:
+                return
             menu = QMenu()
+            print(f"BOARD: SELECT MODE - {str(self.parent.select_mode)}, {len(self.parent.selected_card)} == {self.parent.card_to_choose}")
             if self.parent.select_mode and len(self.parent.selected_card) == self.parent.card_to_choose:
-                end_action = QAction("Accept cards")
-                end_action.triggered.connect(self.parent.m_accept_cards)
-                menu.addAction(end_action)
+                accept_action = QAction("Accept cards")
+                accept_action.triggered.connect(self.parent.m_accept_cards)
+                menu.addAction(accept_action)
             if self.parent.debug_mode:
                 draw_action = QAction("Draw a card")
-                draw_action.triggered.connect(self.parent.draw_a_card)
+                draw_action.triggered.connect(self.parent.m_draw_a_card)
                 menu.addAction(draw_action)
             end_action = QAction("End turn")
             end_action.triggered.connect(self.parent.m_end_turn)
             menu.addAction(end_action)
             menu.exec_(QCursor.pos())
+
+    @Slot(bool)
+    def handle_turn(self, your_turn):
+        if your_turn:
+            self.disable_ui = False
+        else:
+            self.disable_ui = True
 
 
 class CardView(QGraphicsPixmapItem):
@@ -56,6 +69,7 @@ class CardView(QGraphicsPixmapItem):
         super(CardView, self).__init__()
         self.set = set
         self.iden = iden
+        self.disable_ui = False
         self.parent = parent
         self.card = None
 
@@ -73,6 +87,8 @@ class CardView(QGraphicsPixmapItem):
         self.card = card
 
     def contextMenuEvent(self, event):
+        if not self.parent.your_turn:
+            return
         menu = QMenu()
         if self.parent.select_mode and self.set in self.parent.type_to_choose:
             choose_action = QAction("Choose a card")
@@ -124,7 +140,7 @@ class CardView(QGraphicsPixmapItem):
             menu.addAction(destroy_action)
         elif self.set == 'op_mn':
             return_action = QAction("Return a card to hand")
-            return_action.triggered.connect(lambda: self.parent.m_opp_return_card_to_hand(self.set, self.iden))
+            return_action.triggered.connect(lambda: self.parent.m_return_card_to_hand(self.set, self.iden))
             menu.addAction(return_action)
             destroy_action = QAction("Move a card to graveyard")
             destroy_action.triggered.connect(lambda: self.parent.m_opp_move_to_graveyard(self.set, self.iden))
@@ -146,7 +162,7 @@ class CardView(QGraphicsPixmapItem):
             select_action.triggered.connect(lambda: self.parent.m_attack_opp_creature(self.iden))
             menu.addAction(select_action)
             return_action = QAction("Return a card to hand")
-            return_action.triggered.connect(lambda: self.parent.m_opp_return_card_to_hand(self.set, self.iden))
+            return_action.triggered.connect(lambda: self.parent.m_return_card_to_hand(self.set, self.iden))
             menu.addAction(return_action)
             destroy_action = QAction("Move a card to graveyard")
             destroy_action.triggered.connect(lambda: self.parent.m_opp_move_to_graveyard(self.set, self.iden))
@@ -161,7 +177,7 @@ class CardView(QGraphicsPixmapItem):
             menu.addAction(look_action)
         menu.exec_(QCursor.pos())
 
-        
+            
 class GraveyardView(QWidget):
     """
     Unfinished graveyard

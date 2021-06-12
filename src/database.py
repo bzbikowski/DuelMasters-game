@@ -11,7 +11,7 @@ class Database(object):
         # db.setUserName(os.getenv("DB_LOG"))
         # db.setPassword(os.getenv("DB_PASS"))
         if not self.db.open():
-            print(db.lastError())
+            print(self.db.lastError())
             return
         if not self.check_if_initialized():
             ds_querry = QSqlQuery(self.db)
@@ -45,8 +45,7 @@ class Database(object):
                 querry.bindValue(":rules", card.rules_text)
                 querry.bindValue(":flavor", card.flavor_text)
                 querry.bindValue(":effects", card.effects_json)
-                querry.bindValue(":high", card.images['low'])
-                # todo create high resolution cards and change low to high
+                querry.bindValue(":high", card.images['high'])
                 querry.bindValue(":low", card.images['low'])
                 querry.bindValue(":set_name", card.set_name)
                 ok = querry.exec_()
