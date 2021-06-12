@@ -743,6 +743,7 @@ class Game(QWidget):
         self.shields[iden-1][0] = -1
         self.hand.append(card)
         self.send_message(113, iden)
+        self.your_turn = 0
         self.refresh_screen()
 
     def m_play_destroyed_shield(self, set, iden):
@@ -762,6 +763,8 @@ class Game(QWidget):
                     self.bfield[i] = card
                     self.send_message(4, card, i)
                     self.summon_effect(card)
+                    self.send_message(213)
+                    break
 
     def m_move_to_graveyard(self, set, iden):
         # Action: Move a card to the graveyard
