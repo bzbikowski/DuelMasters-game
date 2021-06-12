@@ -391,7 +391,6 @@ class Game(QWidget):
             card = self.find_card(arr[i][0])
             item.set_card(card)
             pixmap = self.get_pixmap_card(arr[i][0])
-            # pixmap = QPixmap(card.image)
             if type == "yu_mn":
                 transform = QTransform().rotate(180)
                 pixmap = pixmap.transformed(transform)
@@ -477,6 +476,7 @@ class Game(QWidget):
                 for sel_card in self.selected_card:
                     if sel_card[0] == type:
                         if sel_card[1] == i + 1:
+                            # TODO: remove highlight when card was e.g. teleported to hand
                             self.highlight_card(x, x + 85, y, y + 115, QColor(0, 0, 255))
                             break
 
@@ -585,12 +585,15 @@ class Game(QWidget):
         # TODO: Debug why the box is not appearing
         bg = QGraphicsRectItem(100, 100, 200, 200)
         bg.setBrush(QBrush(bg_color))
+        bg.setZValue(1.0)
         self.view_scene.addItem(bg)
         frame = QGraphicsRectItem(99, 99, 202, 202)
         frame.setPen(QPen(frame_color))
+        frame.setZValue(2.0)
         self.view_scene.addItem(frame)
         text = QGraphicsTextItem(text)
         text.setPos(110, 110)
+        text.setZValue(3.0)
         self.view_scene.addItem(text)
         print("printed message box")
         self.focus_request = True
@@ -614,6 +617,7 @@ class Game(QWidget):
             self.selected_card = []
             self.type_to_choose = []
             self.select_mode = False
+            self.refresh_screen()
 
     #   MENU METHODS
     #####################################################
