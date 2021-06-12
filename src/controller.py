@@ -162,7 +162,7 @@ class Controller:
         elif command == 213:
             # 213 - return your turn back
             # TODO: check if this command is expected
-            self.parent.your_turn = 1
+            self.master.your_turn = 1
 
             
 
