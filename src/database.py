@@ -35,7 +35,7 @@ class Database(object):
                 q = "INSERT INTO asset(name text, blob image) VALUES (:name, :image);"
                 as_querry_init.prepare(q)
                 as_querry_init.bindValue(":name", asset_name)
-                as_querry_init.bindValue(":gid", file.readAll())
+                as_querry_init.bindValue(":image", file.readAll())
                 ok = as_querry_init.exec_()
                 if not ok:
                     print(f"ASSET INIT SQL ERROR: asset {asset_name}: {as_querry_init.lastError().text()}")
