@@ -35,6 +35,9 @@ class Handzone():
     def __getitem__(self, index):
         return self.cards[index]
 
+    def __len__(self):
+        return len(self.cards)
+
 class Shieldzone():
     def __init__(self, opponent=False, parent=None):
         self.shields = {0: {}, 1: {}, 2: {}, 3: {}, 4: {}}
@@ -114,6 +117,9 @@ class Battlezone():
 
     def __getitem__(self, index):
         return self.cards[index]
+
+    def __len__(self):
+        return len(self.cards)
 
 class Manazone():
     def __init__(self, opponent=False, parent=None):

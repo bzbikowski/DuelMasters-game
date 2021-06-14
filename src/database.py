@@ -89,7 +89,7 @@ class Database(object):
         ok = querry.exec_(
             "SELECT count(name) FROM sqlite_master WHERE type='table' AND (name='card' OR name='dataset');")
         if not ok:
-            print(querry.lastError())
+            print(querry.lastError().text())
         querry.next()
         if not querry.value(0) == 0:
             return True
@@ -100,7 +100,7 @@ class Database(object):
         ok = querry.exec_(
             "SELECT count(name) FROM card;")
         if not ok:
-            print(querry.lastError())
+            print(querry.lastError().text())
         querry.next()
         return querry.value(0)
 
@@ -110,7 +110,7 @@ class Database(object):
         querry.bindValue(":sid", id)
         ok = querry.exec_()
         if not ok:
-            print(querry.lastError())
+            print(querry.lastError().text())
         querry.next()
         data = querry.value(0)
         return data
@@ -121,7 +121,7 @@ class Database(object):
         querry.bindValue(":sid", id)
         ok = querry.exec_()
         if not ok:
-            print(querry.lastError())
+            print(querry.lastError().text())
         querry.next()
         sid = querry.value(0)
         gid = querry.value(1)
@@ -133,7 +133,6 @@ class Database(object):
         power = querry.value(7)
         effect_string = querry.value(8)
         cardset = querry.value(9)
-        print(effect_string)
         return Card(sid, gid, name, civ, type, race, cost, power, json.loads(effect_string), cardset)
 
     def get_asset(self, name):
@@ -142,7 +141,7 @@ class Database(object):
         querry.bindValue(":name", name)
         ok = querry.exec_()
         if not ok:
-            print(querry.lastError())
+            print(querry.lastError().text())
         querry.next()
         image = querry.value(0)
         return image
