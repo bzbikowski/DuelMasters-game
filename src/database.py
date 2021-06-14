@@ -106,7 +106,7 @@ class Database(object):
 
     def get_data(self, id, atr):
         querry = QSqlQuery(self.db)
-        querry.prepare(f"SELECT {atr} FROM card WHERE sid==:id;")
+        querry.prepare(f"SELECT {atr} FROM card WHERE sid==:sid;")
         querry.bindValue(":sid", id)
         ok = querry.exec_()
         if not ok:
