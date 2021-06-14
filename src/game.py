@@ -208,7 +208,8 @@ class Game(QWidget):
         # Load assets into the game
         background_pixmap = QPixmap()
         background_pixmap.loadFromData(self.database.get_asset("background"))
-        self.view_scene.addItem(QGraphicsPixmapItem(background_pixmap))
+        self.background = QGraphicsPixmapItem(background_pixmap) # Needed
+        self.view_scene.addItem(self.background)
 
         preview_pixmap = QPixmap()
         preview_pixmap.loadFromData(self.database.get_asset("preview"))
