@@ -58,8 +58,6 @@ class Game(QWidget):
         self.log_panel = Logger()
         self.setup_logger()
 
-        # self.cardlist = ParseXml().parseFile('res/cards.xml')
-
         self.controller = Controller(self)
 
         if self.mode == 1:
@@ -77,18 +75,17 @@ class Game(QWidget):
 
     def closeEvent(self, event):
         """Close connection and return to menu"""
-        print("GAME - CLOSING")
         if self.started:
             if self.mode == 1:
                 try:
                     self.server.close_connection()
                 except RuntimeError:
-                    print("Server already deleted")
+                    self.log.debug("Server already closed.")
             else:
                 try:
                     self.client.disconnectFromHost()
                 except RuntimeError:
-                    print("Client already deleted")
+                    self.log.debug("Client already closed.")
         self.parent.show_window()
 
     def handle_disconnect(self):

@@ -80,7 +80,6 @@ class Shieldzone():
         try:
             self.shields[pos]["card"]
         except KeyError as err:
-            print(f"DEBUG: {err}")
             return False
         return True
 
@@ -108,9 +107,13 @@ class Battlezone():
                 return i
         return -1
 
-    def is_taken(self):
-        # TODO: 
-        pass
+    def is_taken(self, pos):
+        try:
+            self.cards[pos]
+        except IndexError as err:
+            return False
+        else:
+            return True
 
     def remove_card(self, pos):
         return self.cards.pop(pos)
@@ -129,10 +132,12 @@ class Manazone():
         self.dict_civ = {"Light": 0, "Nature": 1, "Darkness": 2, "Fire": 3, "Water": 4}
 
     def is_selected(self, index):
-        pass
+        # TODO:
+        return True
 
     def is_locked(self, index):
-        pass
+        # TODO:
+        return True
 
     def __getitem__(self, index):
         return self.cards[index]
