@@ -27,6 +27,7 @@ Run ```pip install -r requirements.txt``` to install all required libraries in y
 * add high resolution and size cards for manager
 * implement debug mode as separate window with commands without restrictions
 * client <-> server <-> client architecture
+* add loading database menu during first start
 
 Effects implemented:
 * teleport cards from bf to hand (test mana teleport and your cards teleport)

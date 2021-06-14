@@ -27,7 +27,7 @@ class Handzone():
         self.cards.append(card)
 
     def add_placeholder(self):
-        self.cards.append(Card(id=-1))
+        self.cards.append(Card(set_id=-1))
 
     def remove_card(self, pos):
         return self.cards.pop(pos)
@@ -56,7 +56,7 @@ class Shieldzone():
         while index <= 40:
             if not self.is_shield_exists(index):
                 self.shields[index] = {}
-                self.shields[index]["card"] = Card(id=-1)
+                self.shields[index]["card"] = Card(set_id=-1)
                 self.shields[index]["visible"] = False
                 return index
             index += 1
