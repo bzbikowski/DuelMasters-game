@@ -142,6 +142,9 @@ class Manazone():
     def __getitem__(self, index):
         return self.cards[index]
 
+    def __len__(self):
+        return len(self.cards)
+
     def can_be_played(self, index):
         card = self.cards[index]
         sum = 0
