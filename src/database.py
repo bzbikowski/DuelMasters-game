@@ -18,36 +18,40 @@ class Database(object):
             return
         if not self.check_if_initialized():
             ds_querry = QSqlQuery(self.db)
-            ok = ds_querry.exec_("CREATE TABLE dataset(id integer primary key autoincrement, name text);")
-            if not ok:
-                print(ds_querry.lastError())
+            ds_ok = ds_querry.exec_("CREATE TABLE dataset(id integer primary key, name text);")
+            if not ds_ok:
+                print(ds_querry.lastError().text())
+                return
             as_querry = QSqlQuery(self.db)
-            ok = as_querry.exec_("CREATE TABLE asset(id integer primary key autoincrement, name text, image blob);")
-            if not ok:
-                print(as_querry.lastError())
+            as_ok = as_querry.exec_("CREATE TABLE asset(id integer primary key, name text, image blob);")
+            if not as_ok:
+                print(as_querry.lastError().text())
+                return
             assets = [("cardback", "res//img//cardback.png"), ("background", "res//img//background.png"), ("preview", "res//img//console.png"), ("lock", "res//img//lock.png")]
             for asset_name, asset_path in assets:
                 file = QFile(asset_path)
                 if not file.open(QIODevice.ReadOnly):
                     print(f"ERROR: couldn't open file {asset_path}")
                     return
+                image_blob = file.readAll()
                 as_querry_init = QSqlQuery(self.db)
-                q = "INSERT INTO asset(name text, blob image) VALUES (:name, :image);"
+                q = "INSERT INTO asset(name, image) VALUES (:name, :image);"
                 as_querry_init.prepare(q)
                 as_querry_init.bindValue(":name", asset_name)
-                as_querry_init.bindValue(":image", file.readAll())
-                ok = as_querry_init.exec_()
-                if not ok:
+                as_querry_init.bindValue(":image", image_blob)
+                as_ok_init = as_querry_init.exec_()
+                if not as_ok_init:
                     print(f"ASSET INIT SQL ERROR: asset {asset_name}: {as_querry_init.lastError().text()}")
                     return
             cd_querry = QSqlQuery(self.db)
-            q = """CREATE TABLE card(id integer not null primary key autoincrement, name varchar(50), civilization varchar(10), type varchar(10),
+            q = """CREATE TABLE card(id integer primary key, sid int, gid int, name varchar(50), civilization varchar(10), type varchar(10),
                                race varchar(30), cost int, power int, rarity varchar(5), collector_number varchar(5),
                                artist varchar(50), rules text, flavor text, effects json_text, high_res blob, medium_res blob,
                                low_res blob, cardset int, foreign key (cardset) references dataset(id));"""
-            ok = cd_querry.exec_(q)
-            if not ok:
-                print(cd_querry.lastError())
+            cd_ok = cd_querry.exec_(q)
+            if not cd_ok:
+                print(cd_querry.lastError().text())
+                return
             for id, global_id, setname, cardname, civ, card_type, race, cost, power, rarity, col_num, artist, rule_text, flavor_text, raw_effects in Card.parseFile("res//cards.xml"):
                 images = Card.load_images(setname, id)
                 _, effects_string = Card.parse_effects(raw_effects)
