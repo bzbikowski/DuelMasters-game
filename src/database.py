@@ -87,7 +87,7 @@ class Database(object):
     def check_if_initialized(self):
         querry = QSqlQuery(self.db)
         ok = querry.exec_(
-            "SELECT count(name) FROM sqlite_master WHERE type='table' AND (name='card' OR name='dataset');")
+            "SELECT count(name) FROM sqlite_master WHERE type='table' AND (name='card' OR name='dataset' OR name='asset');")
         if not ok:
             print(querry.lastError().text())
         querry.next()
@@ -111,6 +111,7 @@ class Database(object):
         ok = querry.exec_()
         if not ok:
             print(querry.lastError().text())
+            return
         querry.next()
         data = querry.value(0)
         return data
@@ -122,6 +123,7 @@ class Database(object):
         ok = querry.exec_()
         if not ok:
             print(querry.lastError().text())
+            return
         querry.next()
         sid = querry.value(0)
         gid = querry.value(1)
@@ -142,6 +144,7 @@ class Database(object):
         ok = querry.exec_()
         if not ok:
             print(querry.lastError().text())
+            return
         querry.next()
         image = querry.value(0)
         return image
