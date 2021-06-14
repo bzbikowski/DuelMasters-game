@@ -277,7 +277,7 @@ class Game(QWidget):
         if self.change_button_state:
             self.extend_logs_button.setText("+")
             if size_of_panel < 3:
-                self.extend_logs_proxy.setPos(20, 748 - size_of_panel * 60)
+                self.extend_logs_proxy.setPos(20, 728 - size_of_panel * 60)
             else:
                 self.extend_logs_proxy.setPos(20, 540)
         else:
@@ -398,7 +398,7 @@ class Game(QWidget):
                         x = 512 - 85 / 2 - 95 * ((size_of_hand - 1) / 2) + 95 * i
                 else:
                     x = 232 + (475 / (size_of_hand - 1)) * i
-                    item.setPos(x, y)
+                item.setPos(x, y)
                 self.view_scene.addItem(item)
                 if not len(self.selected_card) == 0:
                     for sel_card in self.selected_card:
