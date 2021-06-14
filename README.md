@@ -26,6 +26,7 @@ Run ```pip install -r requirements.txt``` to install all required libraries in y
 * popup help messages
 * add high resolution and size cards for manager
 * implement debug mode as separate window with commands without restrictions
+* client <-> server <-> client architecture
 
 Effects implemented:
 * teleport cards from bf to hand (test mana teleport and your cards teleport)
@@ -36,3 +37,26 @@ Effects implemented:
 Card images were taken from:
 * https://duelmasters.fandom.com/wiki/Duel_Masters_Wiki
 * http://www.ccgdb.com/duelmasters/
+
+Message system (TODO: translate to English):
+        0 - you start the game
+        1 - przeciwnik zaczyna grę
+        2 - koniec mojej tury
+        3 - ja dobieram kartę
+        4,x,y - ja zagrywam kartę o id x na miejscu y na pole bitwy
+        5,v,x,y - gracz v podnosi kartę z pól x z miejsca y do ręki
+                  v - 0/1 - przeciwnik/ty
+                  x - 0/1 - mana/pole bitwy
+        6,v,x,y - gracz v podnosi kartę z pól x z miejsca y na cmentarz
+                  v - 0/1 - przeciwnik/ty
+                  x - 0/1 - mana/pole bitwy
+        7,x - ja dodaję kartę x z ręki na mane
+        8,x,y - ja dodaję kartę x z reki na tarczę y
+        9,x,y - ja tapuje/odtapuje manę
+                x - 0/1 - odtapuje/tapuje
+                y - pozycja karty na manie
+        10,x - ja zaglądam w swoją tarczę na pozycji x
+        11,x,y - ja zaglądam w twoją tarczę/kartę z reki na pozycji y
+                x - 0/1 - ręka/tarcza
+        12,x,y - (info) ja atakuje swoją kartą x twoją kartę y na polu bitwy
+        13,x - ja niszcze ci tarczę na pozycji x

@@ -54,6 +54,7 @@ class CardView(QGraphicsPixmapItem):
     mn - mana
     hd - hand
     bf - battlefield
+    sf - spellfield
     gv - graveyard
     """
 
@@ -105,16 +106,15 @@ class CardView(QGraphicsPixmapItem):
             menu.addAction(hand_action)
         elif self.set == 'yu_sh':
             # TODO: if shield was destroyed, it's your time to decide what to do with it
-            print(self.parent.get_status_of_shield(self.iden), self.iden)
-            if self.parent.get_status_of_shield(self.iden) == False:
+            if self.parent.shields.is_shield_visible(self.iden):
                 add_shield_to_hand_action = QAction('Add to hand')
                 add_shield_to_hand_action.triggered.connect(lambda: self.parent.m_return_shield_to_hand(self.iden))
                 menu.addAction(add_shield_to_hand_action)
-                # TODO: check if shield trigger, if yes, show that option
                 # TODO: if creature and there is no space, hide this option
-                use_effect_from_shield = QAction('Trigger it\'s effect')
-                use_effect_from_shield.triggered.connect(lambda: self.parent.m_play_destroyed_shield(self.set, self.iden))
-                menu.addAction(use_effect_from_shield)
+                if "shieldtrigger" in self.parent.find_card(self.shields[self.iden - 1][0]).effects:
+                    use_effect_from_shield = QAction('Trigger it\'s effect')
+                    use_effect_from_shield.triggered.connect(lambda: self.parent.m_play_destroyed_shield(self.set, self.iden))
+                    menu.addAction(use_effect_from_shield)
             peek_action = QAction('Look at shield')
             peek_action.triggered.connect(lambda: self.parent.m_look_at_shield(self.iden))
             menu.addAction(peek_action)
@@ -122,9 +122,10 @@ class CardView(QGraphicsPixmapItem):
             put_action.triggered.connect(lambda: self.parent.m_put_shield(self.iden))
             menu.addAction(put_action)
         elif self.set == 'op_sh':
-            select_action = QAction('Select shield to attack')
-            select_action.triggered.connect(lambda: self.parent.m_shield_attack(self.iden))
-            menu.addAction(select_action)
+            if self.parent.shield_count_to_destroy > 0 and True: # TODO: only on specific mode
+                select_action = QAction('Select shield to attack')
+                select_action.triggered.connect(lambda: self.parent.m_shield_attack(self.iden))
+                menu.addAction(select_action)
             peek_action = QAction('Look at shield')
             peek_action.triggered.connect(lambda: self.parent.m_opp_look_at_shield(self.iden))
             menu.addAction(peek_action)

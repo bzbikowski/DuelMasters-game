@@ -257,7 +257,7 @@ This creature can't attack players.</rules_text>
 		<rules_text>When you put this creature into the battle zone, return up to 2 creatures from your graveyard to your hand.</rules_text>
 		<flavor_text>There is no rest in the Dark Realm, even after death.</flavor_text>
         <effects>
-            <return from="graveyard" side="you" count="2" />
+            <return from="graveyard" to="hand" side="you" count="2" />
         </effects>
 	</card>
 
@@ -396,6 +396,7 @@ This creature can't attack players.</rules_text>
 Tap all your opponent's creatures in the battle zone.</rules_text>
 		<flavor_text></flavor_text>
         <effects>
+			<shieldtrigger />
             <tap_opp fullboard="True" />
         </effects>
 	</card>
@@ -650,6 +651,7 @@ Double breaker (This creature breaks 2 shields.)</rules_text>
 Destroy 1 of your opponent's creatures.</rules_text>
 		<flavor_text></flavor_text>
 		<effects>
+			<shieldtrigger />
 		</effects>
 	</card>
 
@@ -773,7 +775,8 @@ Double breaker (This creature breaks 2 shields.)</rules_text>
 		
 Choose 1 of your opponent's creatures in the battle zone and put it into his mana zone.</rules_text>
 		<flavor_text></flavor_text>
-        		<effects>
+        <effects>
+			<shieldtrigger />
 		</effects>
 	</card>
 
@@ -963,7 +966,8 @@ At the end of each of your turns, you may untap this creature.</rules_text>
 		
 Draw up to 2 cards.</rules_text>
 		<flavor_text></flavor_text>
-        		<effects>
+        <effects>
+			<shieldtrigger />
 		</effects>
 	</card>
 
@@ -1073,6 +1077,7 @@ This creature can't attack.</rules_text>
 Return a creature from your graveyard to your hand.</rules_text>
 		<flavor_text></flavor_text>
         <effects>
+			<shieldtrigger />
 		</effects>
 	</card>
 
@@ -1209,7 +1214,8 @@ Return a creature from your graveyard to your hand.</rules_text>
 		
 Destroy 1 of your opponent's creatures that has power 4000 or less.</rules_text>
 		<flavor_text></flavor_text>
-        		<effects>
+        <effects>
+			<shieldtrigger />
 		</effects>
 	</card>
 
@@ -1412,7 +1418,8 @@ This creature can't attack players.</rules_text>
 		
 Choose 1 of your opponent's creatures in the battle zone and tap it.</rules_text>
 		<flavor_text></flavor_text>
-        		<effects>
+        <effects>
+			<shieldtrigger />
 		</effects>
 	</card>
 
@@ -1542,6 +1549,7 @@ This creature can't attack.</rules_text>
 Choose 1 creature in the battle zone and return it to its owner's hand.</rules_text>
 		<flavor_text></flavor_text>
         <effects>
+			<shieldtrigger />
 			<teleport count="1" />
 		</effects>
 	</card>
@@ -1638,7 +1646,8 @@ When this creature wins a battle, destroy it.</rules_text>
 		
 Your opponent discards a card at random from his hand.</rules_text>
 		<flavor_text></flavor_text>
-        		<effects>
+        <effects>
+			<shieldtrigger />
 		</effects>
 	</card>
 
@@ -1852,7 +1861,8 @@ This creature can't attack.</rules_text>
 		
 Search your deck. You may take a creature from your deck, show that creature to your opponent, and put it into your hand. Then shuffle your deck.</rules_text>
 		<flavor_text></flavor_text>
-        		<effects>
+        <effects>
+			<shieldtrigger />
 		</effects>
 	</card>
 

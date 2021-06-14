@@ -1,11 +1,14 @@
+from PySide2.QtCore import QFile, QIODevice
 from PySide2.QtSql import QSqlDatabase, QSqlQuery
 
-from src.cards import ParseXml
+from src.cards import Card
+import json
 
 
 class Database(object):
     def __init__(self):
-        # todo cleanup class and add doc
+        # TODO: cleanup class and add doc
+        # TODO: proper gid and sid logic
         self.db = QSqlDatabase.addDatabase("QSQLITE")
         self.db.setDatabaseName("dataset.db")
         # db.setUserName(os.getenv("DB_LOG"))
@@ -18,6 +21,25 @@ class Database(object):
             ok = ds_querry.exec_("CREATE TABLE dataset(id integer primary key autoincrement, name text);")
             if not ok:
                 print(ds_querry.lastError())
+            as_querry = QSqlQuery(self.db)
+            ok = as_querry.exec_("CREATE TABLE asset(id integer primary key autoincrement, name text, image blob);")
+            if not ok:
+                print(as_querry.lastError())
+            assets = [("cardback", "res//img//cardback.png"), ("background", "res//img//background.png"), ("preview", "res//img//console.png"), ("lock", "res//img//lock.png")]
+            for asset_name, asset_path in assets:
+                file = QFile(asset_path)
+                if not file.open(QIODevice.ReadOnly):
+                    print(f"ERROR: couldn't open file {asset_path}")
+                    return
+                as_querry_init = QSqlQuery(self.db)
+                q = "INSERT INTO asset(name text, blob image) VALUES (:name, :image);"
+                as_querry_init.prepare(q)
+                as_querry_init.bindValue(":name", asset_name)
+                as_querry_init.bindValue(":gid", file.readAll())
+                ok = as_querry_init.exec_()
+                if not ok:
+                    print(f"ASSET INIT SQL ERROR: asset {asset_name}: {as_querry_init.lastError().text()}")
+                    return
             cd_querry = QSqlQuery(self.db)
             q = """CREATE TABLE card(id integer not null primary key autoincrement, name varchar(50), civilization varchar(10), type varchar(10),
                                race varchar(30), cost int, power int, rarity varchar(5), collector_number varchar(5),
@@ -26,32 +48,36 @@ class Database(object):
             ok = cd_querry.exec_(q)
             if not ok:
                 print(cd_querry.lastError())
-            for card in ParseXml().parseFile("res//cards.xml"):
+            for id, global_id, setname, cardname, civ, card_type, race, cost, power, rarity, col_num, artist, rule_text, flavor_text, raw_effects in Card.parseFile("res//cards.xml"):
+                images = Card.load_images(setname, id)
+                _, effects_string = Card.parse_effects(raw_effects)
                 querry = QSqlQuery(self.db)
-                q = "INSERT INTO card (name, civilization, type, race, cost, power, rarity, collector_number, artist," \
-                    " rules, flavor, effects, high_res, medium_res, low_res, cardset) values (:name, :civ, :type, :race, :cost," \
+                q = "INSERT INTO card (sid, gid, name, civilization, type, race, cost, power, rarity, collector_number, artist," \
+                    " rules, flavor, effects, high_res, medium_res, low_res, cardset) values (:sid, :gid, :name, :civ, :type, :race, :cost," \
                     " :power, :rarity, :col_num, :artist, :rules, :flavor, :effects, :high, :medium, :low," \
                     " (SELECT id FROM dataset WHERE name == :set_name));"
                 querry.prepare(q)
-                querry.bindValue(":name", card.name)
-                querry.bindValue(":civ", card.civ)
-                querry.bindValue(":type", card.typ)
-                querry.bindValue(":race", card.race)
-                querry.bindValue(":cost", int(card.cost))
-                querry.bindValue(":power", int(card.power))
-                querry.bindValue(":rarity", card.rarity)
-                querry.bindValue(":col_num", card.col_num)
-                querry.bindValue(":artist", card.artist)
-                querry.bindValue(":rules", card.rules_text)
-                querry.bindValue(":flavor", card.flavor_text)
-                querry.bindValue(":effects", card.effects_json)
-                querry.bindValue(":high", card.images['high'])
-                querry.bindValue(":medium", card.images['medium'])
-                querry.bindValue(":low", card.images['low'])
-                querry.bindValue(":set_name", card.set_name)
+                querry.bindValue(":sid", id)
+                querry.bindValue(":gid", global_id)
+                querry.bindValue(":name", cardname)
+                querry.bindValue(":civ", civ)
+                querry.bindValue(":type", card_type)
+                querry.bindValue(":race", race)
+                querry.bindValue(":cost", int(cost))
+                querry.bindValue(":power", int(power))
+                querry.bindValue(":rarity", rarity)
+                querry.bindValue(":col_num", col_num)
+                querry.bindValue(":artist", artist)
+                querry.bindValue(":rules", rule_text)
+                querry.bindValue(":flavor", flavor_text)
+                querry.bindValue(":effects", effects_string)
+                querry.bindValue(":high", images['high'])
+                querry.bindValue(":medium", images['medium'])
+                querry.bindValue(":low", images['low'])
+                querry.bindValue(":set_name", setname)
                 ok = querry.exec_()
                 if not ok:
-                    print(f"DLA {card.name}: {querry.lastError().text()}")
+                    print(f"CARD INIT SQL ERROR: card {cardname}: {querry.lastError().text()}")
                     return
 
     def check_if_initialized(self):
@@ -65,7 +91,7 @@ class Database(object):
             return True
         return False
 
-    def count(self):
+    def count(self): # TODO: is it needed?
         querry = QSqlQuery(self.db)
         ok = querry.exec_(
             "SELECT count(name) FROM card;")
@@ -74,13 +100,45 @@ class Database(object):
         querry.next()
         return querry.value(0)
 
-    def getdata(self, id, atr):
+    def get_data(self, id, atr):
         querry = QSqlQuery(self.db)
-        querry.prepare(f"SELECT {atr} FROM card WHERE id==:id;")
-        querry.bindValue(":id", id + 1)
+        querry.prepare(f"SELECT {atr} FROM card WHERE sid==:id;")
+        querry.bindValue(":sid", id)
         ok = querry.exec_()
         if not ok:
             print(querry.lastError())
         querry.next()
         data = querry.value(0)
         return data
+
+    def get_card(self, id):
+        querry = QSqlQuery(self.db)
+        querry.prepare(f"SELECT sid, gid, name, civilization, type, race, cost, power, effects, cardset FROM card WHERE sid==:sid;")
+        querry.bindValue(":sid", id)
+        ok = querry.exec_()
+        if not ok:
+            print(querry.lastError())
+        querry.next()
+        sid = querry.value(0)
+        gid = querry.value(1)
+        name = querry.value(2)
+        civ = querry.value(3)
+        type = querry.value(4)
+        race = querry.value(5)
+        cost = querry.value(6)
+        power = querry.value(7)
+        effect_string = querry.value(8)
+        cardset = querry.value(9)
+        print(effect_string)
+        return Card(sid, gid, name, civ, type, race, cost, power, json.loads(effect_string), cardset)
+
+    def get_asset(self, name):
+        querry = QSqlQuery(self.db)
+        querry.prepare(f"SELECT image FROM asset WHERE name==:name;")
+        querry.bindValue(":name", name)
+        ok = querry.exec_()
+        if not ok:
+            print(querry.lastError())
+        querry.next()
+        image = querry.value(0)
+        return image
