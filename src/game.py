@@ -776,7 +776,6 @@ class Game(QWidget):
             self.spell_played = False
         
     def m_summon_card(self, iden):
-        print("IDEN" + iden)
         card = self.hand[iden - 1]
         if self.mana.can_be_played(card):
             if card.card_type == "Creature":
