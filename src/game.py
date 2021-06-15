@@ -22,7 +22,6 @@ class Game(QWidget):
     Main class in application.
     """
     def __init__(self, mode, deck, database, debug, parent=None):
-        # todo change to sqlite
         super(Game, self).__init__()
         self.ui = Ui_Game()
         self.ui.setupUi(self)
@@ -672,7 +671,7 @@ class Game(QWidget):
 
     def summon_effect(self, card):
         """Check and trigger the effects of played card"""
-        print(f"Effects of card {card}: {str(card.effects)}")
+        print(f"Effects of card {card.name}: {str(card.effects)}")
         for effect in card.effects:
             if "teleport" in effect.keys():
                 count = int(effect["teleport"]["count"])

@@ -147,6 +147,8 @@ class Manazone():
         return self.cards[index]["locked"]
 
     def can_be_played(self, card):
+        print(f"WEIGHTS: {str(self.weights)}")
+        print(f"CARD COST: {card.cost}")
         sum = 0
         for item in self.weights:
             sum += item
@@ -182,5 +184,8 @@ class Spellzone():
 
     def is_taken(self):
         return self.card is not None
+
+    def remove_card(self):
+        self.card = None
 
 
