@@ -159,6 +159,11 @@ class Manazone():
         for pos in range(len(self.cards)):
             if self.cards[pos]["tapped"]:
                 self.cards[pos]["locked"] = True
+
+    def unlock_and_untap(self):
+        for pos in range(len(self.cards)):
+            self.cards[pos]["tapped"] = False
+            self.cards[pos]["locked"] = False
     
     def remove_card(self, pos):
         if self.cards[pos]["tapped"]:

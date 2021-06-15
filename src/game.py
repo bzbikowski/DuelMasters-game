@@ -636,7 +636,8 @@ class Game(QWidget):
         0 -> first round of the game - don't draw a card
         1 -> every other round - draw a card
         """
-        # TODO: unlock and untap all your mana
+        # TODO: unlock and untap all your mana and creatures
+        self.mana.unlock_and_untap()
         if state == 1:
             self.card_to_draw = 1
             self.m_draw_a_card()
@@ -715,6 +716,8 @@ class Game(QWidget):
     #  EFFECT METHODS
     #####################################################
 
+    # def post_effect(self):
+
     def teleport(self, firsttime, count=0):
         if firsttime:
             self.message_screen_request(QColor(55, 55, 55), QColor(255, 0, 0),
@@ -728,6 +731,10 @@ class Game(QWidget):
             self.selected_card = []
             self.type_to_choose = []
             self.select_mode = 0
+            if self.spell_played:
+                self.spell_played = False
+                card = self.sfield.remove_card()
+                self.graveyard.add_card(card)
             if self.your_turn == 2:
                 self.your_turn = 0
                 self.send_message(213)
@@ -737,6 +744,10 @@ class Game(QWidget):
         self.card_to_draw += count
         while self.card_to_draw > 0:
             self.m_draw_a_card()
+        if self.spell_played:
+            self.spell_played = False
+            card = self.sfield.remove_card()
+            self.graveyard.add_card(card)
         if self.your_turn == 2:
             self.your_turn = 0
             self.send_message(213)
