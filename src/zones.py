@@ -100,32 +100,33 @@ class Battlezone():
     # TODO: if shieldbreaker, card should have multiple attacks toward shields
     # TODO: make battlezone accept infinite cards, not only 5
     def __init__(self, opponent=False, parent=None):
-        self.cards = {0: {}, 1: {}, 2: {}, 3: {}, 4: {}}
+        self.cards = {}
 
     def add_card(self, card):
         for i in range(5):
             # Look for free space on the board
             if not self.is_taken(i):
-                self.cards.append(card)
+                self.cards[i] = {}
+                self.cards[i]["card"] = card
                 return i
         return -1
 
     def is_taken(self, pos):
         try:
-            self.cards[pos]
-        except IndexError as err:
+            self.cards[pos]["card"]
+        except KeyError as err:
             return False
         else:
             return True
 
     def remove_card(self, pos):
-        return self.cards.pop(pos)
+        return self.cards.pop(pos)["card"]
 
     def __getitem__(self, index):
-        return self.cards[index]
+        return self.cards[index]["card"]
 
     def __len__(self):
-        return len(self.cards)
+        return len(self.cards.keys())
 
 class Manazone():
     def __init__(self, opponent=False, parent=None):
