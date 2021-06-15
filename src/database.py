@@ -135,7 +135,7 @@ class Database(object):
         power = querry.value(7)
         effect_string = querry.value(8)
         cardset = querry.value(9)
-        return Card(sid, gid, name, civ, type, race, cost, power, json.loads(effect_string), cardset)
+        return Card(sid, gid, name, civ, type, race, cost, power, json.loads(effect_string)["effects"], cardset)
 
     def get_asset(self, name):
         querry = QSqlQuery(self.db)
