@@ -148,7 +148,6 @@ class Manazone():
 
     def can_be_played(self, card):
         print(f"WEIGHTS: {str(self.weights)}")
-        print(f"CARD COST: {card.cost}")
         sum = 0
         for item in self.weights:
             sum += item
@@ -159,6 +158,7 @@ class Manazone():
         for pos in range(len(self.cards)):
             if self.cards[pos]["tapped"]:
                 self.cards[pos]["locked"] = True
+        self.weights = [0, 0, 0, 0, 0]
 
     def unlock_and_untap(self):
         for pos in range(len(self.cards)):
@@ -198,6 +198,8 @@ class Spellzone():
         return self.card is not None
 
     def remove_card(self):
+        card = self.card
         self.card = None
+        return card
 
 
