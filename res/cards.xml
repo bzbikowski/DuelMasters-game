@@ -1580,7 +1580,7 @@ Choose 1 creature in the battle zone and return it to its owner's hand.</rules_t
 		artist="Soushi Hirose">
 		<rules_text>When you put this creature into the battle zone, destroy 1 of your creatures.</rules_text>
 		<flavor_text> </flavor_text>
-        		<effects>
+        <effects>
 		</effects>
 	</card>
 
@@ -1599,7 +1599,10 @@ This creature can't attack.
 		
 When this creature wins a battle, destroy it.</rules_text>
 		<flavor_text> </flavor_text>
-        		<effects>
+        <effects>
+			<blocker mode="normal" />
+            <not_attacking mode="all" />
+			<destoy_itself after="battle" />
 		</effects>
 	</card>
 
