@@ -781,15 +781,17 @@ class Game(QWidget):
                 # TODO: check if creature can be summoned (not full board)
                 card = self.hand.remove_card(iden - 1)
                 pos = self.bfield.add_card(card)
+                self.mana.lock_used_mana()
                 self.log.info(f"You've played a creature {card.name}")
                 self.add_log(f"You have played {card.name} on position {pos}")
                 self.send_message(4, card.id, pos)
                 self.summon_effect(card)
             elif card.card_type == "Spell":
                 # Spells are played on 6th space, separate of creature ones
-                if self.sfield.is_taken():
+                if not self.sfield.is_taken():
                     card = self.hand.remove_card(iden - 1)
                     self.sfield.set_card(card)
+                    self.mana.lock_used_mana()
                     self.log.info(f"You've played a spell {card.name}")
                     self.add_log(f"You have played spell {card.name}")
                     self.send_message(4, card.id, 5)
