@@ -30,7 +30,7 @@ class GameView(QGraphicsScene):
                 return
             menu = QMenu()
             print(f"BOARD: SELECT MODE - {str(self.parent.select_mode)}, {len(self.parent.selected_card)} == {self.parent.card_to_choose}")
-            if self.parent.select_mode == 1and len(self.parent.selected_card) == self.parent.card_to_choose:
+            if self.parent.select_mode == 1 and len(self.parent.selected_card) == self.parent.card_to_choose:
                 accept_action = QAction("Trigger effect")
                 accept_action.triggered.connect(self.parent.m_accept_cards)
                 menu.addAction(accept_action)
@@ -131,10 +131,10 @@ class CardView(QGraphicsPixmapItem):
             menu.addAction(peek_action)
         elif self.set == 'yu_mn':
             tap_action = QAction("Tap mana")
-            tap_action.triggered.connect(lambda: self.parent.m_tap_card(self.set, self.iden))
+            tap_action.triggered.connect(lambda: self.parent.m_tap_mana(self.set, self.iden))
             menu.addAction(tap_action)
             untap_action = QAction('Untap mana')
-            untap_action.triggered.connect(lambda: self.parent.m_untap_card(self.set, self.iden))
+            untap_action.triggered.connect(lambda: self.parent.m_untap_mana(self.set, self.iden))
             menu.addAction(untap_action)
             return_action = QAction("Return a card to hand")
             return_action.triggered.connect(lambda: self.parent.m_return_card_to_hand(self.set, self.iden))

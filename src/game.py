@@ -421,7 +421,7 @@ class Game(QWidget):
                 pixmap = self.get_pixmap_card(self.mana[i].id)
                 transform = QTransform().rotate(180)
                 pixmap = pixmap.transformed(transform)
-                if self.mana.is_selected(i): # if selected, gray colors
+                if self.mana.is_tapped(i): # if selected, gray colors
                     image = pixmap.toImage()
                     image = image.convertToFormat(QImage.Format_Grayscale8)
                     pixmap = pixmap.fromImage(image)
@@ -453,7 +453,7 @@ class Game(QWidget):
                 card = self.opp_mana[i]
                 item.set_card(card)
                 pixmap = self.get_pixmap_card(card.id)
-                if self.opp_mana.is_selected(i):
+                if self.opp_mana.is_tapped(i):
                     image = pixmap.toImage()
                     image = image.convertToFormat(QImage.Format_Grayscale8)
                     pixmap = pixmap.fromImage(image)
@@ -778,7 +778,7 @@ class Game(QWidget):
         
     def m_summon_card(self, iden):
         card = self.hand[iden - 1]
-        if self.mana.can_be_played(iden - 1):
+        if self.mana.can_be_played(card):
             if card.card_type == "Creature":
                 # TODO: check if creature can be summoned (not full board)
                 card = self.hand.remove_card(iden - 1)
@@ -887,25 +887,26 @@ class Game(QWidget):
         self.send_message(8, card, pos)
         self.refresh_screen()
         
-    def m_tap_card(self, set, iden):
-        if self.mana[iden - 1][1]:
-            card = self.find_card(self.mana[iden - 1][0])
-            self.weights[self.dict_civ[card.civ]] += 1
-            self.mana[iden - 1][1] = False
+    def m_tap_mana(self, set, iden):
+        if not self.mana.is_tapped(iden - 1):
+            self.mana.tap_card(iden - 1)
             self.send_message(9, 1, iden - 1)
         self.refresh_screen()
         
-    def m_untap_card(self, set, iden):
-        if self.mana[iden - 1][1] == False:
-            card = self.find_card(self.mana[iden - 1][0])
-            self.weights[self.dict_civ[card.civ]] -= 1
-            self.mana[iden - 1][1] = True
+    def m_untap_mana(self, set, iden):
+        if self.mana.is_tapped(iden - 1):
+            self.mana.untap_card(iden - 1)
             self.send_message(9, 0, iden - 1)
         self.refresh_screen()
         
     def m_look_at_shield(self, iden):
-        self.shields[iden-1][1] = False
+        self.shields.set_shield_visible(iden - 1)
         self.send_message(10, iden-1)
+        self.refresh_screen()
+
+    def m_put_shield(self, iden):
+        # TODO: implement this as action on the end of turn if shield was revealed
+        # self.shields[iden-1][1] = True
         self.refresh_screen()
         
     def m_select_creature(self, set, iden):
@@ -921,24 +922,25 @@ class Game(QWidget):
             return
         your_card = self.bfield[self.selected_card[0][1]-1]
         opp_card = self.opp_bfield[iden-1]
-        self.send_message(12, your_card, opp_card) # Inform opponent about the attack
-        your_power = int(self.cardlist[your_card].power)
-        for effect in self.cardlist[your_card].effects:
+        self.send_message(12, your_card.id, opp_card.id) # Inform opponent about the attack
+        your_power = int(your_card.power)
+        for effect in your_card.effects:
+            print(effect)
             if "powerattacker" in effect.keys():
                 your_power += int(effect["powerattacker"]["power"])
-        if int(self.cardlist[opp_card].power) < your_power:
+        if int(opp_card.power) < your_power:
             # Your creature wins
             self.m_move_to_graveyard("op_bf", iden)
-            self.add_log("Your creature {your_card} destroyed opponent {opp_card}") # TODO
-        elif int(self.cardlist[opp_card].power) == your_power:
+            self.add_log(f"Your creature {your_card.name} destroyed opponent {opp_card.name}")
+        elif int(opp_card.power) == your_power:
             # Both are destroyed
             self.m_move_to_graveyard("yu_bf", self.selected_card[0][1])
             self.m_move_to_graveyard("op_bf", iden)
-            self.add_log("Both creatures were destoyed ...") # TODO
+            self.add_log(f"Both creatures were destoyed due to battle results.")
         else:
             # Your creature dies
             self.m_move_to_graveyard("yu_bf", self.selected_card[0][1])
-            self.add_log("Your creature was destoyed ...") # TODO
+            self.add_log(f"Your creature {your_card.name} was destoyed by opponent {opp_card.name} ")
         self.select_mode = 0
         self.selected_card = []
         # TODO: tap attacking creature
@@ -949,10 +951,10 @@ class Game(QWidget):
             # None of the attacking creatures is selected
             return
         # TODO: check if opponent have any blockers
-        for effect in self.cardlist[self.bfield[self.selected_card[0][1] - 1]].effects:
+        for effect in self.bfield[self.selected_card[0][1] - 1].effects:
             if "shieldbreaker" in effect.keys():
                 self.shield_count = int(effect["shieldbreaker"]["count"]) # TODO: implement multiple shield breaking mechanism
-        if self.opp_shields[iden-1]:
+        if self.opp_shields.is_shield_exists(iden-1):
             self.send_message(13, iden-1)
             self.your_turn = 0
    
@@ -970,7 +972,3 @@ class Game(QWidget):
         else:
             return
         graveyard_look.show()
-        
-    def m_put_shield(self, iden):
-        self.shields[iden-1][1] = True
-        self.refresh_screen()
