@@ -98,8 +98,9 @@ class Shieldzone():
 class Battlezone():
     # TODO: add battlezone tapping
     # TODO: if shieldbreaker, card should have multiple attacks toward shields
+    # TODO: make battlezone accept infinite cards, not only 5
     def __init__(self, opponent=False, parent=None):
-        self.cards = []
+        self.cards = {0: {}, 1: {}, 2: {}, 3: {}, 4: {}}
 
     def add_card(self, card):
         for i in range(5):

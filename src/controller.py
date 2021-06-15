@@ -33,15 +33,15 @@ class Controller:
             self.master.turn_states(1)
         elif command == 3:
             # 3 - opponent draws a card
-            self.master.opp_hand.append(-1)
+            self.master.opp_hand.add_placeholder()
             self.master.add_log("Opponent draw a card.")
         elif command == 4:
             # 4,x,y - opponent plays a card with x id on y spot on gameboard
             c_id = int(msg[:2], base=16)
             c_pos = int(msg[2:4], base=16)
-            print(f"COMMAND CARD PLAYED - CARD ID {str(c_id)}, CARD POS: {str(c_pos)}")
-            self.master.opp_bfield[c_pos] = c_id
-            self.master.add_log("Opponent played a card.")
+            card = self.master.database.get_card(c_id)
+            self.master.opp_bfield.add_card(card)
+            self.master.add_log(f"Opponent played a card {card.name}.")
         elif command == 5:
             # 5,v,x,y - player v picks up card from x space from y spot to his hand
             # v - 0/1 - you/opponent
@@ -51,21 +51,21 @@ class Controller:
             c_pos = int(msg[4:6], base=16)
             if c_player == 0:
                 if c_space == 0:
-                    self.master.hand.append(self.master.mana[c_pos][0])
-                    self.master.mana.pop(c_pos)
+                    card = self.master.mana.remove_card(c_pos)
+                    self.master.hand.add_card(card)
                     self.master.add_log("You pick up card from mana to your hand.")
                 elif c_space == 1:
-                    self.master.hand.append(self.master.bfield[c_pos])
-                    self.master.bfield[c_pos] = -1
+                    card = self.master.bfield.remove_card(c_pos)
+                    self.master.hand.add_card(card)
                     self.master.add_log("You pick up card from battle zone to your hand.")
             elif c_player == 1:
                 if c_space == 0:
-                    self.master.opp_mana.pop(c_pos)
-                    self.master.opp_hand.append(-1)
+                    self.master.opp_mana.remove_card(c_pos)
+                    self.master.opp_hand.add_placeholder()
                     self.master.add_log("Opponent picks up card from mana to your hand.")
                 elif c_space == 1:
-                    self.master.opp_bfield[c_pos] = -1
-                    self.master.opp_hand.append(-1)
+                    self.master.opp_bfield.remove_card(c_pos)
+                    self.master.opp_hand.add_placeholder()
                     self.master.add_log("Opponent picks up card from battle zone to your hand.")
         elif command == 6:
             # 6,v,x,y - player v puts card from x space from y spot to his graveyard
@@ -76,45 +76,44 @@ class Controller:
             c_pos = int(msg[4:6], base=16)
             if c_player == 0:
                 if c_space == 0:
-                    self.master.graveyard.append(self.master.mana[c_pos][0])
-                    self.master.mana.pop(c_pos)
+                    card = self.master.mana.remove_card(c_pos)
+                    self.master.graveyard.add_card(card)
                     self.master.add_log("Your card from mana zone was moved to your graveyard.")
                 elif c_space == 1:
-                    self.master.graveyard.append(self.master.bfield[c_pos])
-                    self.master.bfield[c_pos] = -1
+                    card = self.master.bfield.remove_card(c_pos)
+                    self.master.graveyard.add_card(card)
                     self.master.add_log("Your card from battle zone was moved to your graveyard.")
             elif c_player == 1:
                 if c_space == 0:
-                    card = self.master.opp_mana.pop(c_pos)
-                    self.master.opp_graveyard.append(card)
+                    card = self.master.opp_mana.remove_card(c_pos)
+                    self.master.opp_graveyard.add_card(card)
                     self.master.add_log("Opponent's card from mana zone was moved to his graveyard.")
                 elif c_space == 1:
-                    self.master.opp_graveyard.append(self.master.opp_bfield[c_pos])
-                    self.master.opp_bfield[c_pos] = -1
+                    card = self.master.opp_bfield.remove_card(c_pos)
+                    self.master.opp_graveyard.add_card(card)
                     self.master.add_log("Opponent's card from battle zone was moved to his graveyard.")
         elif command == 7:
             # 7,x - opponent adds card x from his hand to mana
             c_id = int(msg[:2], base=16)
-            self.master.opp_mana.append([c_id, True])
-            self.master.opp_hand.pop(0)
-            self.master.add_log(f"Opponent played card {c_id} from his hand to the mana zone")
+            card = self.master.database.get_card(c_id)
+            self.master.opp_mana.add_card(card)
+            self.master.opp_hand.remove_card(0)
+            self.master.add_log(f"Opponent played card {card.name} from his hand to the mana zone")
         elif command == 8:
-            # 8,x,y - opponent adds card x from his hand to y shield (face down)
-            c_id = int(msg[:2], base=16)
-            c_pos = int(msg[2:4], base=16)
-            self.master.opp_shields[c_pos] = True
-            self.master.opp_hand.pop(0)
+            # 8,x,y - opponent adds card from his hand to y shield (face down)
+            c_pos = int(msg[0:2], base=16)
+            self.master.opp_shields.add_placeholder()
+            self.master.opp_hand.remove_card(0)
             self.master.add_log(f"Opponent added card from his hand to shields")
         elif command == 9:
             # 9,x,y - I tap/untap card on y spot in mana zone
             # x - 0/1 - tap/untap
             c_tap = bool(int(msg[:2]))
             c_pos = int(msg[2:4], base=16)
-            self.master.opp_mana[c_pos][1] = c_tap
-            if c_tap == 0:
-                self.master.add_log(f"Opponent tapped a card in his mana zone")
-            elif c_tap == 1:
-                self.master.add_log(f"Opponent untapped a card in his mana zone")
+            if c_tap:
+                self.master.opp_mana.untap_card(c_pos)
+            else:
+                self.master.opp_mana.tap_card(c_pos)
         elif command == 10:
             # 10,x - (info) opponent looks under his shield on x spot
             c_pos = int(msg[:2], base=16)
@@ -124,16 +123,14 @@ class Controller:
             # x - 0/1 - hand/shield
             c_space = int(msg[:2])
             c_pos = int(msg[2:4], base=16)
-            if c_space == 1:
-                card_id = self.master.shields[c_pos]
-                self.master.add_log(f"Opponent is peeking your {c_pos} shield")
-            elif c_space == 0:
-                card_id = self.master.hand[c_pos]
+            if c_space == 0:
+                card = self.master.hand[c_pos]
                 self.master.add_log(f"Opponent is peeking your {c_pos} card in hand")
-            else:
-                print("COMMAND 11 ERROR - WRONG PARAMS")
+            elif c_space == 1:
+                card = self.master.shields[c_pos]
+                self.master.add_log(f"Opponent is peeking your {c_pos} shield")
             # TODO: implement 111 command - return id of the card back to opponent
-            self.master.send_message(111, card_id)
+            self.master.send_message(111, card.id)
         elif command == 12:
             # 12,x,y - (info) opponent attacks your x card with his y card on the battlefield
             c_opp_id = int(msg[:2], base=16)
@@ -155,8 +152,8 @@ class Controller:
             # 113,x - opponent draw to hand destroyed x shield
             # TODO: check if this command is expected
             c_pos = int(msg[:2], base=16)
-            self.master.opp_shields[c_pos] = False
-            self.master.opp_hand.append(-1)
+            self.master.opp_shields.remove_shield(c_pos)
+            self.master.opp_hand.add_placeholder()
             self.master.add_log(f"Opponent picked up shield {c_pos} to his hand.")
             self.master.your_turn = True
         elif command == 213:

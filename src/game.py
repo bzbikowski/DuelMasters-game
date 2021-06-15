@@ -785,7 +785,7 @@ class Game(QWidget):
                 pos = self.bfield.add_card(card)
                 self.log.info(f"You've played a creature {card.name}")
                 self.add_log(f"You have played {card.name} on position {pos}")
-                self.send_message(4, card, pos)
+                self.send_message(4, card.id, pos)
                 self.summon_effect(card)
             elif card.card_type == "Spell":
                 # Spells are played on 6th space, separate of creature ones
@@ -794,7 +794,7 @@ class Game(QWidget):
                     self.sfield.set_card(card)
                     self.log.info(f"You've played a spell {card.name}")
                     self.add_log(f"You have played spell {card.name}")
-                    self.send_message(4, card, 5)
+                    self.send_message(4, card.id, 5)
                     self.spell_played = True
                     self.summon_effect(card)
         else:
@@ -843,13 +843,13 @@ class Game(QWidget):
         card = self.shields.remove_shield(iden - 1)
         if self.cardlist[card].card_type == 'Spell':
             self.sfield.set_card(card)
-            self.send_message(4, card, 5)
+            self.send_message(4, card.id, 5)
             self.spell_played = True
             self.summon_effect(card)
         elif self.cardlist[card].card_type == 'Creature':
             # Handled in menu if there is space left
             pos = self.bfield.add_card(card)
-            self.send_message(4, card, pos)
+            self.send_message(4, card.id, pos)
             self.summon_effect(card)
         self.refresh_screen()
 
@@ -878,13 +878,13 @@ class Game(QWidget):
             card = self.hand.remove_card(iden-1)
             self.mana.add_card(card)
             self.card_to_mana -= 1
-            self.send_message(7, card)
+            self.send_message(7, card.id)
             self.refresh_screen()
         
     def m_add_to_shield(self, iden):
         card = self.hand.remove_card(iden-1)
         pos = self.shields.add_shield(card)
-        self.send_message(8, card, pos)
+        self.send_message(8, pos)
         self.refresh_screen()
         
     def m_tap_mana(self, set, iden):
