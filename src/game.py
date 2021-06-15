@@ -670,9 +670,8 @@ class Game(QWidget):
         for i in range(len(items)-2):
             self.preview_scene.removeItem(items[i])
 
-    def summon_effect(self, card_id):
+    def summon_effect(self, card):
         """Check and trigger the effects of played card"""
-        card = self.database.get_card(card_id)
         print(f"Effects of card {card}: {str(card.effects)}")
         for effect in card.effects:
             if "teleport" in effect.keys():
@@ -777,6 +776,7 @@ class Game(QWidget):
             self.spell_played = False
         
     def m_summon_card(self, iden):
+        print("IDEN" + iden)
         card = self.hand[iden - 1]
         if self.mana.can_be_played(card):
             if card.card_type == "Creature":
