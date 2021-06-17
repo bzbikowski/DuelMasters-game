@@ -40,7 +40,10 @@ class Controller:
             c_id = int(msg[:2], base=16)
             c_pos = int(msg[2:4], base=16)
             card = self.master.database.get_card(c_id)
-            self.master.opp_bfield.add_card(card)
+            if card.card_type == "Spell":
+                self.master.opp_sfield.set_card(card)
+            else:
+                self.master.opp_bfield.add_card(card)
             self.master.add_log(f"Opponent played a card {card.name}.")
         elif command == 5:
             # 5,v,x,y - player v picks up card from x space from y spot to his hand
@@ -89,7 +92,10 @@ class Controller:
                     self.master.opp_graveyard.add_card(card)
                     self.master.add_log("Opponent's card from mana zone was moved to his graveyard.")
                 elif c_space == 1:
-                    card = self.master.opp_bfield.remove_card(c_pos)
+                    if c_pos == 5:
+                        card = self.master.opp_sfield.remove_card()
+                    else:
+                        card = self.master.opp_bfield.remove_card(c_pos)
                     self.master.opp_graveyard.add_card(card)
                     self.master.add_log("Opponent's card from battle zone was moved to his graveyard.")
         elif command == 7:

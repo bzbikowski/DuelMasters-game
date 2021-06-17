@@ -791,6 +791,7 @@ class Game(QWidget):
         if self.spell_played:
             # Move spell to graveyard after usage
             self.m_move_to_graveyard("yu_bf", 6)
+            self.send_message(6, 1, 1, 5)
             self.spell_played = False
         
     def m_summon_card(self, iden):
