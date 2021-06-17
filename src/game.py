@@ -636,8 +636,8 @@ class Game(QWidget):
         1 -> every other round - draw a card
         """
         # TODO: unlock and untap all your mana and creatures
-        self.mana.unlock_and_untap()
         if state == 1:
+            self.mana.unlock_and_untap()
             self.card_to_draw = 1
             self.m_draw_a_card()
         self.card_to_mana = 1
