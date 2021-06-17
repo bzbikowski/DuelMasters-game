@@ -44,7 +44,6 @@ class Game(QWidget):
         self.card_to_choose = 0
         self.turn_count = 0
         self.spell_played = None
-        self.shield_count_to_destroy = 0
 
         self.view_scene = GameView(self)
         self.ui.view.setScene(self.view_scene)
@@ -686,6 +685,13 @@ class Game(QWidget):
             #    if effect["destroy_blockers"]["mode"] == "all":
             #        self.destroy_blocker(-1)
 
+    def can_attack_shield(self):
+        if len(self.selected_card) == 0:
+            return False
+        pos = self.selected_card[0][1]
+        if not self.bfield.is_tapped(pos) and self.bfield.get_shield_count(pos) > 0:
+            return True
+
     def shield_destroyed(self, iden):
         # self.shields[iden][1] = False
         self.shields.set_shield_visible(iden)
@@ -818,7 +824,14 @@ class Game(QWidget):
         if [set, iden] in self.selected_card:
             # can't choose the same card twice
             return
+        # TODO: if not effect or spell targeting, if selected_card is creature set to him shield count
         self.selected_card.append([set, iden])
+        if set == 'yu_bf':
+            if "shieldbreaker" in self.bfield[iden - 1].effects:
+                count = int(self.bfield[iden - 1].effects["shieldbreaker"]["count"])
+            else:
+                count = 1
+            self.bfield.set_shield_count(iden - 1, count)
         self.refresh_screen()
         
     def m_return_card_to_hand(self, set, iden):
@@ -957,14 +970,11 @@ class Game(QWidget):
         # TODO: tap attacking creature
 
     def m_shield_attack(self, iden):
-        # TODO: sprawdz czy moze atakować i czy przeciwnik ma blokery
         if len(self.selected_card) == 0 or not self.select_mode == 2:
             # None of the attacking creatures is selected
             return
         # TODO: check if opponent have any blockers
-        for effect in self.bfield[self.selected_card[0][1] - 1].effects:
-            if "shieldbreaker" in effect.keys():
-                self.shield_count = int(effect["shieldbreaker"]["count"]) # TODO: implement multiple shield breaking mechanism
+        self.bfield.decrease_shield_count(self.selected_card[0][1] - 1)
         if self.opp_shields.is_shield_exists(iden-1):
             self.send_message(13, iden-1)
             self.your_turn = 0

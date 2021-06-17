@@ -108,6 +108,8 @@ class Battlezone():
             if not self.is_taken(i):
                 self.cards[i] = {}
                 self.cards[i]["card"] = card
+                self.cards[i]["tapped"] = True
+                self.cards[i]["shield_count"] = 0
                 return i
         return -1
 
@@ -119,8 +121,25 @@ class Battlezone():
         else:
             return True
 
+    def is_tapped(self, pos):
+        return self.cards[pos]["tapped"]
+
     def remove_card(self, pos):
         return self.cards.pop(pos)["card"]
+
+    def reset_shield_count(self):
+        for pos in self.cards.keys():
+            self.cards[pos]["tapped"] = False
+            self.cards[pos]["shield_count"] = 0
+
+    def set_shield_count(self, pos, count):
+        self.cards[pos]["shield_count"] = count
+
+    def get_shield_count(self, pos):
+        return self.cards[pos]["shield_count"]
+
+    def decrease_shield_count(self, pos):
+        self.cards[pos]["shield_count"] -= 1
 
     def __getitem__(self, index):
         return self.cards[index]["card"]
