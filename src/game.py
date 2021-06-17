@@ -731,6 +731,7 @@ class Game(QWidget):
                                         f"Choose {count} cards in the battlefield to activate the effect.")
             self.card_to_choose = count
             self.type_to_choose = ["yu_bf", "op_bf"]
+            self.selected_card = []
             self.fun_to_call = self.teleport
         else:
             for card in self.selected_card:
@@ -836,6 +837,10 @@ class Game(QWidget):
                 count = 1
             self.bfield.set_shield_count(iden - 1, count)
         self.refresh_screen()
+
+    def m_unchoose_card(self):
+        # TODO: implement this
+        self.selected_card = []
         
     def m_return_card_to_hand(self, set, iden):
         # Action: Return a card to hand 
