@@ -688,9 +688,10 @@ class Game(QWidget):
     def can_attack_shield(self):
         if len(self.selected_card) == 0:
             return False
-        pos = self.selected_card[0][1]
+        pos = self.selected_card[0][1] - 1
         if not self.bfield.is_tapped(pos) and self.bfield.get_shield_count(pos) > 0:
             return True
+        return False
 
     def shield_destroyed(self, iden):
         # self.shields[iden][1] = False
@@ -768,8 +769,9 @@ class Game(QWidget):
             return
         if not len(self.deck) == 0:
             card_id = self.deck.pop(0)
-            self.add_log("You draw a card {}.".format(card_id))
-            self.hand.add_card(self.database.get_card(card_id))
+            card = self.database.get_card(card_id)
+            self.add_log("You draw a card {}.".format(card.name))
+            self.hand.add_card(card)
             self.send_message(3)
         else:
             self.add_log("You don't have enough cards to draw from. You lose!")

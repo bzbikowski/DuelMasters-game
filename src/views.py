@@ -2,6 +2,8 @@ from PySide2.QtCore import QObject, Slot
 from PySide2.QtGui import QCursor, QTransform
 from PySide2.QtWidgets import QGraphicsScene, QGraphicsPixmapItem, QMenu, QAction, QWidget
 
+from src.ui.ui_graveyard import Ui_Graveyard
+
 
 class GameView(QGraphicsScene):
     """
@@ -185,11 +187,17 @@ class CardView(QGraphicsPixmapItem):
             
 class GraveyardView(QWidget):
     """
-    Unfinished graveyard
     """
-    def __init__(self, cards, parent=None):
+    def __init__(self, graveyard, parent=None):
         super(GraveyardView, self).__init__()
-        self.width = 800
-        self.height = 600
-        self.setFixedSize(self.width, self.height)
-        print(len(cards))
+        self.ui = Ui_Graveyard()
+        self.ui.setupUi(self)
+        self.graveyard = graveyard
+        self.parent = parent
+        self.ui.closeButton.clicked.connect(self.close)
+        self.draw_graveyard()
+
+    def draw_graveyard(self):
+        print(len(self.graveyard))
+
+        

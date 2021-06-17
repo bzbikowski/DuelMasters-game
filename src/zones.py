@@ -13,6 +13,9 @@ class Graveyardzone():
     def __getitem__(self, index):
         return self.cards[index]
 
+    def __len__(self):
+        return len(self.cards)
+
     def add_card(self, card):
         self.cards.append(card)
 
