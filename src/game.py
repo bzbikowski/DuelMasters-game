@@ -690,7 +690,7 @@ class Game(QWidget):
         print(self.selected_card)
         if len(self.selected_card) == 0:
             return False
-        pos = self.selected_card[0][1] - 1
+        pos = self.selected_card[0][1]
         print(f"IS TAPPED: {self.bfield.is_tapped(pos)}")
         print(f"SHIELD COUNT: {self.bfield.get_shield_count(pos)}")
         if not self.bfield.is_tapped(pos) and self.bfield.get_shield_count(pos) > 0:
