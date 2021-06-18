@@ -134,7 +134,8 @@ class Battlezone():
         for pos in self.cards.keys():
             print(f"RESET SHIELD COUNT POS: {pos}")
             self.cards[pos]["tapped"] = False
-            self.cards[pos]["shield_count"] = 0
+            # TODO: check if card can attack shields
+            self.cards[pos]["shield_count"] = 1
 
     def set_shield_count(self, pos, count):
         self.cards[pos]["shield_count"] = count

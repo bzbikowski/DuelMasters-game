@@ -85,11 +85,11 @@ class CardView(QGraphicsPixmapItem):
         if self.parent.your_turn == 0:
             return
         menu = QMenu()
-        if self.parent.select_mode == 1 and [self.set, self.iden] == self.parent.selected_card[0]: # TODO: do it better
+        if self.parent.select_mode == 1 and (self.set, self.iden) == self.parent.selected_card[0]: # TODO: do it better
             unchoose_action = QAction("Cancel selection")
             unchoose_action.triggered.connect(lambda: self.parent.m_unchoose_card(self.set, self.iden))
             menu.addAction(unchoose_action)
-        if self.parent.select_mode == 1 and self.set in self.parent.type_to_choose:
+        elif self.parent.select_mode == 1 and self.set in self.parent.type_to_choose:
             choose_action = QAction("Choose a card")
             choose_action.triggered.connect(lambda: self.parent.m_choose_card(self.set, self.iden))
             menu.addAction(choose_action)
