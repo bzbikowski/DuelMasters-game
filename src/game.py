@@ -686,9 +686,12 @@ class Game(QWidget):
             #        self.destroy_blocker(-1)
 
     def can_attack_shield(self):
+        print(self.selected_card)
         if len(self.selected_card) == 0:
             return False
         pos = self.selected_card[0][1] - 1
+        print(f"IS TAPPED: {self.bfield.is_tapped(pos)}")
+        print(f"SHIELD COUNT: {self.bfield.get_shield_count(pos)}")
         if not self.bfield.is_tapped(pos) and self.bfield.get_shield_count(pos) > 0:
             return True
         return False
@@ -798,8 +801,10 @@ class Game(QWidget):
     def m_summon_card(self, iden):
         card = self.hand[iden - 1]
         if self.mana.can_be_played(card):
+            # TODO: check if card can be played due to effect (e.g. not enough opponent's cards)
             if card.card_type == "Creature":
                 # TODO: check if creature can be summoned (not full board)
+
                 card = self.hand.remove_card(iden - 1)
                 pos = self.bfield.add_card(card)
                 self.mana.lock_used_mana()
