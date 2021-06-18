@@ -484,6 +484,7 @@ class Game(QWidget):
             for i in range(len(self.shields)):
                 x = 866
                 y = 14
+                print(f"{i}, {self.shields.is_shield_exists(i)}")
                 if self.shields.is_shield_exists(i):
                     card = CardView("yu_sh", i, self)
                     if not self.shields.is_shield_visible(i):

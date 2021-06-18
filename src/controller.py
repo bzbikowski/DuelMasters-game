@@ -161,7 +161,7 @@ class Controller:
             self.master.opp_shields.remove_shield(c_pos)
             self.master.opp_hand.add_placeholder()
             self.master.add_log(f"Opponent picked up shield {c_pos} to his hand.")
-            self.master.your_turn = True
+            self.master.your_turn = 1
         elif command == 213:
             # 213 - return your turn back
             # TODO: check if this command is expected
