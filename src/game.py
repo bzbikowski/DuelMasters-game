@@ -954,6 +954,11 @@ class Game(QWidget):
         self.selected_card = [(set, iden)]
         self.select_mode = 2
 
+    def m_unselect_creature(self, set, iden):
+        # Action: unselect your creature to attack another creature or shield
+        self.selected_card.remove((set, iden))
+        self.select_mode = 1
+
     def m_attack_creature(self, set, iden):
         # Action: attack creature with your creature
         if len(self.selected_card) == 0 or not self.select_mode == 2:

@@ -160,8 +160,10 @@ class CardView(QGraphicsPixmapItem):
             attack_action = QAction("Attack with this creature")
             attack_action.triggered.connect(lambda: self.parent.m_select_creature(self.set, self.iden))
             menu.addAction(attack_action)
-            #target_action = QAction("Target this card")
-            #menu.addAction(target_action)
+            if self.parent.select_mode == 2 and (self.set, self.iden) in self.parent.selected_card:
+                unselect_action = QAction("Unselect this card")
+                unselect_action.triggered.connect(lambda: self.parent.m_unselect_creature(self.set, self.iden))
+                menu.addAction(unselect_action)
             return_action = QAction("Return a card to hand")
             return_action.triggered.connect(lambda: self.parent.m_return_card_to_hand(self.set, self.iden))
             menu.addAction(return_action)
