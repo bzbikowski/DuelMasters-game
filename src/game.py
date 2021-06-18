@@ -789,6 +789,7 @@ class Game(QWidget):
         # end your turn
         self.add_log("End of your turn.")
         self.send_message(2)
+        self.selected_card = []
         self.your_turn = 0
 
     def m_accept_cards(self):
@@ -844,9 +845,9 @@ class Game(QWidget):
             self.bfield.set_shield_count(iden - 1, count)
         self.refresh_screen()
 
-    def m_unchoose_card(self):
-        # TODO: implement this
-        self.selected_card = []
+    def m_unchoose_card(self, set, iden):
+        self.selected_card.remove((set, iden))
+        self.refresh_screen()
         
     def m_return_card_to_hand(self, set, iden):
         # Action: Return a card to hand 
