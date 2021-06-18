@@ -353,7 +353,7 @@ class Game(QWidget):
             y = 639
             size_of_hand = len(self.hand)
             for i in range(size_of_hand):
-                item = CardView(type, i + 1, self)
+                item = CardView(type, i, self)
                 if self.hand.is_hidden(i):
                     pixmap = self.cardback_pixmap
                 else:
@@ -374,14 +374,14 @@ class Game(QWidget):
                 if not len(self.selected_card) == 0:
                     for sel_card in self.selected_card:
                         if sel_card[0] == type:
-                            if sel_card[1] == i + 1:
+                            if sel_card[1] == i:
                                 self.highlight_card(x, x + 85, y, y + 115, QColor(0, 0, 255))
                                 break
         elif type == "op_hd":
             y = 14
             size_of_hand = len(self.opp_hand)
             for i in range(size_of_hand):
-                item = CardView(type, i + 1, self)
+                item = CardView(type, i, self)
                 if self.opp_hand[i].is_placeholder():
                     pixmap = self.cardback_pixmap
                 else:
@@ -402,7 +402,7 @@ class Game(QWidget):
                 if not len(self.selected_card) == 0:
                     for sel_card in self.selected_card:
                         if sel_card[0] == type:
-                            if sel_card[1] == i + 1:
+                            if sel_card[1] == i:
                                 self.highlight_card(x, x + 85, y, y + 115, QColor(0, 0, 255))
                                 break
             
@@ -414,7 +414,7 @@ class Game(QWidget):
             y = 514
             size_of_mana = len(self.mana)
             for i in range(size_of_mana):
-                item = CardView(type, i + 1, self)
+                item = CardView(type, i, self)
                 item.set_card(self.mana[i])
                 pixmap = self.get_pixmap_card(self.mana[i].id)
                 transform = QTransform().rotate(180)
@@ -440,14 +440,14 @@ class Game(QWidget):
                 if not len(self.selected_card) == 0:
                     for sel_card in self.selected_card:
                         if sel_card[0] == type:
-                            if sel_card[1] == i + 1:
+                            if sel_card[1] == i:
                                 self.highlight_card(x, x + 85, y, y + 115, QColor(0, 0, 255))
                                 break
         elif type == "op_mn":
             y = 139
             size_of_mana = len(self.opp_mana)
             for i in range(size_of_mana):
-                item = CardView(type, i + 1, self)
+                item = CardView(type, i, self)
                 card = self.opp_mana[i]
                 item.set_card(card)
                 pixmap = self.get_pixmap_card(card.id)
@@ -472,7 +472,7 @@ class Game(QWidget):
                 if not len(self.selected_card) == 0:
                     for sel_card in self.selected_card:
                         if sel_card[0] == type:
-                            if sel_card[1] == i + 1:
+                            if sel_card[1] == i:
                                 self.highlight_card(x, x + 85, y, y + 115, QColor(0, 0, 255))
                                 break
 
@@ -485,7 +485,7 @@ class Game(QWidget):
                 x = 866
                 y = 14
                 if self.shields.is_shield_exists(i):
-                    card = CardView("yu_sh", i + 1, self)
+                    card = CardView("yu_sh", i, self)
                     if not self.shields.is_shield_visible(i):
                         card.setPixmap(self.cardback_pixmap)
                     else:
@@ -497,7 +497,7 @@ class Game(QWidget):
                 if not len(self.selected_card) == 0:
                     for sel_card in self.selected_card:
                         if sel_card[0] == type:
-                            if sel_card[1] == i + 1:
+                            if sel_card[1] == i:
                                 self.highlight_card(x, x + 85, y, y + 115, QColor(0, 0, 255))
                                 break
         elif type == "op_sh":
@@ -505,7 +505,7 @@ class Game(QWidget):
                 x = 74
                 y = 139
                 if self.opp_shields.is_shield_exists(i):
-                    card = CardView("op_sh", i + 1, self)
+                    card = CardView("op_sh", i, self)
                     transform = QTransform().rotate(180)
                     pixmap = self.cardback_pixmap.transformed(transform)
                     card.setPixmap(pixmap)
@@ -514,7 +514,7 @@ class Game(QWidget):
                 if not len(self.selected_card) == 0:
                     for sel_card in self.selected_card:
                         if sel_card[0] == type:
-                            if sel_card[1] == i + 1:
+                            if sel_card[1] == i:
                                 self.highlight_card(x, x + 85, y, y + 115, QColor(0, 0, 255))
                                 break
 
@@ -527,7 +527,7 @@ class Game(QWidget):
             y = 389
             for i in range(len(self.bfield)):
                 if self.bfield.is_taken(i):
-                    card = CardView(type, i + 1, self)
+                    card = CardView(type, i, self)
                     card.set_card(self.bfield[i])
                     pixmap = self.get_pixmap_card(self.bfield[i].id)
                     card.setPixmap(pixmap)
@@ -536,7 +536,7 @@ class Game(QWidget):
                 if not len(self.selected_card) == 0:
                     for sel_card in self.selected_card:
                         if sel_card[0] == type:
-                            if sel_card[1] == i + 1:
+                            if sel_card[1] == i:
                                 # TODO: remove highlight when card was e.g. teleported to hand
                                 self.highlight_card(x + i * 95, x + i * 95 + 85, y, y + 115, QColor(0, 0, 255))
                                 break
@@ -544,7 +544,7 @@ class Game(QWidget):
             y = 264
             for i in range(len(self.opp_bfield)):
                 if self.opp_bfield.is_taken(i):
-                    card = CardView(type, i + 1, self)
+                    card = CardView(type, i, self)
                     card.set_card(self.opp_bfield[i])
                     pixmap = self.get_pixmap_card(self.opp_bfield[i].id)
                     card.setPixmap(pixmap)
@@ -553,7 +553,7 @@ class Game(QWidget):
                 if not len(self.selected_card) == 0:
                     for sel_card in self.selected_card:
                         if sel_card[0] == type:
-                            if sel_card[1] == i + 1:
+                            if sel_card[1] == i:
                                 # TODO: remove highlight when card was e.g. teleported to hand
                                 self.highlight_card(x + i * 95, x + i * 95 + 85, y, y + 115, QColor(0, 0, 255))
                                 break
@@ -566,7 +566,7 @@ class Game(QWidget):
         if type == "yu_sf":
             y = 389
             if self.sfield.is_taken():
-                item = CardView(type, 1, self)
+                item = CardView(type, 0, self)
                 card = self.sfield.get_card()
                 item.set_card(card)
                 pixmap = self.get_pixmap_card(card.id)
@@ -581,7 +581,7 @@ class Game(QWidget):
         elif type == "op_sf":
             y = 264
             if self.opp_sfield.is_taken():
-                item = CardView(type, 1, self)
+                item = CardView(type, 0, self)
                 card = self.opp_sfield.get_card()
                 item.set_card(card)
                 pixmap = self.get_pixmap_card(card.id)
@@ -599,7 +599,7 @@ class Game(QWidget):
             x = 866
             y = 639
             if not self.graveyard.is_empty():
-                item = CardView("yu_gv", 1, self)
+                item = CardView("yu_gv", 0, self)
                 card = self.graveyard.get_last_card()
                 item.set_card(card)
                 item.setPixmap(self.get_pixmap_card(card.id))
@@ -609,7 +609,7 @@ class Game(QWidget):
             x = 74
             y = 14
             if not self.opp_graveyard.is_empty():      
-                item = CardView("op_gv", 1, self)
+                item = CardView("op_gv", 0, self)
                 card = self.opp_graveyard.get_last_card()
                 item.set_card(card)
                 transform = QTransform().rotate(180)
@@ -796,18 +796,18 @@ class Game(QWidget):
         self.fun_to_call(False)
         if self.spell_played:
             # Move spell to graveyard after usage
-            self.m_move_to_graveyard("yu_bf", 6)
+            self.m_move_to_graveyard("yu_bf", 5)
             self.send_message(6, 1, 1, 5)
             self.spell_played = False
         
     def m_summon_card(self, iden):
-        card = self.hand[iden - 1]
+        card = self.hand[iden]
         if self.mana.can_be_played(card):
             # TODO: check if card can be played due to effect (e.g. not enough opponent's cards)
             if card.card_type == "Creature":
                 # TODO: check if creature can be summoned (not full board)
 
-                card = self.hand.remove_card(iden - 1)
+                card = self.hand.remove_card(iden)
                 pos = self.bfield.add_card(card)
                 self.mana.lock_used_mana()
                 self.log.info(f"You've played a creature {card.name}")
@@ -817,7 +817,7 @@ class Game(QWidget):
             elif card.card_type == "Spell":
                 # Spells are played on 6th space, separate of creature ones
                 if not self.sfield.is_taken():
-                    card = self.hand.remove_card(iden - 1)
+                    card = self.hand.remove_card(iden)
                     self.sfield.set_card(card)
                     self.mana.lock_used_mana()
                     self.log.info(f"You've played a spell {card.name}")
@@ -838,11 +838,11 @@ class Game(QWidget):
         # TODO: if not effect or spell targeting, if selected_card is creature set to him shield count
         self.selected_card.append([set, iden])
         if set == 'yu_bf':
-            if "shieldbreaker" in self.bfield[iden - 1].effects:
-                count = int(self.bfield[iden - 1].effects["shieldbreaker"]["count"])
+            if "shieldbreaker" in self.bfield[iden].effects:
+                count = int(self.bfield[iden].effects["shieldbreaker"]["count"])
             else:
                 count = 1
-            self.bfield.set_shield_count(iden - 1, count)
+            self.bfield.set_shield_count(iden, count)
         self.refresh_screen()
 
     def m_unchoose_card(self, set, iden):
@@ -852,26 +852,26 @@ class Game(QWidget):
     def m_return_card_to_hand(self, set, iden):
         # Action: Return a card to hand 
         if set == "yu_bf":
-            card = self.bfield.remove_card(iden-1)
+            card = self.bfield.remove_card(iden)
             self.hand.add_card(card)
-            self.send_message(5, 1, 1, iden-1)
+            self.send_message(5, 1, 1, iden)
         elif set == "yu_mn":
-            card = self.mana.remove_card(iden-1)
+            card = self.mana.remove_card(iden)
             self.hand.add_card(card)
-            self.send_message(5, 1, 0, iden-1)
+            self.send_message(5, 1, 0, iden)
         elif set == "op_mn":
-            self.opp_mana.remove_card(iden-1)
-            self.send_message(5, 0, 0, iden - 1)
+            self.opp_mana.remove_card(iden)
+            self.send_message(5, 0, 0, iden)
             self.opp_hand.add_placeholder()
         elif set == "op_bf":
-            self.opp_bfield.remove_card(iden - 1)
-            self.send_message(5, 0, 1, iden - 1)
+            self.opp_bfield.remove_card(iden)
+            self.send_message(5, 0, 1, iden)
             self.opp_hand.add_placeholder()
         self.refresh_screen()
         
     def m_return_shield_to_hand(self, iden):
         # Action: Return your card under destroyed shield to hand
-        card = self.shields.remove_shield(iden - 1)
+        card = self.shields.remove_shield(iden)
         self.hand.add_card(card)
         self.send_message(113, iden)
         self.your_turn = 0
@@ -879,7 +879,7 @@ class Game(QWidget):
 
     def m_play_destroyed_shield(self, set, iden):
         # Action: Play a shield with shield trigger
-        card = self.shields.remove_shield(iden - 1)
+        card = self.shields.remove_shield(iden)
         if self.cardlist[card].card_type == 'Spell':
             self.sfield.set_card(card)
             self.send_message(4, card.id, 5)
@@ -895,52 +895,52 @@ class Game(QWidget):
     def m_move_to_graveyard(self, set, iden):
         # Action: Move a card to the graveyard
         if set == "yu_bf":
-            card = self.bfield.remove_card(iden - 1)
+            card = self.bfield.remove_card(iden)
             self.graveyard.add_card(card)
-            self.send_message(6, 1, 1, iden-1)
+            self.send_message(6, 1, 1, iden)
         elif set == "yu_mn":
-            card = self.mana.remove_card(iden-1)
+            card = self.mana.remove_card(iden)
             self.graveyard.add_card(card)
-            self.send_message(6, 1, 0, iden - 1)
+            self.send_message(6, 1, 0, iden)
         elif set == "op_mn":
-            card = self.opp_mana.remove_card(iden - 1)
+            card = self.opp_mana.remove_card(iden)
             self.opp_graveyard.add_card(card)
-            self.send_message(6, 0, 0, iden - 1)
+            self.send_message(6, 0, 0, iden)
         elif set == "op_bf":
-            card = self.opp_bfield.remove_card(iden - 1)
+            card = self.opp_bfield.remove_card(iden)
             self.opp_graveyard.add_card(card)
-            self.send_message(6, 0, 1, iden - 1)
+            self.send_message(6, 0, 1, iden)
         self.refresh_screen()
         
     def m_add_to_mana(self, iden):
         if self.card_to_mana > 0:
-            card = self.hand.remove_card(iden-1)
+            card = self.hand.remove_card(iden)
             self.mana.add_card(card)
             self.card_to_mana -= 1
             self.send_message(7, card.id)
             self.refresh_screen()
         
     def m_add_to_shield(self, iden):
-        card = self.hand.remove_card(iden-1)
+        card = self.hand.remove_card(iden)
         pos = self.shields.add_shield(card)
         self.send_message(8, pos)
         self.refresh_screen()
         
     def m_tap_mana(self, set, iden):
-        if not self.mana.is_tapped(iden - 1):
-            self.mana.tap_card(iden - 1)
-            self.send_message(9, 1, iden - 1)
+        if not self.mana.is_tapped(iden):
+            self.mana.tap_card(iden)
+            self.send_message(9, 1, iden)
         self.refresh_screen()
         
     def m_untap_mana(self, set, iden):
-        if self.mana.is_tapped(iden - 1):
-            self.mana.untap_card(iden - 1)
-            self.send_message(9, 0, iden - 1)
+        if self.mana.is_tapped(iden):
+            self.mana.untap_card(iden)
+            self.send_message(9, 0, iden)
         self.refresh_screen()
         
     def m_look_at_shield(self, iden):
-        self.shields.set_shield_visible(iden - 1)
-        self.send_message(10, iden-1)
+        self.shields.set_shield_visible(iden)
+        self.send_message(10, iden)
         self.refresh_screen()
 
     def m_put_shield(self, iden):
@@ -964,8 +964,8 @@ class Game(QWidget):
         if len(self.selected_card) == 0 or not self.select_mode == 2:
             # None of the attacking creatures is selected
             return
-        your_card = self.bfield[self.selected_card[0][1]-1]
-        opp_card = self.opp_bfield[iden-1]
+        your_card = self.bfield[self.selected_card[0][1]]
+        opp_card = self.opp_bfield[iden]
         self.send_message(12, your_card.id, opp_card.id) # Inform opponent about the attack
         your_power = int(your_card.power)
         for effect in your_card.effects:
@@ -994,8 +994,8 @@ class Game(QWidget):
             # None of the attacking creatures is selected
             return
         # TODO: check if opponent have any blockers
-        self.bfield.decrease_shield_count(self.selected_card[0][1] - 1)
-        if self.opp_shields.is_shield_exists(iden-1):
+        self.bfield.decrease_shield_count(self.selected_card[0][1])
+        if self.opp_shields.is_shield_exists(iden):
             self.send_message(13, iden-1)
             self.your_turn = 0
    

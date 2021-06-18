@@ -113,12 +113,12 @@ class CardView(QGraphicsPixmapItem):
         elif self.set == 'yu_sh':
             # TODO: if shield was destroyed, it's your time to decide what to do with it
             print(f"SHIELD DESTOYED: POS {self.iden}")
-            if self.parent.shields.is_shield_visible(self.iden - 1):
+            if self.parent.shields.is_shield_visible(self.iden):
                 add_shield_to_hand_action = QAction('Add to hand')
                 add_shield_to_hand_action.triggered.connect(lambda: self.parent.m_return_shield_to_hand(self.iden))
                 menu.addAction(add_shield_to_hand_action)
                 # TODO: if creature and there is no space, hide this option
-                if "shieldtrigger" in self.parent.shields[self.iden - 1].effects:
+                if "shieldtrigger" in self.parent.shields[self.iden].effects:
                     use_effect_from_shield = QAction('Trigger it\'s effect')
                     use_effect_from_shield.triggered.connect(lambda: self.parent.m_play_destroyed_shield(self.set, self.iden))
                     menu.addAction(use_effect_from_shield)
