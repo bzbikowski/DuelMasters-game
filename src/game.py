@@ -638,6 +638,7 @@ class Game(QWidget):
         # TODO: unlock and untap all your mana and creatures
         if state == 1:
             self.mana.unlock_and_untap()
+            self.bfield.reset_shield_count()
             self.card_to_draw = 1
             self.m_draw_a_card()
         self.card_to_mana = 1
