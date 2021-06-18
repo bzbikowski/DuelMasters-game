@@ -996,7 +996,7 @@ class Game(QWidget):
         # TODO: check if opponent have any blockers
         self.bfield.decrease_shield_count(self.selected_card[0][1])
         if self.opp_shields.is_shield_exists(iden):
-            self.send_message(13, iden-1)
+            self.send_message(13, iden)
             self.your_turn = 0
    
     def m_opp_look_at_hand(self, iden):
