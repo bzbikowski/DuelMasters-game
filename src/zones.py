@@ -70,7 +70,10 @@ class Shieldzone():
         exit(1)
 
     def remove_shield(self, pos):
-        return self.shields.pop(pos)["card"]
+        # TODO: to keep proper layout, min. 5 shields (destoyed or not) are required
+        card = self.shields[pos]["card"]
+        self.shields[pos] = {}
+        return card
 
     def __getitem__(self, index):
         return self.shields[index]["card"]
