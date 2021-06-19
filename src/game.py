@@ -1048,9 +1048,7 @@ class Game(QWidget):
         if len(self.selected_card) == 0 or not self.select_mode == 2:
             # None of the attacking creatures is selected
             return
-        your_card = self.bfield[self.selected_card[0][1]]
-        opp_card = self.opp_bfield[iden]
-        self.send_message(12, your_card.id, opp_card.id) # Inform opponent about the attack
+        self.send_message(12, self.selected_card[0][1], iden) # Inform opponent about the attack
         self.your_turn = 0
         # TODO: wait for response if you can continue to attack this creature, or blocker blocks it
 
