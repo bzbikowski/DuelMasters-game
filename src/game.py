@@ -486,7 +486,6 @@ class Game(QWidget):
             for i in range(len(self.shields)):
                 x = 866
                 y = 14
-                print(f"{i}, {self.shields.is_shield_exists(i)}")
                 if self.shields.is_shield_exists(i):
                     card = CardView("yu_sh", i, self)
                     if not self.shields.is_shield_visible(i):
@@ -740,7 +739,11 @@ class Game(QWidget):
             # Proceed to attack
             self.send_message(112, your_pos)
 
+        # Remember opponent choice
+        self.chosen = your_pos
+
         # Decide what to do: block with blocker or pass blocking
+        self.add_log("Choose either you block an attack with a blocker or allow it.")
         self.your_turn = 3 # special turn - block or pass
 
     def shields_attacked(self, creature_pos, shields_pos):
@@ -756,6 +759,7 @@ class Game(QWidget):
             # Destroy shields
             pass
         # TODO: log that your shield is attacked, you can either block attack with blocker or allow to attack
+        self.add_log("Choose either you block an attack with a blocker or allow it.")
         self.your_turn = 3 # special turn - block or pass
 
     def shield_destroyed(self, iden):
@@ -1066,12 +1070,13 @@ class Game(QWidget):
         #     self.send_message(13, iden)
 
     def m_block_with_creature(self, set, iden):
-        # TODO:
-        pass
+        self.add_log(f"Blocking attack with {iden}")
+        self.send_message(112, iden)
 
-    def m_pass_attack(self):
-        # TODO:
-        pass       
+    def m_pass_attack(self): 
+        # TODO: support shield with no blocking
+        self.add_log(f"Passing blocking")
+        self.send_message(112, self.chosen)  
    
     def m_opp_look_at_hand(self, iden):
         self.send_message(11, 0, iden)
