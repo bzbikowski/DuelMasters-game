@@ -874,7 +874,6 @@ class Game(QWidget):
         if self.spell_played:
             # Move spell to graveyard after usage
             self.m_move_to_graveyard("yu_sf", 0)
-            self.send_message(6, 1, 1, 5)
             self.spell_played = False
         
     def m_summon_card(self, iden):
@@ -975,6 +974,10 @@ class Game(QWidget):
             card = self.bfield.remove_card(iden)
             self.graveyard.add_card(card)
             self.send_message(6, 1, 1, iden)
+        elif set == "yu_sf":
+            card = self.sfield.remove_card()
+            self.graveyard.add_card(card)
+            self.send_message(6, 1, 1, 5)
         elif set == "yu_mn":
             card = self.mana.remove_card(iden)
             self.graveyard.add_card(card)
@@ -987,6 +990,10 @@ class Game(QWidget):
             card = self.opp_bfield.remove_card(iden)
             self.opp_graveyard.add_card(card)
             self.send_message(6, 0, 1, iden)
+        elif set == "op_sf":
+            card = self.opp_sfield.remove_card()
+            self.opp_graveyard.add_card(card)
+            self.send_message(6, 0, 1, 5)
         self.refresh_screen()
         
     def m_add_to_mana(self, iden):
