@@ -40,7 +40,7 @@ class GameView(QGraphicsScene):
                 shield_action = QAction("Confirm shields attack")
                 shield_action.triggered.connect(self.parent.m_shield_attack)
                 menu.addAction(shield_action)
-            if self.parent.select_mode == 3:
+            if self.parent.your_turn == 3:
                 pass_action = QAction("Do not block the attack")
                 pass_action.triggered.connect(self.parent.m_pass_attack)
                 menu.addAction(pass_action)
@@ -166,7 +166,7 @@ class CardView(QGraphicsPixmapItem):
             destroy_action.triggered.connect(lambda: self.parent.m_move_to_graveyard(self.set, self.iden))
             menu.addAction(destroy_action)
         elif self.set == 'yu_bf':
-            if self.parent.select_mode == 3:
+            if self.parent.your_turn == 3:
                 block_action = QAction("Block with this creature")
                 block_action.triggered.connect(lambda: self.parent.m_block_with_creature(self.set, self.iden))
                 menu.addAction(block_action)
