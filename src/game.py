@@ -1037,6 +1037,8 @@ class Game(QWidget):
     def m_select_creature(self, set, iden):
         # Action: select your creature to attack another creature or shield
         # TODO: check if creature can attack (ability, tapped)
+        if self.bfield.is_tapped(iden):
+            return
         self.selected_card = [(set, iden)]
         self.select_mode = 2
 
@@ -1047,12 +1049,13 @@ class Game(QWidget):
 
     def m_attack_creature(self, set, iden):
         # Action: attack creature with your creature
-        if len(self.selected_card) == 0 or not self.select_mode == 2:
+        if len(self.selected_card) == 0 or not self.select_mode == 2: 
             # None of the attacking creatures is selected
+            return
+        if not self.opp_bfield.is_tapped(iden) and True: # TODO: check if your card has ability to attack untapped cards
             return
         self.send_message(12, self.selected_card[0][1], iden) # Inform opponent about the attack
         self.your_turn = 0
-        # TODO: wait for response if you can continue to attack this creature, or blocker blocks it
 
     def m_select_shield_to_attack(self, iden):
         self.selected_shields.append(iden)

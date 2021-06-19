@@ -134,7 +134,10 @@ class Battlezone():
         self.cards[pos]["tapped"] = True
 
     def remove_card(self, pos):
-        return self.cards.pop(pos)["card"]
+        # TODO: to keep proper layout, min. 5 spaces (empty or not) are required
+        card = self.cards[pos]["card"]
+        self.cards[pos] = {}
+        return card
 
     def reset_shield_count(self):
         for pos in self.cards.keys():
