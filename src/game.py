@@ -873,7 +873,7 @@ class Game(QWidget):
         action(args)
         if self.spell_played:
             # Move spell to graveyard after usage
-            self.m_move_to_graveyard("yu_bf", 5)
+            self.m_move_to_graveyard("yu_sf", 0)
             self.send_message(6, 1, 1, 5)
             self.spell_played = False
         

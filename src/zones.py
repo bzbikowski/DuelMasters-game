@@ -147,7 +147,7 @@ class Battlezone():
                 else:
                     self.cards[pos]["shield_count"] = 1
             else:
-                self.cards[pos]["shield_count"] = 0
+                self.cards[pos]["shield_count"] = 1
 
     def set_shield_count(self, pos, count):
         self.cards[pos]["shield_count"] = count
