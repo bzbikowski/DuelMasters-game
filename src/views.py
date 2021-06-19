@@ -44,6 +44,10 @@ class GameView(QGraphicsScene):
                 pass_action = QAction("Do not block the attack")
                 pass_action.triggered.connect(self.parent.m_pass_attack)
                 menu.addAction(pass_action)
+            elif self.parent.your_turn == 4:
+                pass_action = QAction("Do not block the attack")
+                pass_action.triggered.connect(self.parent.m_shield_pass_attack)
+                menu.addAction(pass_action)
             # if self.parent.debug_mode:
             #     draw_action = QAction("Draw a card")
             #     draw_action.triggered.connect(self.parent.m_draw_a_card)
@@ -169,6 +173,10 @@ class CardView(QGraphicsPixmapItem):
             if self.parent.your_turn == 3:
                 block_action = QAction("Block with this creature")
                 block_action.triggered.connect(lambda: self.parent.m_block_with_creature(self.set, self.iden))
+                menu.addAction(block_action)
+            elif self.parent.your_turn == 4:
+                block_action = QAction("Block with this creature")
+                block_action.triggered.connect(lambda: self.parent.m_shield_block_with_creature(self.set, self.iden))
                 menu.addAction(block_action)
             attack_action = QAction("Attack with this creature")
             attack_action.triggered.connect(lambda: self.parent.m_select_creature(self.set, self.iden))

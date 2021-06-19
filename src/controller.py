@@ -157,6 +157,33 @@ class Controller:
                 shields_pos.append(int(msg[0:2], base=16))
             self.master.add_log(f"Your shields {shields_pos} are being attacked by {creature_pos}.")
             self.master.shields_attacked(creature_pos, shields_pos)
+        elif command == 113:
+            # 113,x - answer from the opponent, that either he blocks with blocker or shields will be destroyed
+            if msg == "":
+                # Opponent didn't block shield attack, continue
+                self.master.attack_shield()
+            else:
+                # Oppponent blocked with creature
+                c_pos = int(msg[:2], base=16)
+                self.master.attack_creature(c_pos)
+        elif command == 14:
+            # 14,y1,y2,... - opponent destroys your shields
+            # ya - a-th shield
+            shields_pos = []
+            while len(msg) > 0:
+                shields_pos.append(int(msg[0:2], base=16))
+                msg = msg[2:]
+            self.master.shield_destroyed(shields_pos)
+        elif command == 114:
+            # 114,x - opponent picked up x shield to his hand
+            c_pos = int(msg[:2], base=16)
+            self.master.opp_shields.remove_shield(c_pos)
+            self.master.opp_hand.add_placeholder()
+        elif command == 214:
+            # 214 - opponent ended handling shield attack
+            # self.master.selected_card = 
+            self.master.your_turn = 1
+
         elif command == 111:
             # 111,x - 
             # TODO: check if this command is expected
@@ -164,18 +191,6 @@ class Controller:
             # TODO: split command to separate hand and shield
             # TODO: show in the UI what the card actually is
             self.master.add_log(f"The choosen card is {c_id}")
-        elif command == 113:
-            # 113,x - opponent draw to hand destroyed x shield
-            # TODO: check if this command is expected
-            c_pos = int(msg[:2], base=16)
-            self.master.opp_shields.remove_shield(c_pos)
-            self.master.opp_hand.add_placeholder()
-            self.master.add_log(f"Opponent picked up shield {c_pos} to his hand.")
-            self.master.your_turn = 1
-        elif command == 213:
-            # 213 - return your turn back
-            # TODO: check if this command is expected
-            self.master.your_turn = 1
 
             
 

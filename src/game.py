@@ -37,7 +37,7 @@ class Game(QWidget):
         self.deck = deck
         self.card_to_draw = 0
         self.card_to_mana = 0
-        self.your_turn = 0 # 0 - not your turn, 1 - your turn, 2 - special turn, 3 - block or pass
+        self.your_turn = 0 # 0 - not your turn, 1 - your turn, 2 - special turn, 3 - block or pass creature, 4 - block or pass shield, 5 - shield destoyed
         self.selected_card = None
         self.focus_request = False
         self.select_mode = 0  # 0 - no select mode, 1 - effects, 2 - creature, 21 - shields attack
@@ -679,22 +679,29 @@ class Game(QWidget):
             if "teleport" in effect.keys():
                 count = int(effect["teleport"]["count"])
                 print(f"Teleport {count}")
-                self.teleport(True, count)
+                self.fun_queue.append((self.teleport, [True, count]))
+                # self.teleport(True, count)
             if "draw" in effect.keys():
                 count = int(effect["draw"]["count"])
                 print(f"Draw {count}")
+                self.fun_queue.append((self.draw_cards, [count]))
                 self.draw_cards(count)
             #if "destroy_blockers" in effect.keys():
             #    if effect["destroy_blockers"]["mode"] == "all":
             #        self.destroy_blocker(-1)
+        if len(self.fun_queue) > 0:
+            action, args = self.fun_queue.pop(0)
+            action(*args)
+        else:
+            if self.your_turn == 5 and len(self.shields_to_destroy) == 0:
+                self.your_turn = 0
+                self.send_message(214)
+
 
     def can_attack_shield(self):
-        print(self.selected_card)
         if len(self.selected_card) == 0:
             return False
         pos = self.selected_card[0][1]
-        print(f"IS TAPPED: {self.bfield.is_tapped(pos)}")
-        print(f"SHIELD COUNT: {self.bfield.get_shield_count(pos)}")
         if not self.bfield.is_tapped(pos) and self.bfield.get_shield_count(pos) > 0:
             return True
         return False
@@ -745,7 +752,7 @@ class Game(QWidget):
 
         # Decide what to do: block with blocker or pass blocking
         self.add_log("Choose either you block an attack with a blocker or allow it.")
-        self.your_turn = 3 # special turn - block or pass
+        self.your_turn = 3 # special turn - block or pass - creature
 
     def shields_attacked(self, creature_pos, shields_pos):
         # Opponent action - one of the shield is attacked
@@ -758,17 +765,23 @@ class Game(QWidget):
                         blocker_available = True
 
         if not blocker_available:
-            # Destroy shields
-            pass
+            self.send_message(113)
         # TODO: log that your shield is attacked, you can either block attack with blocker or allow to attack
-        self.add_log("Choose either you block an attack with a blocker or allow it.")
-        self.your_turn = 3 # special turn - block or pass
+        self.add_log("You can choose either to block an attack with a blocker or allow it.")
+        self.your_turn = 4 # special turn - block or pass - shield
 
-    def shield_destroyed(self, iden):
+    def attack_shield(self):
+        self.send_message(14, self.selected_shields)
+
+    def shield_destroyed(self, idens):
+        # TODO: implement algorithm when multiple shields were destroyed at once
         # self.shields[iden][1] = False
-        self.shields.set_shield_visible(iden)
-        self.your_turn = 2
-        self.add_log("One of your shield was destroyed. Decide what to do with it.")
+        # Make all shields destroyed visible
+        for iden in idens:
+            self.shields.set_shield_visible(iden)
+        self.shields_to_destroy = idens
+        self.your_turn = 5
+        self.add_log(f"{idens} shields were destroyed. Decide what to do with it.")
         # card_id = self.shields[iden][0]
         # self.send_message(113, iden, card_id)
         # TODO: add a menu options to either draw a card or play it if it has shield trigger
@@ -800,12 +813,16 @@ class Game(QWidget):
             self.spell_played = False
             card = self.sfield.remove_card()
             self.graveyard.add_card(card)
+            self.refresh_screen()
         if len(self.fun_queue) > 0:
             # functions still in the queue, run them
             action, args = self.fun_queue.pop(0)
-            # TODO: find a way to pass arguments for the functions
             action(*args)
-
+        else:
+            # If card was from shield, check if all shields were handled
+            if self.your_turn == 5 and len(self.shields_to_destroy) == 0:
+                self.your_turn = 0
+                self.send_message(214)
 
     def teleport(self, firsttime, count=0):
         if firsttime:
@@ -821,26 +838,14 @@ class Game(QWidget):
             self.selected_card = []
             self.type_to_choose = []
             self.select_mode = 0
-            if self.spell_played:
-                self.spell_played = False
-                card = self.sfield.remove_card()
-                self.graveyard.add_card(card)
-            if self.your_turn == 2:
-                self.your_turn = 0
-                self.send_message(213)
             self.refresh_screen()
+            self.post_effect()
 
     def draw_cards(self, count):
         self.card_to_draw += count
         while self.card_to_draw > 0:
             self.m_draw_a_card()
-        if self.spell_played:
-            self.spell_played = False
-            card = self.sfield.remove_card()
-            self.graveyard.add_card(card)
-        if self.your_turn == 2:
-            self.your_turn = 0
-            self.send_message(213)
+        self.post_effect()
 
     #   MENU METHODS
     #####################################################
@@ -951,12 +956,19 @@ class Game(QWidget):
         # Action: Return your card under destroyed shield to hand
         card = self.shields.remove_shield(iden)
         self.hand.add_card(card)
-        self.send_message(113, iden)
-        self.your_turn = 0
+        self.send_message(114, iden)
+        self.shields_to_destroy.remove(iden)
+        if len(self.shields_to_destroy) == 0:
+            self.your_turn = 0
+            self.send_message(214)
+        else:
+             # TODO: send message that you need still x shields to decide
+            pass
         self.refresh_screen()
 
     def m_play_destroyed_shield(self, set, iden):
         # Action: Play a shield with shield trigger
+        self.last_your_turn = 
         card = self.shields.remove_shield(iden)
         if self.cardlist[card].card_type == 'Spell':
             self.sfield.set_card(card)
@@ -1054,6 +1066,7 @@ class Game(QWidget):
             return
         if not self.opp_bfield.is_tapped(iden) and True: # TODO: check if your card has ability to attack untapped cards
             return
+        self.add_log(f"Attacking card {self.opp_bfield[iden].name} with card {self.bfield[self.selected_card[0][1]].name}")
         self.send_message(12, self.selected_card[0][1], iden) # Inform opponent about the attack
         self.your_turn = 0
 
@@ -1065,28 +1078,31 @@ class Game(QWidget):
         self.selected_shields.remove(iden)
 
     def m_shield_attack(self):
-        # TODO: don't send position of only one shield being attacked by one creature, send multiple
-        # TODO: check if opponent have any blockers, if yes, allow opponent to choose: block with blocker or destroy shields
-        # TODO: second, if you have shieldbreaker, destoy shield at the same time
         if len(self.selected_card) == 0 or not self.select_mode == 21:
             return
         self.send_message(13, self.selected_card[0][1], *self.selected_shields)
         self.your_turn = 0
-        # for pos in self.opp_bfield.cards.keys():
-        #     if "blocker" in self.opp_bfield[pos].effects:
-                
-        # self.bfield.decrease_shield_count(self.selected_card[0][1])
-        # if self.opp_shields.is_shield_exists(iden):
-        #     self.send_message(13, iden)
 
     def m_block_with_creature(self, set, iden):
         self.add_log(f"Blocking attack with {iden}")
+        self.your_turn = 0
         self.send_message(112, iden)
 
     def m_pass_attack(self): 
         # TODO: support shield with no blocking
         self.add_log(f"Passing blocking")
-        self.send_message(112, self.chosen)  
+        self.your_turn = 0
+        self.send_message(112, self.chosen)
+
+    def m_shield_block_with_creature(self, set, iden):
+        self.add_log(f"Blocking attack with {iden}")
+        self.your_turn = 0
+        self.send_message(113, iden)
+
+    def m_shield_pass_attack(self): 
+        self.add_log(f"Passing blocking")
+        self.your_turn = 0
+        self.send_message(113)  
    
     def m_opp_look_at_hand(self, iden):
         self.send_message(11, 0, iden)
