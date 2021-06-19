@@ -799,10 +799,10 @@ class Game(QWidget):
             card = self.sfield.remove_card()
             self.graveyard.add_card(card)
         if len(self.fun_queue) > 0:
-            # TODO: functions still in the queue, run them
+            # functions still in the queue, run them
             action, args = self.fun_queue.pop(0)
             # TODO: find a way to pass arguments for the functions
-            action(args)
+            action(*args)
 
 
     def teleport(self, firsttime, count=0):
@@ -812,7 +812,7 @@ class Game(QWidget):
             self.card_to_choose = count
             self.type_to_choose = ["yu_bf", "op_bf"]
             self.selected_card = []
-            self.fun_queue.insert((self.teleport, [False]), 0)
+            self.fun_queue.insert(0, (self.teleport, [False]))
         else:
             for card in self.selected_card:
                 self.m_return_card_to_hand(card[0], card[1])
