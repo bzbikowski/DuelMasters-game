@@ -130,15 +130,24 @@ class Battlezone():
     def is_tapped(self, pos):
         return self.cards[pos]["tapped"]
 
+    def set_tapped(self, pos):
+        self.cards[pos]["tapped"] = True
+
     def remove_card(self, pos):
         return self.cards.pop(pos)["card"]
 
     def reset_shield_count(self):
         for pos in self.cards.keys():
-            print(f"RESET SHIELD COUNT POS: {pos}")
             self.cards[pos]["tapped"] = False
-            # TODO: check if card can attack shields
-            self.cards[pos]["shield_count"] = 1
+            if "shieldbreaker" in self.cards[pos]["card"].effect:
+                self.cards[pos]["shield_count"] = self.cards[pos]["card"].effect["shieldbreaker"]["count"]
+            elif "not_attacking" in self.cards[pos]["card"].effect:
+                if self.cards[pos]["card"].effect["not_attacking"]["mode"] in ["all", "player"]:
+                    self.cards[pos]["shield_count"] = 0
+                else:
+                    self.cards[pos]["shield_count"] = 1
+            else:
+                self.cards[pos]["shield_count"] = 0
 
     def set_shield_count(self, pos, count):
         self.cards[pos]["shield_count"] = count
@@ -154,6 +163,10 @@ class Battlezone():
 
     def __len__(self):
         return len(self.cards.keys())
+
+    def __iter__(self):
+        for card_pos in self.cards.keys():
+            yield self.cards[card_pos]["card"]
 
 class Manazone():
     def __init__(self, opponent=False, parent=None):

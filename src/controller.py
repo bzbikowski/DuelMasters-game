@@ -106,7 +106,7 @@ class Controller:
             self.master.opp_hand.remove_card(0)
             self.master.add_log(f"Opponent played card {card.name} from his hand to the mana zone")
         elif command == 8:
-            # 8,x,y - opponent adds card from his hand to y shield (face down)
+            # 8,x - opponent adds card from his hand to y shield (face down)
             c_pos = int(msg[0:2], base=16)
             self.master.opp_shields.add_placeholder()
             self.master.opp_hand.remove_card(0)
@@ -138,15 +138,25 @@ class Controller:
             # TODO: implement 111 command - return id of the card back to opponent
             self.master.send_message(111, card.id)
         elif command == 12:
-            # 12,x,y - (info) opponent attacks your x card with his y card on the battlefield
-            c_opp_id = int(msg[:2], base=16)
-            c_my_id = int(msg[2:4], base=16)
-            self.master.add_log(f"Opponent is attacking your card {c_my_id} with card {c_opp_id}.")
-        elif command == 13:
-            # 13,x - opponent destroys your shield on x spot
+            # 12,x,y - opponent attacks your x card with his y card on the battlefield
+            c_opp_pos = int(msg[:2], base=16)
+            c_my_pos = int(msg[2:4], base=16)
+            self.master.add_log(f"Opponent is attacking your card {c_my_pos} with card {c_opp_pos}.")
+            self.master.creature_attacked(c_opp_pos, c_my_pos)
+        elif command == 112:
+            # 112,x - returned which card you will attack
             c_pos = int(msg[:2], base=16)
-            self.master.add_log(f"Opponent attacked your shield at posision {c_pos}.")
-            self.master.shield_destroyed(c_pos)
+            self.master.attack_creature(c_pos)
+        elif command == 13:
+            # 13,x,y1,y2,... - opponent attacks your shields with y card
+            # x - position of creature on the board
+            # ya - a-th shield attacked by this creature
+            creature_pos = int(msg[:2], base=16)
+            shields_pos = []
+            while len(msg) > 0:
+                shields_pos.append(int(msg[0:2], base=16))
+            self.master.add_log(f"Your shields {shields_pos} are being attacked by {creature_pos}.")
+            self.master.shields_attacked(creature_pos, shields_pos)
         elif command == 111:
             # 111,x - 
             # TODO: check if this command is expected

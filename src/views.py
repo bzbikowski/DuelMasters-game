@@ -36,10 +36,18 @@ class GameView(QGraphicsScene):
                 accept_action = QAction("Trigger effect")
                 accept_action.triggered.connect(self.parent.m_accept_cards)
                 menu.addAction(accept_action)
-            if self.parent.debug_mode:
-                draw_action = QAction("Draw a card")
-                draw_action.triggered.connect(self.parent.m_draw_a_card)
-                menu.addAction(draw_action)
+            if self.parent.select_mode == 21 and True: # TODO: check if number of shield selected matches shieldbreaker ability
+                shield_action = QAction("Confirm shields attack")
+                shield_action.triggered.connect(self.parent.m_shield_attack)
+                menu.addAction(shield_action)
+            if self.parent.select_mode == 3:
+                pass_action = QAction("Do not block the attack")
+                pass_action.triggered.connect(self.parent.m_pass_attack)
+                menu.addAction(pass_action)
+            # if self.parent.debug_mode:
+            #     draw_action = QAction("Draw a card")
+            #     draw_action.triggered.connect(self.parent.m_draw_a_card)
+            #     menu.addAction(draw_action)
             end_action = QAction("End turn")
             end_action.triggered.connect(self.parent.m_end_turn)
             menu.addAction(end_action)
@@ -130,9 +138,9 @@ class CardView(QGraphicsPixmapItem):
             menu.addAction(put_action)
         elif self.set == 'op_sh':
             # TODO: check if selected card can attack shields
-            if self.parent.can_attack_shield() and True: # TODO: only on specific mode
+            if self.parent.can_attack_shield() and self.parent.select_mode in [2, 21]:
                 select_action = QAction('Select shield to attack')
-                select_action.triggered.connect(lambda: self.parent.m_shield_attack(self.iden))
+                select_action.triggered.connect(lambda: self.parent.m_select_shield_to_attack(self.iden))
                 menu.addAction(select_action)
             peek_action = QAction('Look at shield')
             peek_action.triggered.connect(lambda: self.parent.m_opp_look_at_shield(self.iden))
@@ -158,6 +166,10 @@ class CardView(QGraphicsPixmapItem):
             destroy_action.triggered.connect(lambda: self.parent.m_move_to_graveyard(self.set, self.iden))
             menu.addAction(destroy_action)
         elif self.set == 'yu_bf':
+            if self.parent.select_mode == 3:
+                block_action = QAction("Block with this creature")
+                block_action.triggered.connect(lambda: self.parent.m_block_with_creature(self.set, self.iden))
+                menu.addAction(block_action)
             attack_action = QAction("Attack with this creature")
             attack_action.triggered.connect(lambda: self.parent.m_select_creature(self.set, self.iden))
             menu.addAction(attack_action)

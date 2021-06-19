@@ -37,10 +37,10 @@ class Game(QWidget):
         self.deck = deck
         self.card_to_draw = 0
         self.card_to_mana = 0
-        self.your_turn = 0 # 0 - not your turn, 1 - your turn, 2 - special turn
+        self.your_turn = 0 # 0 - not your turn, 1 - your turn, 2 - special turn, 3 - block or pass
         self.selected_card = None
         self.focus_request = False
-        self.select_mode = 0 # 0 - no select mode, 1 - effects, 2 - creature
+        self.select_mode = 0  # 0 - no select mode, 1 - effects, 2 - creature, 21 - shields attack
         self.card_to_choose = 0
         self.turn_count = 0
         self.spell_played = None
@@ -227,6 +227,8 @@ class Game(QWidget):
         self.change_button_state = True
         self.spell_played = False
         self.selected_card = []
+        self.selected_shields = []
+        self.fun_queue = []
 
     def start_time(self):
         """
@@ -698,6 +700,64 @@ class Game(QWidget):
             return True
         return False
 
+    def attack_creature(self, opp_pos):
+        # TODO: check if it was card originaly selected, if yes, opponent didn't block (inform in log)
+        your_card = self.bfield[self.selected_card[0][1]]
+        opp_card = self.opp_bfield[opp_pos]
+        your_power = int(your_card.power)
+        for effect in your_card.effects:
+            print(effect)
+            if "powerattacker" in effect.keys():
+                your_power += int(effect["powerattacker"]["power"])
+        if int(opp_card.power) < your_power:
+            # Your creature wins
+            self.m_move_to_graveyard("op_bf", opp_pos)
+            self.bfield.set_tapped(self.selected_card[0][1])
+            self.add_log(f"Your creature {your_card.name} destroyed opponent {opp_card.name}")
+        elif int(opp_card.power) == your_power:
+            # Both are destroyed
+            self.m_move_to_graveyard("yu_bf", self.selected_card[0][1])
+            self.m_move_to_graveyard("op_bf", opp_pos)
+            self.add_log(f"Both creatures were destoyed due to battle results.")
+        else:
+            # Your creature dies
+            self.m_move_to_graveyard("yu_bf", self.selected_card[0][1])
+            self.add_log(f"Your creature {your_card.name} was destoyed by opponent {opp_card.name} ")
+        self.your_turn = 1
+        self.select_mode = 0
+        self.selected_card = []
+
+    def creature_attacked(self, opp_pos, your_pos):
+        # Opponent action - one of the creature is attacked
+        # Check if you have blockers available
+        blocker_available = False
+        for creature in self.bfield:
+            if "blocker" in creature.effect:
+                if creature.effect["blocker"]["mode"] in ["all"]:
+                    blocker_available = True
+
+        if not blocker_available:
+            # Proceed to attack
+            self.send_message(112, your_pos)
+
+        # Decide what to do: block with blocker or pass blocking
+        self.your_turn = 3 # special turn - block or pass
+
+    def shields_attacked(self, creature_pos, shields_pos):
+        # Opponent action - one of the shield is attacked
+        # Check if you have blockers available
+        blocker_available = False
+        for creature in self.bfield:
+            if "blocker" in creature.effect:
+                if creature.effect["blocker"]["mode"] in ["all"]:
+                    blocker_available = True
+
+        if not blocker_available:
+            # Destroy shields
+            pass
+        # TODO: log that your shield is attacked, you can either block attack with blocker or allow to attack
+        self.your_turn = 3 # special turn - block or pass
+
     def shield_destroyed(self, iden):
         # self.shields[iden][1] = False
         self.shields.set_shield_visible(iden)
@@ -728,7 +788,18 @@ class Game(QWidget):
     #  EFFECT METHODS
     #####################################################
 
-    # def post_effect(self):
+    def post_effect(self):
+        # If it was effect from the spell
+        if self.spell_played:
+            self.spell_played = False
+            card = self.sfield.remove_card()
+            self.graveyard.add_card(card)
+        if len(self.fun_queue) > 0:
+            # TODO: functions still in the queue, run them
+            action, args = self.fun_queue.pop(0)
+            # TODO: find a way to pass arguments for the functions
+            action(args)
+
 
     def teleport(self, firsttime, count=0):
         if firsttime:
@@ -737,7 +808,7 @@ class Game(QWidget):
             self.card_to_choose = count
             self.type_to_choose = ["yu_bf", "op_bf"]
             self.selected_card = []
-            self.fun_to_call = self.teleport
+            self.fun_queue.insert((self.teleport, [False]), 0)
         else:
             for card in self.selected_card:
                 self.m_return_card_to_hand(card[0], card[1])
@@ -794,7 +865,8 @@ class Game(QWidget):
         self.your_turn = 0
 
     def m_accept_cards(self):
-        self.fun_to_call(False)
+        action, args = self.fun_queue.pop(0)
+        action(args)
         if self.spell_played:
             # Move spell to graveyard after usage
             self.m_move_to_graveyard("yu_bf", 5)
@@ -968,37 +1040,38 @@ class Game(QWidget):
         your_card = self.bfield[self.selected_card[0][1]]
         opp_card = self.opp_bfield[iden]
         self.send_message(12, your_card.id, opp_card.id) # Inform opponent about the attack
-        your_power = int(your_card.power)
-        for effect in your_card.effects:
-            print(effect)
-            if "powerattacker" in effect.keys():
-                your_power += int(effect["powerattacker"]["power"])
-        if int(opp_card.power) < your_power:
-            # Your creature wins
-            self.m_move_to_graveyard("op_bf", iden)
-            self.add_log(f"Your creature {your_card.name} destroyed opponent {opp_card.name}")
-        elif int(opp_card.power) == your_power:
-            # Both are destroyed
-            self.m_move_to_graveyard("yu_bf", self.selected_card[0][1])
-            self.m_move_to_graveyard("op_bf", iden)
-            self.add_log(f"Both creatures were destoyed due to battle results.")
-        else:
-            # Your creature dies
-            self.m_move_to_graveyard("yu_bf", self.selected_card[0][1])
-            self.add_log(f"Your creature {your_card.name} was destoyed by opponent {opp_card.name} ")
-        self.select_mode = 0
-        self.selected_card = []
-        # TODO: tap attacking creature
+        self.your_turn = 0
+        # TODO: wait for response if you can continue to attack this creature, or blocker blocks it
 
-    def m_shield_attack(self, iden):
-        if len(self.selected_card) == 0 or not self.select_mode == 2:
-            # None of the attacking creatures is selected
+    def m_select_shield_to_attack(self, iden):
+        self.selected_shields.append(iden)
+        self.select_mode = 21
+
+    def m_remove_shield_to_attack(self, iden):
+        self.selected_shields.remove(iden)
+
+    def m_shield_attack(self):
+        # TODO: don't send position of only one shield being attacked by one creature, send multiple
+        # TODO: check if opponent have any blockers, if yes, allow opponent to choose: block with blocker or destroy shields
+        # TODO: second, if you have shieldbreaker, destoy shield at the same time
+        if len(self.selected_card) == 0 or not self.select_mode == 21:
             return
-        # TODO: check if opponent have any blockers
-        self.bfield.decrease_shield_count(self.selected_card[0][1])
-        if self.opp_shields.is_shield_exists(iden):
-            self.send_message(13, iden)
-            self.your_turn = 0
+        self.send_message(13, self.selected_card[0][1], *self.selected_shields)
+        self.your_turn = 0
+        # for pos in self.opp_bfield.cards.keys():
+        #     if "blocker" in self.opp_bfield[pos].effects:
+                
+        # self.bfield.decrease_shield_count(self.selected_card[0][1])
+        # if self.opp_shields.is_shield_exists(iden):
+        #     self.send_message(13, iden)
+
+    def m_block_with_creature(self, set, iden):
+        # TODO:
+        pass
+
+    def m_pass_attack(self):
+        # TODO:
+        pass       
    
     def m_opp_look_at_hand(self, iden):
         self.send_message(11, 0, iden)

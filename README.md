@@ -1,8 +1,8 @@
-# DuelMaster-game
-
-#### Project under development
+# Duel Masters - the game
 
 My attempt to create game based on Duel Masters series. Game is written with Python3 and Qt Framework.
+
+## Project still under development
 
 Debug mode (you don't need any internet connection to test application) is disabled by default.
 To turn it on, pass an argument "--debug=True" when launching the "main.py" file:
@@ -12,7 +12,7 @@ To turn it on, pass an argument "--debug=True" when launching the "main.py" file
 You also need to have installed PySide2 on your Python interpreter.
 Run ```pip install -r requirements.txt``` to install all required libraries in your python interpeter.
 
-#### Todo things:
+### Todo things:
 * add information about the game
 * complete graveyard feature
 * complete logs system
@@ -29,29 +29,20 @@ Run ```pip install -r requirements.txt``` to install all required libraries in y
 * client <-> server <-> client architecture
 * add loading database menu during first start
 
-Effects implemented:
-* teleport cards from bf to hand (test mana teleport and your cards teleport)
-* draw cards (test if working)
-* power attacker (test if working)
+### Spreedsheets:
 
+Effects implemented: https://1drv.ms/x/s!AodrLtV7i89ggaI72uj1eJ-JBaoMRg?e=8ADWqT
+
+Message system: https://1drv.ms/x/s!AodrLtV7i89ggaIIfuUt6f0RaV8HGg?e=zqtAZV
+
+### Information
 
 Card images were taken from:
 * https://duelmasters.fandom.com/wiki/Duel_Masters_Wiki
 * http://www.ccgdb.com/duelmasters/
 
+### Message system
 Message system (TODO: translate to English):
-        0 - you start the game
-        1 - przeciwnik zaczyna grę
-        2 - koniec mojej tury
-        3 - ja dobieram kartę
-        4,x,y - ja zagrywam kartę o id x na miejscu y na pole bitwy
-        5,v,x,y - gracz v podnosi kartę z pól x z miejsca y do ręki
-                  v - 0/1 - przeciwnik/ty
-                  x - 0/1 - mana/pole bitwy
-        6,v,x,y - gracz v podnosi kartę z pól x z miejsca y na cmentarz
-                  v - 0/1 - przeciwnik/ty
-                  x - 0/1 - mana/pole bitwy
-        7,x - ja dodaję kartę x z ręki na mane
         8,x,y - ja dodaję kartę x z reki na tarczę y
         9,x,y - ja tapuje/odtapuje manę
                 x - 0/1 - odtapuje/tapuje
