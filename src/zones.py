@@ -138,13 +138,11 @@ class Battlezone():
 
     def reset_shield_count(self):
         for pos in self.cards.keys():
-            print(pos)
-            print(self.cards[pos])
             self.cards[pos]["tapped"] = False
-            if "shieldbreaker" in self.cards[pos]["card"].effect:
-                self.cards[pos]["shield_count"] = self.cards[pos]["card"].effect["shieldbreaker"]["count"]
-            elif "not_attacking" in self.cards[pos]["card"].effect:
-                if self.cards[pos]["card"].effect["not_attacking"]["mode"] in ["all", "player"]:
+            if "shieldbreaker" in self.cards[pos]["card"].effects:
+                self.cards[pos]["shield_count"] = self.cards[pos]["card"].effects["shieldbreaker"]["count"]
+            elif "not_attacking" in self.cards[pos]["card"].effects:
+                if self.cards[pos]["card"].effects["not_attacking"]["mode"] in ["all", "player"]:
                     self.cards[pos]["shield_count"] = 0
                 else:
                     self.cards[pos]["shield_count"] = 1
