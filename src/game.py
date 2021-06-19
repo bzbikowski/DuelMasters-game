@@ -968,7 +968,7 @@ class Game(QWidget):
 
     def m_play_destroyed_shield(self, set, iden):
         # Action: Play a shield with shield trigger
-        self.last_your_turn = 
+        self.shields_to_destroy.remove(iden)
         card = self.shields.remove_shield(iden)
         if self.cardlist[card].card_type == 'Spell':
             self.sfield.set_card(card)
