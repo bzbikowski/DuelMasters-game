@@ -731,8 +731,9 @@ class Game(QWidget):
         # Check if you have blockers available
         blocker_available = False
         for creature in self.bfield:
+            print(creature.effects)
             if "blocker" in creature.effects:
-                if creature.effects["blocker"]["mode"] in ["all"]:
+                if creature.effects["blocker"]["mode"] == "all":
                     blocker_available = True
 
         if not blocker_available:
@@ -752,7 +753,7 @@ class Game(QWidget):
         blocker_available = False
         for creature in self.bfield:
             if "blocker" in creature.effects:
-                if creature.effects["blocker"]["mode"] in ["all"]:
+                if creature.effects["blocker"]["mode"] == "all":
                     blocker_available = True
 
         if not blocker_available:
