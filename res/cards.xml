@@ -140,7 +140,7 @@ Double breaker (This creature breaks 2 shields.)</rules_text>
 		<rules_text>When you put this creature into the battle zone, destroy all creatures that have "blocker."</rules_text>
 		<flavor_text>The forces of Fire will never relent.</flavor_text>
         <effects>
-            <destroy_blockers mode="all" />
+            <destroyblockers />
         </effects>
 	</card>
 
@@ -158,7 +158,7 @@ Double breaker (This creature breaks 2 shields.)</rules_text>
 		<flavor_text>It is said the destruction of the Ancient Empire was caused by the descent of the elementals.</flavor_text>
         <effects>
             <shieldbreaker count="2" />
-            <untap self_on_start_turn="True" />
+            <untap mode="self" />
         </effects>
 	</card>
 
@@ -854,7 +854,8 @@ Choose 1 of your opponent's creatures in the battle zone and put it into his man
 		artist="Yusaku Nakaaki">
 		<rules_text>At the end of each of your turns, you may untap this creature.</rules_text>
 		<flavor_text>"Vizier of Air, arise. Your fingers are sacred swords." -Hanusa, Radiance Elemental</flavor_text>
-        		<effects>
+        <effects>
+			<untap mode="self" />
 		</effects>
 	</card>
 
@@ -924,6 +925,7 @@ This creature can't attack players.
 At the end of each of your turns, you may untap this creature.</rules_text>
 		<flavor_text></flavor_text>
         <effects>
+			<untap mode="self" />
 			<blocker mode="all" />
 		</effects>
 	</card>
@@ -939,7 +941,8 @@ At the end of each of your turns, you may untap this creature.</rules_text>
 		artist="Masaki Hirooka">
 		<rules_text>At the end of each of your turns, you may untap all your creatures in the battle zone.</rules_text>
 		<flavor_text>"Vizier of Hope, arise. Your singing voice is a breeze of dawn." -Hanusa, Radiance Elemental</flavor_text>
-        		<effects>
+        <effects>
+			<untap mode="all" />
 		</effects>
 	</card>
 

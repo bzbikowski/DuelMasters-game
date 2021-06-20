@@ -688,6 +688,8 @@ class Game(QWidget):
                 count = int(effect["draw"]["count"])
                 print(f"Draw {count}")
                 self.fun_queue.append((self.draw_cards, [count]))
+            if "destroyblockers" in effect.keys():
+                self.fun_queue.append((self.destroy_all_blockers, []))
             #if "destroy_blockers" in effect.keys():
             #    if effect["destroy_blockers"]["mode"] == "all":
             #        self.destroy_blocker(-1)
@@ -913,6 +915,19 @@ class Game(QWidget):
             self.m_draw_a_card()
         self.post_effect()
 
+    def destroy_all_blockers(self):
+        # Your blockers
+        for creature_pos in self.bfield.cards.keys():
+            for effect in self.bfield[creature_pos].effects:
+                if "blocker" in effect:
+                    self.m_move_to_graveyard("yu_bf", creature_pos)
+        # Opponent blockers
+        for creature_pos in self.opp_bfield.cards.keys():
+            for effect in self.opp_bfield[creature_pos].effects:
+                if "blocker" in effect:
+                    self.m_move_to_graveyard("op_bf", creature_pos)
+        self.post_effect()
+
     #   MENU METHODS
     #####################################################
 
@@ -934,10 +949,26 @@ class Game(QWidget):
         self.refresh_screen()
 
     def m_end_turn(self):
-        # TODO: in the future, ask if you really want to end the turn when none action were taken
-        # end your turn
+        # Action: end your turn
         self.add_log("End of your turn.")
         self.send_message(2)
+
+        # untap effect
+        # TODO: for now by default untap, later there can be choice
+        for card_pos in self.bfield.cards.keys():
+            for effect in self.bfield[card_pos].effects:
+                if "untap" in effect:
+                    mode = effect["untap"]["mode"]
+                    if mode == "self":
+                        # Untap itself
+                        self.bfield.set_untapped(card_pos)
+                        break
+                    elif mode == "all":
+                        # Untap all your cards
+                        for card_pos2 in self.bfield.cards.keys():
+                            self.bfield.set_untapped(card_pos2)
+                        break
+
         self.selected_card = []
         self.your_turn = 0
 

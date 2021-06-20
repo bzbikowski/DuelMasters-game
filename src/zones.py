@@ -130,6 +130,9 @@ class Battlezone():
     def is_tapped(self, pos):
         return self.cards[pos]["tapped"]
 
+    def set_untapped(self, pos):
+        self.cards[pos]["tapped"] = False
+
     def set_tapped(self, pos):
         self.cards[pos]["tapped"] = True
 
