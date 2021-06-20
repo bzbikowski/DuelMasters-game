@@ -838,12 +838,12 @@ class Game(QWidget):
 
     def teleport(self, firsttime, count=0):
         if firsttime:
-            self.message_screen_request(QColor(55, 55, 55), QColor(255, 0, 0),
-                                        f"Choose {count} cards in the battlefield to activate the effect.")
+            self.add_log(f"Choose {count} cards in the battlefield to activate the effect.")
             self.card_to_choose = count
             self.type_to_choose = ["yu_bf", "op_bf"]
             self.selected_card = []
             self.fun_queue.insert(0, (self.teleport, [False]))
+            print(self.fun_queue)
         else:
             print(self.selected_card)
             for card in self.selected_card:
@@ -889,7 +889,9 @@ class Game(QWidget):
         self.your_turn = 0
 
     def m_accept_cards(self):
+        print(self.fun_queue)
         action, args = self.fun_queue.pop(0)
+        print(action, args)
         action(args)
         if self.spell_played:
             # Move spell to graveyard after usage
