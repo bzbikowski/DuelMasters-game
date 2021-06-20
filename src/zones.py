@@ -102,8 +102,7 @@ class Shieldzone():
 
 
 class Battlezone():
-    # TODO: add battlezone tapping
-    # TODO: if shieldbreaker, card should have multiple attacks toward shields
+    # TODO: separate summon sickness from tapping
     # TODO: make battlezone accept infinite cards, not only 5
     def __init__(self, opponent=False, parent=None):
         self.cards = {}
@@ -114,8 +113,9 @@ class Battlezone():
             if not self.is_taken(i):
                 self.cards[i] = {}
                 self.cards[i]["card"] = card
-                self.cards[i]["tapped"] = True
+                self.cards[i]["tapped"] = False
                 self.cards[i]["shield_count"] = 0
+                self.cards[i]["summon_sickness"] = True
                 return i
         return -1
 
@@ -141,16 +141,18 @@ class Battlezone():
 
     def reset_shield_count(self):
         for pos in self.cards.keys():
-            self.cards[pos]["tapped"] = False
-            if "shieldbreaker" in self.cards[pos]["card"].effects:
-                self.cards[pos]["shield_count"] = self.cards[pos]["card"].effects["shieldbreaker"]["count"]
-            elif "not_attacking" in self.cards[pos]["card"].effects:
-                if self.cards[pos]["card"].effects["not_attacking"]["mode"] in ["all", "player"]:
-                    self.cards[pos]["shield_count"] = 0
+            if self.is_taken(pos):
+                self.cards[pos]["tapped"] = False
+                self.cards[pos]["summon_sickness"] = False
+                if "shieldbreaker" in self.cards[pos]["card"].effects:
+                    self.cards[pos]["shield_count"] = self.cards[pos]["card"].effects["shieldbreaker"]["count"]
+                elif "not_attacking" in self.cards[pos]["card"].effects:
+                    if self.cards[pos]["card"].effects["not_attacking"]["mode"] in ["all", "player"]:
+                        self.cards[pos]["shield_count"] = 0
+                    else:
+                        self.cards[pos]["shield_count"] = 1
                 else:
                     self.cards[pos]["shield_count"] = 1
-            else:
-                self.cards[pos]["shield_count"] = 1
 
     def set_shield_count(self, pos, count):
         self.cards[pos]["shield_count"] = count
@@ -158,8 +160,8 @@ class Battlezone():
     def get_shield_count(self, pos):
         return self.cards[pos]["shield_count"]
 
-    def decrease_shield_count(self, pos):
-        self.cards[pos]["shield_count"] -= 1
+    def has_summon_sickness(self, pos):
+        return self.cards[pos]["summon_sickness"]
 
     def __getitem__(self, index):
         return self.cards[index]["card"]
