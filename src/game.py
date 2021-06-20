@@ -890,10 +890,8 @@ class Game(QWidget):
         self.your_turn = 0
 
     def m_accept_cards(self):
-        print(self.fun_queue)
         action, args = self.fun_queue.pop(0)
-        print(action, args)
-        action(args)
+        action(*args)
         if self.spell_played:
             # Move spell to graveyard after usage
             self.m_move_to_graveyard("yu_sf", 0)
