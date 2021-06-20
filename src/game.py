@@ -695,6 +695,7 @@ class Game(QWidget):
             action, args = self.fun_queue.pop(0)
             action(*args)
         else:
+            print("Shouldn't be here")
             if self.your_turn == 5:
                 if len(self.shields_to_destroy) == 0:
                     self.your_turn = 0
@@ -843,7 +844,7 @@ class Game(QWidget):
             self.type_to_choose = ["yu_bf", "op_bf"]
             self.selected_card = []
             self.fun_queue.insert(0, (self.teleport, [False]))
-            print(self.fun_queue)
+            self.select_mode = 2
         else:
             print(self.selected_card)
             for card in self.selected_card:
