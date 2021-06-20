@@ -772,7 +772,7 @@ class Game(QWidget):
         self.your_turn = 4 # special turn - block or pass - shield
 
     def attack_shield(self):
-        self.send_message(14, self.selected_shields)
+        self.send_message(14, *self.selected_shields)
 
     def shield_destroyed(self, idens):
         # TODO: implement algorithm when multiple shields were destroyed at once
