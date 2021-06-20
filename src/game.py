@@ -844,7 +844,7 @@ class Game(QWidget):
             self.type_to_choose = ["yu_bf", "op_bf"]
             self.selected_card = []
             self.fun_queue.insert(0, (self.teleport, [False]))
-            self.select_mode = 2
+            self.select_mode = 1
         else:
             print(self.selected_card)
             for card in self.selected_card:
