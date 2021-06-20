@@ -155,6 +155,7 @@ class Controller:
             shields_pos = []
             while len(msg) > 0:
                 shields_pos.append(int(msg[0:2], base=16))
+                msg = msg[2:]
             self.master.add_log(f"Your shields {shields_pos} are being attacked by {creature_pos}.")
             self.master.shields_attacked(creature_pos, shields_pos)
         elif command == 113:
