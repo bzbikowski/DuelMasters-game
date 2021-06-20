@@ -582,6 +582,7 @@ When this creature wins a battle, destroy it.</rules_text>
 		<flavor_text> </flavor_text>
 		<effects>
 			<blocker mode="all" />
+			<destroyafterbattle />
 			<not_attacking mode="all" />
 		</effects>
 	</card>
@@ -1049,7 +1050,8 @@ This creature can't attack.</rules_text>
 		artist="Dai">
 		<rules_text>When this creature wins a battle, destroy it.</rules_text>
 		<flavor_text>They can wait forever, for they know they will not die alone.</flavor_text>
-        		<effects>
+        <effects>
+			<destroyafterbattle />
 		</effects>
 	</card>
 
@@ -1613,8 +1615,8 @@ When this creature wins a battle, destroy it.</rules_text>
 		<flavor_text> </flavor_text>
         <effects>
 			<blocker mode="all" />
+			<destroyafterbattle />
             <not_attacking mode="all" />
-			<destoy_itself after="battle" />
 		</effects>
 	</card>
 

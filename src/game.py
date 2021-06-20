@@ -724,8 +724,12 @@ class Game(QWidget):
         if int(opp_card.power) < your_power:
             # Your creature wins
             self.m_move_to_graveyard("op_bf", opp_pos)
-            self.bfield.set_tapped(self.selected_card[0][1])
-            self.add_log(f"Your creature {your_card.name} destroyed opponent {opp_card.name}")
+            if "destroyafterbattle" in your_card.effects:
+                self.m_move_to_graveyard("yu_bf", self.selected_card[0][1])
+                self.add_log(f"Both creatures were destoyed due to battle results.")
+            else:
+                self.bfield.set_tapped(self.selected_card[0][1])
+                self.add_log(f"Your creature {your_card.name} destroyed opponent {opp_card.name}")
         elif int(opp_card.power) == your_power:
             # Both are destroyed
             self.m_move_to_graveyard("yu_bf", self.selected_card[0][1])
@@ -734,6 +738,8 @@ class Game(QWidget):
         else:
             # Your creature dies
             self.m_move_to_graveyard("yu_bf", self.selected_card[0][1])
+            if "destroyafterbattle" in opp_card.effects:
+                self.m_move_to_graveyard("op_bf", opp_pos)
             self.add_log(f"Your creature {your_card.name} was destoyed by opponent {opp_card.name} ")
         self.your_turn = 1
         self.select_mode = 0
@@ -1086,6 +1092,7 @@ class Game(QWidget):
         if len(self.selected_card) == 0 or not self.select_mode == 21:
             return
         self.send_message(13, self.selected_card[0][1], *self.selected_shields)
+        self.select_mode = 0
         self.your_turn = 0
 
     def m_block_with_creature(self, set, iden):
@@ -1094,7 +1101,6 @@ class Game(QWidget):
         self.send_message(112, iden)
 
     def m_pass_attack(self): 
-        # TODO: support shield with no blocking
         self.add_log(f"Passing blocking")
         self.your_turn = 0
         self.send_message(112, self.chosen)
