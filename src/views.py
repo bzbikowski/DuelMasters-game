@@ -121,17 +121,17 @@ class CardView(QGraphicsPixmapItem):
             hand_action.triggered.connect(lambda: self.parent.m_opp_look_at_hand(-1))
             menu.addAction(hand_action)
         elif self.set == 'yu_sh':
-            # TODO: if shield was destroyed, it's your time to decide what to do with it
             if self.parent.shields.is_shield_visible(self.iden):
                 add_shield_to_hand_action = QAction('Add to hand')
                 add_shield_to_hand_action.triggered.connect(lambda: self.parent.m_return_shield_to_hand(self.iden))
                 menu.addAction(add_shield_to_hand_action)
                 # TODO: if creature and there is no space, hide this option
-                print(self.parent.shields[self.iden].effects)
-                if "shieldtrigger" in self.parent.shields[self.iden].effects:
-                    use_effect_from_shield = QAction('Trigger it\'s effect')
-                    use_effect_from_shield.triggered.connect(lambda: self.parent.m_play_destroyed_shield(self.set, self.iden))
-                    menu.addAction(use_effect_from_shield)
+                for effect in self.parent.shields[self.iden].effects:
+                    if "shieldtrigger" in effect:
+                        use_effect_from_shield = QAction('Trigger it\'s effect')
+                        use_effect_from_shield.triggered.connect(lambda: self.parent.m_play_destroyed_shield(self.set, self.iden))
+                        menu.addAction(use_effect_from_shield)
+                        break
             peek_action = QAction('Look at shield')
             peek_action.triggered.connect(lambda: self.parent.m_look_at_shield(self.iden))
             menu.addAction(peek_action)
@@ -168,11 +168,11 @@ class CardView(QGraphicsPixmapItem):
             destroy_action.triggered.connect(lambda: self.parent.m_move_to_graveyard(self.set, self.iden))
             menu.addAction(destroy_action)
         elif self.set == 'yu_bf':
-            if self.parent.your_turn == 3:
+            if self.parent.your_turn == 3 and self.iden in self.parent.blocker_list:
                 block_action = QAction("Block with this creature")
                 block_action.triggered.connect(lambda: self.parent.m_block_with_creature(self.set, self.iden))
                 menu.addAction(block_action)
-            elif self.parent.your_turn == 4:
+            elif self.parent.your_turn == 4 and self.iden in self.parent.blocker_list:
                 block_action = QAction("Block with this creature")
                 block_action.triggered.connect(lambda: self.parent.m_shield_block_with_creature(self.set, self.iden))
                 menu.addAction(block_action)

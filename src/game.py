@@ -751,37 +751,90 @@ class Game(QWidget):
     def creature_attacked(self, opp_pos, your_pos):
         # Opponent action - one of the creature is attacked
         # Check if you have blockers available
+        blocker_list = []
         blocker_available = False
-        for creature in self.bfield:
-            for effect in creature.effects:
+        for creature_pos in self.bfield.cards.keys():
+            for effect in self.bfield[creature_pos].effects:
                 if "blocker" in effect:
                     if effect["blocker"]["mode"] == "all":
                         blocker_available = True
+                        blocker_list.append(creature_pos)
 
-        if not blocker_available:
+        pass_blockers = False
+        for effect in self.opp_bfield[opp_pos].effects:
+            if "passblockers" in effect:
+                mode = effect["passblockers"]["mode"]
+                if mode == "all":
+                    pass_blockers = True
+                    break
+                elif mode == "creature":
+                    count = int(effect["passblockers"]["count"])
+                    if len(self.opp_bfield) >= count + 1:
+                        pass_blockers = True
+                        break
+                elif mode == "power":
+                    power = int(effect["passblockers"]["power"])
+                    blocked_by = []
+                    for blocker_pos in blocker_list:
+                        if self.bfield[blocker_pos].power > power:
+                            blocked_by.append(blocker_pos)
+                    if len(blocked_by) > 0:
+                        blocker_list = blocked_by
+                    else:
+                        pass_blockers = True
+
+        if pass_blockers or not blocker_available:
             # Proceed to attack
             self.send_message(112, your_pos)
 
-        # Remember opponent choice
+        # Remember opponent choice and available blocker list
         self.chosen = your_pos
+        self.blocker_list = blocker_list
 
         # Decide what to do: block with blocker or pass blocking
         self.add_log("Choose either you block an attack with a blocker or allow it.")
         self.your_turn = 3 # special turn - block or pass - creature
 
-    def shields_attacked(self, creature_pos, shields_pos):
+    def shields_attacked(self, opp_pos, shields_pos):
         # Opponent action - one of the shield is attacked
         # Check if you have blockers available
+        blocker_list = []
         blocker_available = False
-        for creature in self.bfield:
-            for effect in creature.effects:
+        for creature_pos in self.bfield.cards.keys():
+            for effect in self.bfield[creature_pos].effects:
                 if "blocker" in effect:
                     if effect["blocker"]["mode"] == "all":
                         blocker_available = True
+                        blocker_list.append(creature_pos)
 
-        if not blocker_available:
+        pass_blockers = False
+        for effect in self.opp_bfield[opp_pos].effects:
+            if "passblockers" in effect:
+                mode = effect["passblockers"]["mode"]
+                if mode == "all":
+                    pass_blockers = True
+                    break
+                elif mode == "creature":
+                    count = int(effect["passblockers"]["count"])
+                    if len(self.opp_bfield) >= count + 1:
+                        pass_blockers = True
+                        break
+                elif mode == "power":
+                    power = int(effect["passblockers"]["power"])
+                    blocked_by = []
+                    for blocker_pos in blocker_list:
+                        if self.bfield[blocker_pos].power > power:
+                            blocked_by.append(blocker_pos)
+                    if len(blocked_by) > 0:
+                        blocker_list = blocked_by
+                    else:
+                        pass_blockers = True
+
+        if pass_blockers or not blocker_available:
             self.send_message(113)
-        # TODO: log that your shield is attacked, you can either block attack with blocker or allow to attack
+        
+        self.blocker_list = blocker_list
+
         self.add_log("You can choose either to block an attack with a blocker or allow it.")
         self.your_turn = 4 # special turn - block or pass - shield
 
@@ -824,8 +877,7 @@ class Game(QWidget):
         # If it was effect from the spell
         if self.spell_played:
             self.spell_played = False
-            card = self.sfield.remove_card()
-            self.graveyard.add_card(card)
+            self.m_move_to_graveyard("yu_sf", 0)
             self.refresh_screen()
         if len(self.fun_queue) > 0:
             # functions still in the queue, run them
@@ -1102,21 +1154,25 @@ class Game(QWidget):
     def m_block_with_creature(self, set, iden):
         self.add_log(f"Blocking attack with {iden}")
         self.your_turn = 0
+        self.blocker_list = []
         self.send_message(112, iden)
 
     def m_pass_attack(self): 
         self.add_log(f"Passing blocking")
         self.your_turn = 0
+        self.blocker_list = []
         self.send_message(112, self.chosen)
 
     def m_shield_block_with_creature(self, set, iden):
         self.add_log(f"Blocking attack with {iden}")
         self.your_turn = 0
+        self.blocker_list = []
         self.send_message(113, iden)
 
     def m_shield_pass_attack(self): 
         self.add_log(f"Passing blocking")
         self.your_turn = 0
+        self.blocker_list = []
         self.send_message(113)  
    
     def m_opp_look_at_hand(self, iden):

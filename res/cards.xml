@@ -105,7 +105,7 @@ This creature can't be blocked.</rules_text>
 		<flavor_text>Leviathans are just like storms. All you can do is wait until they pass.</flavor_text>
         <effects>
             <shieldbreaker count="2" />
-            <pass_blockers mode="all" />
+            <passblockers mode="all" />
         </effects>
 	</card>
 
@@ -343,7 +343,7 @@ Double breaker (This creature breaks 2 shields.)</rules_text>
 		<rules_text>This creature can't be blocked by any creature that has power 4000 or less.</rules_text>
 		<flavor_text>Not many things want to get in its way.</flavor_text>
         <effects>
-            <pass_blockers state="power" power="4000" />
+			<passblockers mode="power" power="4000" />
         </effects>
 	</card>
 
@@ -529,7 +529,7 @@ Search your deck. You may take a card from your deck and put it into your hand. 
 		<rules_text>This creature can't be blocked while you have at least 2 other creatures in the battle zone.</rules_text>
 		<flavor_text>"I will lead you into battle."</flavor_text>
         <effects>
-            <pass_blockers state="other_creatures" side="your" count="2" />
+			<passblockers mode="creature" count="2" />
         </effects>
 	</card>
 
@@ -808,7 +808,8 @@ Choose 1 of your opponent's creatures in the battle zone and put it into his man
 		artist="Norikatsu Miyoshi">
 		<rules_text>This creature can't be blocked by any creature that has power 3000 or less.</rules_text>
 		<flavor_text>A stampeding longhorn leaves nothing but dust in its wake.</flavor_text>
-        		<effects>
+        <effects>
+			<passblockers mode="power" power="3000" />
 		</effects>
 	</card>
 
@@ -986,7 +987,8 @@ Draw up to 2 cards.</rules_text>
 		artist="Hisanobu Kometani">
 		<rules_text>This creature can't be blocked.</rules_text>
 		<flavor_text>A school of teeny, tiny points of light. Stopping them all is impossible.</flavor_text>
-        		<effects>
+        <effects>
+			<passblockers mode="all" />
 		</effects>
 	</card>
 
@@ -1491,7 +1493,8 @@ Choose 1 of your opponent's creatures in the battle zone and tap it.</rules_text
 		artist="Gyokan">
 		<rules_text>This creature can't be blocked.</rules_text>
 		<flavor_text>No mouth. Big bite.</flavor_text>
-        		<effects>
+        <effects>
+			<passblockers mode="all" />
 		</effects>
 	</card>
 
