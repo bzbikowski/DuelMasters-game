@@ -192,9 +192,10 @@ class CardView(QGraphicsPixmapItem):
             destroy_action.triggered.connect(lambda: self.parent.m_move_to_graveyard(self.set, self.iden))
             menu.addAction(destroy_action)
         elif self.set == 'op_bf':
-            select_action = QAction("Target card to attack/cast")
-            select_action.triggered.connect(lambda: self.parent.m_attack_creature(self.set, self.iden))
-            menu.addAction(select_action)
+            if self.parent.opp_bfield.is_tapped(self.iden): # TODO: check if selected creature can attack untapped creatures
+                select_action = QAction("Target card to attack")
+                select_action.triggered.connect(lambda: self.parent.m_attack_creature(self.set, self.iden))
+                menu.addAction(select_action)
             return_action = QAction("Return a card to hand")
             return_action.triggered.connect(lambda: self.parent.m_return_card_to_hand(self.set, self.iden))
             menu.addAction(return_action)
