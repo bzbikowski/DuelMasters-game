@@ -48,10 +48,6 @@ class GameView(QGraphicsScene):
                 pass_action = QAction("Do not block the attack")
                 pass_action.triggered.connect(self.parent.m_shield_pass_attack)
                 menu.addAction(pass_action)
-            # if self.parent.debug_mode:
-            #     draw_action = QAction("Draw a card")
-            #     draw_action.triggered.connect(self.parent.m_draw_a_card)
-            #     menu.addAction(draw_action)
             end_action = QAction("End turn")
             end_action.triggered.connect(self.parent.m_end_turn)
             menu.addAction(end_action)
