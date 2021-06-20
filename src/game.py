@@ -1071,6 +1071,8 @@ class Game(QWidget):
         self.your_turn = 0
 
     def m_select_shield_to_attack(self, iden):
+        if iden in self.selected_shields:
+            return
         self.selected_shields.append(iden)
         self.select_mode = 21
 
