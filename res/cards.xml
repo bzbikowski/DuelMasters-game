@@ -698,7 +698,8 @@ Destroy 1 of your opponent's creatures.</rules_text>
 		
 Double breaker (This creature breaks 2 shields.)</rules_text>
 		<flavor_text>Dragonoid fighters never retreat. They believe that a heroic fighter will become a Dragon in his next life.</flavor_text>
-        		<effects>
+        <effects>
+			<shieldbreaker count="2" />
 		</effects>
 	</card>
 

@@ -10,8 +10,7 @@ from src.logs import Logger
 from src.network.client import Client
 from src.network.server import Server
 from src.views import GameView, CardView, GraveyardView
-from src.serverdialog import ServerDialog
-from src.clientdialog import ClientDialog
+from src.dialog import ServerDialog, ClientDialog
 from src.controller import Controller
 from src.ui.ui_game import Ui_Game
 from src.zones import Battlezone, Graveyardzone, Handzone, Manazone, Shieldzone, Spellzone
@@ -37,7 +36,7 @@ class Game(QWidget):
         self.deck = deck
         self.card_to_draw = 0
         self.card_to_mana = 0
-        self.your_turn = 0 # 0 - not your turn, 1 - your turn, 2 - special turn, 3 - block or pass creature, 4 - block or pass shield, 5 - shield destoyed
+        self.your_turn = 0 # 0 - not your turn, 1 - your turn, 2 - special turn, 3 - block or pass creature, 4 - block or pass shield, 5 - shield destroyed
         self.selected_card = None
         self.focus_request = False
         self.select_mode = 0  # 0 - no select mode, 1 - effects, 2 - creature, 21 - shields attack
@@ -696,7 +695,8 @@ class Game(QWidget):
             if self.your_turn == 5 and len(self.shields_to_destroy) == 0:
                 self.your_turn = 0
                 self.send_message(214)
-
+            else:
+                self.add_log(f"You still have {len(self.shields_to_destroy)} shields to decide.")
 
     def can_attack_shield(self):
         if len(self.selected_card) == 0:
@@ -962,8 +962,7 @@ class Game(QWidget):
             self.your_turn = 0
             self.send_message(214)
         else:
-             # TODO: send message that you need still x shields to decide
-            pass
+            self.add_log(f"You still have {len(self.shields_to_destroy)} shields to decide.")
         self.refresh_screen()
 
     def m_play_destroyed_shield(self, set, iden):
