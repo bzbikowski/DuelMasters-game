@@ -28,6 +28,7 @@ class GameView(QGraphicsScene):
         if point is not self.parent.background:
             point.contextMenuEvent(event)
         else:
+            print(f"GAME VIEW: select mode -> {self.parent.select_mode}, your_turn -> {self.parent.your_turn}")
             if self.parent.your_turn == 0:
                 return
             menu = QMenu()
@@ -90,6 +91,7 @@ class CardView(QGraphicsPixmapItem):
         self.card = card
 
     def contextMenuEvent(self, event):
+        print(f"CARD VIEW: select mode -> {self.parent.select_mode}, your_turn -> {self.parent.your_turn}")
         if self.parent.your_turn == 0:
             return
         menu = QMenu()
