@@ -684,12 +684,10 @@ class Game(QWidget):
                 count = int(effect["teleport"]["count"])
                 print(f"Teleport {count}")
                 self.fun_queue.append((self.teleport, [True, count]))
-                # self.teleport(True, count)
             if "draw" in effect.keys():
                 count = int(effect["draw"]["count"])
                 print(f"Draw {count}")
                 self.fun_queue.append((self.draw_cards, [count]))
-                # self.draw_cards(count)
             #if "destroy_blockers" in effect.keys():
             #    if effect["destroy_blockers"]["mode"] == "all":
             #        self.destroy_blocker(-1)
@@ -718,16 +716,19 @@ class Game(QWidget):
         opp_card = self.opp_bfield[opp_pos]
         your_power = int(your_card.power)
         for effect in your_card.effects:
-            print(effect)
             if "powerattacker" in effect.keys():
                 your_power += int(effect["powerattacker"]["power"])
         if int(opp_card.power) < your_power:
             # Your creature wins
             self.m_move_to_graveyard("op_bf", opp_pos)
-            if "destroyafterbattle" in your_card.effects:
-                self.m_move_to_graveyard("yu_bf", self.selected_card[0][1])
-                self.add_log(f"Both creatures were destoyed due to battle results.")
-            else:
+            destroyafterbattle = False
+            for effect in your_card.effects:
+                if "destroyafterbattle" in effect:
+                    self.m_move_to_graveyard("yu_bf", self.selected_card[0][1])
+                    self.add_log(f"Both creatures were destoyed due to battle results.")
+                    destroyafterbattle = True
+                    break
+            if not destroyafterbattle:
                 self.bfield.set_tapped(self.selected_card[0][1])
                 self.add_log(f"Your creature {your_card.name} destroyed opponent {opp_card.name}")
         elif int(opp_card.power) == your_power:
@@ -738,8 +739,9 @@ class Game(QWidget):
         else:
             # Your creature dies
             self.m_move_to_graveyard("yu_bf", self.selected_card[0][1])
-            if "destroyafterbattle" in opp_card.effects:
-                self.m_move_to_graveyard("op_bf", opp_pos)
+            for effect in opp_card.effects:
+                if "destroyafterbattle" in effect:
+                    self.m_move_to_graveyard("op_bf", opp_pos)
             self.add_log(f"Your creature {your_card.name} was destoyed by opponent {opp_card.name} ")
         self.your_turn = 1
         self.select_mode = 0
