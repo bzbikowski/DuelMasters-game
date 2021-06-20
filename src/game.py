@@ -692,11 +692,12 @@ class Game(QWidget):
             action, args = self.fun_queue.pop(0)
             action(*args)
         else:
-            if self.your_turn == 5 and len(self.shields_to_destroy) == 0:
-                self.your_turn = 0
-                self.send_message(214)
-            else:
-                self.add_log(f"You still have {len(self.shields_to_destroy)} shields to decide.")
+            if self.your_turn == 5:
+                if len(self.shields_to_destroy) == 0:
+                    self.your_turn = 0
+                    self.send_message(214)
+                else:
+                    self.add_log(f"You still have {len(self.shields_to_destroy)} shields to decide.")
 
     def can_attack_shield(self):
         if len(self.selected_card) == 0:
