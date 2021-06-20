@@ -843,6 +843,7 @@ class Game(QWidget):
             self.selected_card = []
             self.fun_queue.insert(0, (self.teleport, [False]))
         else:
+            print(self.selected_card)
             for card in self.selected_card:
                 self.m_return_card_to_hand(card[0], card[1])
             self.selected_card = []
