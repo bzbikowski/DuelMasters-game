@@ -180,9 +180,11 @@ class Controller:
             c_pos = int(msg[:2], base=16)
             self.master.opp_shields.remove_shield(c_pos)
             self.master.opp_hand.add_placeholder()
+            self.master.add_log(f"Opponent picked up {c_pos} shield to his hand.")
+            self.master.refresh_screen()
         elif command == 214:
             # 214 - opponent ended handling shield attack
-            # self.master.selected_card = 
+            self.master.selected_card = []
             self.master.your_turn = 1
 
         elif command == 111:

@@ -518,6 +518,11 @@ class Game(QWidget):
                             if sel_card[1] == i:
                                 self.highlight_card(x, x + 85, y, y + 115, QColor(0, 0, 255))
                                 break
+                if self.select_mode == 21:
+                    for pos in self.selected_shields:
+                        if pos == i:
+                            self.highlight_card(x, x + 85, y, y + 115, QColor(255, 0, 255))
+                            break
 
     def add_bf_to_scene(self, type):
         """
@@ -773,19 +778,17 @@ class Game(QWidget):
 
     def attack_shield(self):
         self.send_message(14, *self.selected_shields)
+        self.bfield.set_tapped(self.selected_card[0][1])
+        self.selected_shields = []
+
 
     def shield_destroyed(self, idens):
-        # TODO: implement algorithm when multiple shields were destroyed at once
-        # self.shields[iden][1] = False
         # Make all shields destroyed visible
         for iden in idens:
             self.shields.set_shield_visible(iden)
         self.shields_to_destroy = idens
         self.your_turn = 5
         self.add_log(f"{idens} shields were destroyed. Decide what to do with it.")
-        # card_id = self.shields[iden][0]
-        # self.send_message(113, iden, card_id)
-        # TODO: add a menu options to either draw a card or play it if it has shield trigger
 
     def message_screen_request(self, bg_color, frame_color, text):
         """Message box for displaying important information. After one click it disappears."""
