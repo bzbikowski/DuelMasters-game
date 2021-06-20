@@ -684,7 +684,7 @@ class Game(QWidget):
                 count = int(effect["draw"]["count"])
                 print(f"Draw {count}")
                 self.fun_queue.append((self.draw_cards, [count]))
-                self.draw_cards(count)
+                # self.draw_cards(count)
             #if "destroy_blockers" in effect.keys():
             #    if effect["destroy_blockers"]["mode"] == "all":
             #        self.destroy_blocker(-1)
