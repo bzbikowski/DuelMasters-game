@@ -34,7 +34,7 @@
 Double breaker (This creature breaks 2 shields.)</rules_text>
 		<flavor_text>Even the smallest weapon attached to it has enough firepower to lay waste to an entire nation.</flavor_text>
 		<effects>
-			<powerattacker power="4000" />
+			<powerattacker mode="power" power="4000" />
 			<shieldbreaker count="2" />
 		</effects>
 	</card>
@@ -53,7 +53,7 @@ Double breaker (This creature breaks 2 shields.)</rules_text>
 Double breaker (This creature breaks 2 shields.)</rules_text>
 		<flavor_text>It devours all.</flavor_text>
 		<effects>
-			<powerattacker power="4000" />
+			<powerattacker mode="power" power="4000" />
 			<shieldbreaker count="2" />
 		</effects>
 	</card>
@@ -123,7 +123,7 @@ This creature can't be blocked.</rules_text>
 Double breaker (This creature breaks 2 shields.)</rules_text>
 		<flavor_text>With a mighty, earthshaking roar, the King of Beasts arose.</flavor_text>
         <effects>
-            <powerattacker power="2000"/>
+            <powerattacker mode="power" power="2000"/>
 			<shieldbreaker count="2" />
         </effects>
 	</card>
@@ -193,7 +193,7 @@ This creature can't attack players.</rules_text>
 		<flavor_text>Those who defile the Sky Castle are doomed, for they shall know the wrath of the Guardians.</flavor_text>
         <effects>
             <blocker mode="all" />
-            <not_attacking mode="player" />
+            <notattacking mode="player" />
         </effects>
 	</card>
 
@@ -209,7 +209,7 @@ This creature can't attack players.</rules_text>
 		<rules_text>When you put this creature into the battle zone, search your deck. You may take a spell from your deck, show that spell to your opponent, and put it into your hand. Then shuffle your deck.</rules_text>
 		<flavor_text>The Enforcers deliver the oracles' words, which bear the power of truth.</flavor_text>
         <effects>
-            <find_card type="Spell" count="1" />
+            <findcard mode="deck" type="spell" count="1" />
         </effects>
 	</card>
 
@@ -257,7 +257,7 @@ This creature can't attack players.</rules_text>
 		<rules_text>When you put this creature into the battle zone, return up to 2 creatures from your graveyard to your hand.</rules_text>
 		<flavor_text>There is no rest in the Dark Realm, even after death.</flavor_text>
         <effects>
-            <return from="graveyard" to="hand" side="you" count="2" />
+            <returngraveyard mode="hand" count="2" />
         </effects>
 	</card>
 
@@ -273,7 +273,7 @@ This creature can't attack players.</rules_text>
 		<rules_text>When you put this creature into the battle zone, destroy all creatures that have power 3000 or less.</rules_text>
 		<flavor_text>Dark Lords have no mercy for the weak.</flavor_text>
         <effects>
-            <destroy card="creature" power="3000" mode="le" />
+            <destroycreatures mode="power" power="3000" />
         </effects>
 	</card>
 
@@ -292,7 +292,7 @@ Double breaker (This creature breaks 2 shields.)</rules_text>
 		<flavor_text>The last city that offended it is now a ruin.</flavor_text>
         <effects>
             <shieldbreaker count="2" />
-            <powerattacker mode="Fire" power="1000" />
+            <powerattacker mode="graveyard" civ="fire" power="1000" each="" />
         </effects>
 	</card>
 
@@ -311,7 +311,7 @@ Double breaker (This creature breaks 2 shields.)</rules_text>
 		<flavor_text>Part chopper, part chomper.</flavor_text>
         <effects>
             <shieldbreaker count="2" />
-            <attacking mode="untapped" />
+            <canattackuntapped />
         </effects>
 	</card>
 
@@ -327,7 +327,7 @@ Double breaker (This creature breaks 2 shields.)</rules_text>
 		<rules_text>When you put this creature into the battle zone, you may put 1 creature from your graveyard into your mana zone.</rules_text>
 		<flavor_text>A beautiful flower, an alluring scent...and deadly thorns.</flavor_text>
         <effects>
-            <tomana from="graveyard" count="1" />
+            <puttomana mode="graveyard" count="1" />
         </effects>
 	</card>
 
@@ -359,7 +359,7 @@ Double breaker (This creature breaks 2 shields.)</rules_text>
 		<rules_text>When this creature would be destroyed, put it into your hand instead.</rules_text>
 		<flavor_text>The shining towers in the sky exist to protect the oracles.</flavor_text>
         <effects>
-            <ondeath mode="add_to_hand" />
+            <ondeath mode="tohand" />
         </effects>
 	</card>
 
@@ -378,7 +378,7 @@ This creature can't attack players.</rules_text>
 		<flavor_text>Flying is the greatest taboo of any race that has encountered the Guardians.</flavor_text>
         <effects>
             <blocker mode="all"/>
-            <not_attacking mode="players" />
+            <notattacking mode="player" />
         </effects>
 	</card>
 
@@ -397,7 +397,7 @@ Tap all your opponent's creatures in the battle zone.</rules_text>
 		<flavor_text></flavor_text>
         <effects>
 			<shieldtrigger />
-            <tap_opp fullboard="True" />
+            <tap mode="fullboard" />
         </effects>
 	</card>
 
@@ -427,7 +427,9 @@ Tap all your opponent's creatures in the battle zone.</rules_text>
 		<rules_text>Choose up to 2 of your creatures in the battle zone. They can't be blocked this turn.</rules_text>
 		<flavor_text>This is light speed.</flavor_text>
         <effects>
-            <give what="cannot_be_blocked" count="2"/>
+            <give mode="turn" count="2">
+				<passblockers mode="all" />
+			</give>
         </effects>
 	</card>
 
@@ -446,7 +448,7 @@ This creature can't attack players.</rules_text>
 		<flavor_text>Those who dwell in the sky towers eradicate all intruders.</flavor_text>
         <effects>
             <blocker mode="all" />
-            <not_attacking mode="players" />
+            <notattacking mode="player" />
         </effects>
 	</card>
 
@@ -462,7 +464,7 @@ This creature can't attack players.</rules_text>
 		<rules_text>When this creature would be destroyed, return it to your hand instead.</rules_text>
 		<flavor_text>Like a whirlpool, it never seems to end.</flavor_text>
         <effects>
-            <ondeath mode="add_to_hand" />
+			<ondeath mode="tohand" />
         </effects>
 	</card>
 
@@ -481,7 +483,7 @@ Search your deck. You may take a card from your deck and put it into your hand. 
 		<flavor_text> </flavor_text>
         <effects>
             <shieldtrigger />
-            <find_card type="card" count="1" />
+            <findcard mode="deck" type="all" count="1" />
         </effects>
 	</card>
 
@@ -497,7 +499,7 @@ Search your deck. You may take a card from your deck and put it into your hand. 
 		<rules_text>When you put this creature into the battle zone, return each creature in the battle zone that has power 2000 or less to its owner's hand.</rules_text>
 		<flavor_text>"Isn't it cool? The heads can be combined." -Tropico</flavor_text>
         <effects>
-            <return from="battlefield" side="both" mode="power" power="2000" />
+			<teleport mode="power" power="2000" />
         </effects>
 	</card>
 
@@ -513,7 +515,7 @@ Search your deck. You may take a card from your deck and put it into your hand. 
 		<rules_text>Choose up to 2 creatures in the battle zone and return them to their owners' hands.</rules_text>
 		<flavor_text>"Start all over from your previous life!" -Crystal Lancer</flavor_text>
         <effects>
-            <teleport count="2" />
+            <teleport mode="count" count="2" />
         </effects>
 	</card>
 
@@ -545,7 +547,7 @@ Search your deck. You may take a card from your deck and put it into your hand. 
 		<rules_text>When you put this creature into the battle zone, you may choose 1 creature in the battle zone and return it to its owner's hand.</rules_text>
 		<flavor_text>It attacks anything that enters its territory, even Leviathans.</flavor_text>
         <effects>
-            <return from="battlefield" side="both" count="1" />
+            <teleport mode="count" count="1" />
         </effects>
 	</card>
 
@@ -561,7 +563,7 @@ Search your deck. You may take a card from your deck and put it into your hand. 
 		<rules_text>Whenever any of your creatures becomes blocked this turn, it gets "slayer" until the end of the turn. (When a creature that has "slayer" loses a battle, destroy the other creature.)</rules_text>
 		<flavor_text>Witness the power of the Dark!</flavor_text>
 		<effects>
-			<ifblocked get="slayer" />
+			<todo />
 		</effects>
 	</card>
 
@@ -583,7 +585,7 @@ When this creature wins a battle, destroy it.</rules_text>
 		<effects>
 			<blocker mode="all" />
 			<destroyafterbattle />
-			<not_attacking mode="all" />
+			<notattacking mode="all" />
 		</effects>
 	</card>
 
@@ -601,7 +603,7 @@ When this creature wins a battle, destroy it.</rules_text>
 Double breaker (This creature breaks 2 shields.)</rules_text>
 		<flavor_text></flavor_text>
 		<effects>
-			<onput mode="destroy" side="your" count="2" not="destroy_self" />
+			<todo />
 			<shieldbreaker count="2" />
 		</effects>
 	</card>
@@ -653,6 +655,7 @@ Destroy 1 of your opponent's creatures.</rules_text>
 		<flavor_text></flavor_text>
 		<effects>
 			<shieldtrigger />
+			<destroycreatures mode="count" count="1" />
 		</effects>
 	</card>
 
@@ -668,6 +671,9 @@ Destroy 1 of your opponent's creatures.</rules_text>
 		<rules_text>Choose 1 of your opponent's untapped creatures in the battle zone. Your creatures can attack it this turn as though it were tapped.</rules_text>
 		<flavor_text>"You won't escape me!"</flavor_text>
         <effects>
+			<give mode="turn" count="1">
+				<todo />
+			</give>
 		</effects>
 	</card>
 
@@ -682,7 +688,8 @@ Destroy 1 of your opponent's creatures.</rules_text>
 		artist="Ittoku">
 		<rules_text>This creature attacks each turn if able.</rules_text>
 		<flavor_text>Draglides grow with their mounts. Their bond is their weapon.</flavor_text>
-        		<effects>
+        <effects>
+			<mustattack />
 		</effects>
 	</card>
 
@@ -701,6 +708,7 @@ Double breaker (This creature breaks 2 shields.)</rules_text>
 		<flavor_text>Dragonoid fighters never retreat. They believe that a heroic fighter will become a Dragon in his next life.</flavor_text>
         <effects>
 			<shieldbreaker count="2" />
+			<todo />
 		</effects>
 	</card>
 
@@ -715,7 +723,11 @@ Double breaker (This creature breaks 2 shields.)</rules_text>
 		artist="Masaki Hirooka">
 		<rules_text>One of your creatures gets "power attacker +4000" and "double breaker" until the end of the turn. (A creature that has "power attacker +4000" and "double breaker" gets +4000 power while attacking and breaks 2 shields.)</rules_text>
 		<flavor_text></flavor_text>
-        		<effects>
+        <effects>
+			<give mode="turn" count="1">
+				<powerattacker mode="power" power="4000" />
+				<shieldbreaker count="2" />
+			</give>
 		</effects>
 	</card>
 
@@ -730,7 +742,8 @@ Double breaker (This creature breaks 2 shields.)</rules_text>
 		artist="Eiji Kaneda">
 		<rules_text>This creature can attack untapped creatures.</rules_text>
 		<flavor_text>"Time to move on. So many unexplored worlds; so much trash to find!" -Nomad Hero Gigio</flavor_text>
-        		<effects>
+        <effects>
+			<canattackuntapped />
 		</effects>
 	</card>
 
@@ -745,7 +758,8 @@ Double breaker (This creature breaks 2 shields.)</rules_text>
 		artist="Seki">
 		<rules_text>When you put this creature into the battle zone, destroy 1 of your creatures. Then your opponent chooses 1 of his creatures and destroys it.</rules_text>
 		<flavor_text>"Though battered and scarred, I march on through wars, storms, and strife. I march on."</flavor_text>
-        		<effects>
+        <effects>
+			<todo />
 		</effects>
 	</card>
 
@@ -760,7 +774,10 @@ Double breaker (This creature breaks 2 shields.)</rules_text>
 		artist="Nottsuo">
 		<rules_text>Each of your creatures in the battle zone gets "power attacker +2000" until the end of the turn. (While attacking, a creature that has "power attacker +2000" gets +2000 power.)</rules_text>
 		<flavor_text>Hear the roar of the mighty Earth!</flavor_text>
-        		<effects>
+        <effects>
+			<give mode="turn" count="all">
+				<powerattacker mode="power" power="2000" />
+			</give>
 		</effects>
 	</card>
 
@@ -779,6 +796,7 @@ Choose 1 of your opponent's creatures in the battle zone and put it into his man
 		<flavor_text></flavor_text>
         <effects>
 			<shieldtrigger />
+			<todo />
 		</effects>
 	</card>
 
@@ -793,7 +811,8 @@ Choose 1 of your opponent's creatures in the battle zone and put it into his man
 		artist="Kou1">
 		<rules_text>When this creature would be destroyed, put it into your mana zone instead.</rules_text>
 		<flavor_text>Never start a fire in the depths of a forest. Enraged red-eye scorpions will come after you.</flavor_text>
-        		<effects>
+        <effects>
+			<ondeath mode="tomana" />
 		</effects>
 	</card>
 
@@ -824,7 +843,8 @@ Choose 1 of your opponent's creatures in the battle zone and put it into his man
 		artist="Sansyu">
 		<rules_text>When you put this creature into the battle zone, your opponent chooses 1 of his creatures in the battle zone and puts it into his mana zone.</rules_text>
 		<flavor_text>A Colony Beetle's spawning is a virtual nightmare. It covers the earth with a hail of its bullet-like eggs.</flavor_text>
-        		<effects>
+        <effects>
+			<todo />
 		</effects>
 	</card>
 
@@ -839,7 +859,7 @@ Choose 1 of your opponent's creatures in the battle zone and put it into his man
 		artist="Daisuke Izuka">
 		<rules_text></rules_text>
 		<flavor_text>Sometimes weeks pass before it realizes it has a gored enemy stuck to its horns.</flavor_text>
-        		<effects>
+        <effects>
 		</effects>
 	</card>
 
@@ -875,7 +895,9 @@ While you have at least 1 Angel Command in the battle zone, this creature gets +
 This creature can't attack players.</rules_text>
 		<flavor_text></flavor_text>
         <effects>
+			<gainpower mode="race" race="Angel Command" power="2000" />
 			<blocker mode="all" />
+			<notattacking mode="player" />
 		</effects>
 	</card>
 
@@ -890,7 +912,7 @@ This creature can't attack players.</rules_text>
 		artist="Hisanobu Kometani">
 		<rules_text></rules_text>
 		<flavor_text>"Vizier of Hunting, arise. Your words are arrows of light." -Hanusa, Radiance Elemental</flavor_text>
-        		<effects>
+        <effects>
 		</effects>
 	</card>
 
@@ -905,7 +927,8 @@ This creature can't attack players.</rules_text>
 		artist="Hisanobu Kometani">
 		<rules_text>Choose up to 2 of your opponent's creatures in the battle zone and tap them.</rules_text>
 		<flavor_text>Cower before the purity of the Angel Commands!</flavor_text>
-        		<effects>
+        <effects>
+			<tap mode="count" count="2" />
 		</effects>
 	</card>
 
@@ -927,6 +950,7 @@ At the end of each of your turns, you may untap this creature.</rules_text>
         <effects>
 			<untap mode="self" />
 			<blocker mode="all" />
+			<notattacking mode="player" />
 		</effects>
 	</card>
 
@@ -957,7 +981,8 @@ At the end of each of your turns, you may untap this creature.</rules_text>
 		artist="Jason">
 		<rules_text>When this creature would be destroyed, return it to your hand instead.</rules_text>
 		<flavor_text>"What a spirit for such a skinny little thing." -Brawler Zyler</flavor_text>
-        		<effects>
+        <effects>
+			<ondeath mode="tohand" />
 		</effects>
 	</card>
 
@@ -976,6 +1001,7 @@ Draw up to 2 cards.</rules_text>
 		<flavor_text></flavor_text>
         <effects>
 			<shieldtrigger />
+			<draw count="2" />
 		</effects>
 	</card>
 
@@ -1006,7 +1032,8 @@ Draw up to 2 cards.</rules_text>
 		artist="Kou1">
 		<rules_text>When you put this creature into the battle zone, if you have a Cyber Lord in the battle zone, draw up to 3 cards.</rules_text>
 		<flavor_text>The Cyber Lords' devotion to beauty is so extreme, they even designed their warrior race to have a pleasant appearance.</flavor_text>
-        		<effects>
+        <effects>
+			<todo />
 		</effects>
 	</card>
 
@@ -1041,6 +1068,7 @@ This creature can't attack.</rules_text>
 		<flavor_text></flavor_text>
         <effects>
 			<blocker mode="all" />
+			<notattacking mode="all" />
 		</effects>
 	</card>
 
@@ -1091,6 +1119,7 @@ Return a creature from your graveyard to your hand.</rules_text>
 		<flavor_text></flavor_text>
         <effects>
 			<shieldtrigger />
+			<returngraveyard mode="hand" count="1" />
 		</effects>
 	</card>
 
@@ -1105,7 +1134,8 @@ Return a creature from your graveyard to your hand.</rules_text>
 		artist="Gyokan">
 		<rules_text>When you put this creature into the battle zone, your opponent discards a card at random from his hand.</rules_text>
 		<flavor_text>Seeking to live forever, they left their bodies behind.</flavor_text>
-        		<effects>
+        <effects>
+			<todo />
 		</effects>
 	</card>
 
@@ -1120,7 +1150,8 @@ Return a creature from your graveyard to your hand.</rules_text>
 		artist="Norikatsu Miyoshi">
 		<rules_text>When you put this creature into the battle zone, destroy 1 of your creatures.</rules_text>
 		<flavor_text>When worms kill a creature, they can still make it move.</flavor_text>
-        		<effects>
+        <effects>
+			<todo />
 		</effects>
 	</card>
 
@@ -1135,7 +1166,8 @@ Return a creature from your graveyard to your hand.</rules_text>
 		artist="Youichi Kai">
 		<rules_text>When you put this creature into the battle zone, your opponent chooses 1 of his creatures and destroys it.</rules_text>
 		<flavor_text>Flesh is its food. Bones are its toothpicks.</flavor_text>
-        		<effects>
+        <effects>
+			<destroycreatures mode="count" count="1" opponentchoose="" />
 		</effects>
 	</card>
 
@@ -1150,7 +1182,8 @@ Return a creature from your graveyard to your hand.</rules_text>
 		artist="Tsutomu Kawade">
 		<rules_text>While you have at least 1 Humanoid in the battle zone, this creature gets +2000 power during its attacks.</rules_text>
 		<flavor_text>"The world at peace? I'd rather see the world in pieces."</flavor_text>
-        		<effects>
+        <effects>
+			<powerattacker mode="race" race="Humanoid" power="2000" />
 		</effects>
 	</card>
 
@@ -1165,7 +1198,8 @@ Return a creature from your graveyard to your hand.</rules_text>
 		artist="Masateru Ikeda">
 		<rules_text>When you put this creature into the battle zone, you may destroy 1 of your opponent's creatures that has power 2000 or less.</rules_text>
 		<flavor_text></flavor_text>
-        		<effects>
+        <effects>
+			<todo />
 		</effects>
 	</card>
 
@@ -1180,7 +1214,8 @@ Return a creature from your graveyard to your hand.</rules_text>
 		artist="Katsuya">
 		<rules_text>When you put this creature into the battle zone, put 1 card from your mana zone into your graveyard.</rules_text>
 		<flavor_text>The first to the front lines are the first to taste victory.</flavor_text>
-        		<effects>
+        <effects>
+			<todo />
 		</effects>
 	</card>
 
@@ -1195,7 +1230,8 @@ Return a creature from your graveyard to your hand.</rules_text>
 		artist="Miho Midorikawa">
 		<rules_text>Power attacker +2000 (While attacking, this creature gets +2000 power.)</rules_text>
 		<flavor_text>There is no sanctuary in the Fire Territory. Especially on the featureless, rocky plains.</flavor_text>
-        		<effects>
+        <effects>
+			<powerattacker mode="power" power="2000" />
 		</effects>
 	</card>
 
@@ -1210,7 +1246,8 @@ Return a creature from your graveyard to your hand.</rules_text>
 		artist="Naoki Saito">
 		<rules_text>Power attacker +4000 (While attacking, this creature gets +4000 power.)</rules_text>
 		<flavor_text>After it attacks, the lucky are left with rubble.</flavor_text>
-        		<effects>
+        <effects>
+			<powerattacker mode="power" power="4000" />
 		</effects>
 	</card>
 
@@ -1229,6 +1266,7 @@ Destroy 1 of your opponent's creatures that has power 4000 or less.</rules_text>
 		<flavor_text></flavor_text>
         <effects>
 			<shieldtrigger />
+			<todo />
 		</effects>
 	</card>
 
@@ -1243,7 +1281,8 @@ Destroy 1 of your opponent's creatures that has power 4000 or less.</rules_text>
 		artist="D-Suzuki">
 		<rules_text>When this creature would be destroyed, put it into your mana zone instead.</rules_text>
 		<flavor_text>They eat vegetarians.</flavor_text>
-        		<effects>
+        <effects>
+			<ondeath mode="tomana" />
 		</effects>
 	</card>
 
@@ -1258,7 +1297,8 @@ Destroy 1 of your opponent's creatures that has power 4000 or less.</rules_text>
 		artist="Hisashi Momose">
 		<rules_text>Power attacker +2000 (While attacking, this creature gets +2000 power.)</rules_text>
 		<flavor_text>Colony Beetles feed on the World Tree to build gigantic nests on their backs.</flavor_text>
-        		<effects>
+        <effects>
+			<powerattacker mode="power" power="2000" />
 		</effects>
 	</card>
 
@@ -1273,7 +1313,7 @@ Destroy 1 of your opponent's creatures that has power 4000 or less.</rules_text>
 		artist="Youichi Kai">
 		<rules_text></rules_text>
 		<flavor_text>With its deadly sting and crushing jaws, it makes the Horned Beasts cower.</flavor_text>
-        		<effects>
+        <effects>
 		</effects>
 	</card>
 
@@ -1288,7 +1328,8 @@ Destroy 1 of your opponent's creatures that has power 4000 or less.</rules_text>
 		artist="Seki">
 		<rules_text>Put 1 of your creatures from the battle zone into your mana zone.</rules_text>
 		<flavor_text>"Here's something better for you to do." -Fighter Dual Fang</flavor_text>
-        		<effects>
+        <effects>
+			<todo />
 		</effects>
 	</card>
 
@@ -1303,7 +1344,8 @@ Destroy 1 of your opponent's creatures that has power 4000 or less.</rules_text>
 		artist="Hideaki Takamura">
 		<rules_text>This creature can't attack players.</rules_text>
 		<flavor_text>"I will never give you up." -Symbolic meaning of the poisonous dahlia in flower language</flavor_text>
-        		<effects>
+        <effects>
+			<notattacking mode="player" />
 		</effects>
 	</card>
 
@@ -1318,7 +1360,8 @@ Destroy 1 of your opponent's creatures that has power 4000 or less.</rules_text>
 		artist="Daisuke Izuka">
 		<rules_text>When you put this creature into the battle zone, you may put 1 card from your hand into your mana zone.</rules_text>
 		<flavor_text>You won't find these mushrooms on salads.</flavor_text>
-        		<effects>
+        <effects>
+			<puttomana mode="hand" count="1" />
 		</effects>
 	</card>
 
@@ -1337,6 +1380,7 @@ This creature can't attack players.</rules_text>
 		<flavor_text></flavor_text>
         <effects>
 			<blocker mode="all" />
+			<notattacking mode="player" />
 		</effects>
 	</card>
 
@@ -1351,7 +1395,7 @@ This creature can't attack players.</rules_text>
 		artist="Akira Hamada">
 		<rules_text></rules_text>
 		<flavor_text>"Vizier of Bullets, arise. Your will is an arrow that never misses the target." -Hanusa, Radiance Elemental</flavor_text>
-        		<effects>
+        <effects>
 		</effects>
 	</card>
 
@@ -1370,6 +1414,7 @@ This creature can't attack players.</rules_text>
 		<flavor_text>To protect their floating cities, Guardians are gifted with shining wings.</flavor_text>
         <effects>
 			<blocker mode="all" />
+			<notattacking mode="player" />
 		</effects>
 	</card>
 
@@ -1384,7 +1429,8 @@ This creature can't attack players.</rules_text>
 		artist="Dai">
 		<rules_text>When you put this creature into the battle zone, you may choose 1 of your opponent's creatures in the battle zone and tap it.</rules_text>
 		<flavor_text>"Vizier of Lightning, arise. Your eyes are a bow of judgment." -Hanusa, Radiance Elemental</flavor_text>
-        		<effects>
+        <effects>
+			<tap mode="count" count="1" />
 		</effects>
 	</card>
 
@@ -1399,7 +1445,7 @@ This creature can't attack players.</rules_text>
 		artist="Soushi Hirose">
 		<rules_text></rules_text>
 		<flavor_text>Soul and light enmeshed in a web of glory.</flavor_text>
-        		<effects>
+        <effects>
 		</effects>
 	</card>
 
@@ -1418,6 +1464,7 @@ This creature can't attack players.</rules_text>
 		<flavor_text>Floating trees in the sky generate beautiful light from poisoned air.</flavor_text>
         <effects>
 			<blocker mode="all" />
+			<notattacking mode="player" />
 		</effects>
 	</card>
 
@@ -1436,6 +1483,7 @@ Choose 1 of your opponent's creatures in the battle zone and tap it.</rules_text
 		<flavor_text></flavor_text>
         <effects>
 			<shieldtrigger />
+			<tap mode="count" count="1" />
 		</effects>
 	</card>
 
@@ -1450,7 +1498,10 @@ Choose 1 of your opponent's creatures in the battle zone and tap it.</rules_text
 		artist="Masaki Hirooka">
 		<rules_text>Choose 1 of your creatures in the battle zone. It can't be blocked this turn.</rules_text>
 		<flavor_text>"Can't catch me!"</flavor_text>
-        		<effects>
+        <effects>
+			<give mode="turn" count="1">
+				<passblockers mode="all" />
+			</give>
 		</effects>
 	</card>
 
@@ -1481,7 +1532,7 @@ Choose 1 of your opponent's creatures in the battle zone and tap it.</rules_text
 		artist="Atsushi Kawasaki">
 		<rules_text> </rules_text>
 		<flavor_text>The chip implanted in its head lets the Cyber Lords control its brain waves.</flavor_text>
-        		<effects>
+        <effects>
 		</effects>
 	</card>
 
@@ -1516,6 +1567,7 @@ This creature can't attack.</rules_text>
 		<flavor_text>It lies in wait, hidden in coral reefs, lashing out ferociously when it senses prey.</flavor_text>
         <effects>
 			<blocker mode="all" />
+			<notattacking mode="all" />
 		</effects>
 	</card>
 
@@ -1534,6 +1586,7 @@ This creature can't attack.</rules_text>
 		<flavor_text>It blooms in the ocean depths, far from any light.</flavor_text>
         <effects>
 			<blocker mode="all" />
+			<notattacking mode="all" />
 		</effects>
 	</card>
 
@@ -1552,6 +1605,7 @@ This creature can't attack.</rules_text>
 		<flavor_text></flavor_text>
         <effects>
 			<blocker mode="all" />
+			<notattacking mode="all" />
 		</effects>
 	</card>
 
@@ -1585,7 +1639,8 @@ Choose 1 creature in the battle zone and return it to its owner's hand.</rules_t
 		artist="Akifumi Yamamoto">
 		<rules_text>Choose 1 of your opponent's creatures in the battle zone and tap it.</rules_text>
 		<flavor_text>It will stay until it dies.</flavor_text>
-        		<effects>
+        <effects>
+			<tap mode="count" count="1" />
 		</effects>
 	</card>
 
@@ -1601,6 +1656,7 @@ Choose 1 creature in the battle zone and return it to its owner's hand.</rules_t
 		<rules_text>When you put this creature into the battle zone, destroy 1 of your creatures.</rules_text>
 		<flavor_text> </flavor_text>
         <effects>
+			<todo />
 		</effects>
 	</card>
 
@@ -1622,7 +1678,7 @@ When this creature wins a battle, destroy it.</rules_text>
         <effects>
 			<blocker mode="all" />
 			<destroyafterbattle />
-            <not_attacking mode="all" />
+            <notattacking mode="all" />
 		</effects>
 	</card>
 
@@ -1637,7 +1693,8 @@ When this creature wins a battle, destroy it.</rules_text>
 		artist="Nottsuo">
 		<rules_text>Slayer (When this creature loses a battle, destroy the other creature.)</rules_text>
 		<flavor_text>Commanders send them to the front line. It's too dangerous to have them close.</flavor_text>
-        		<effects>
+        <effects>
+			<slayer />
 		</effects>
 	</card>
 
@@ -1652,7 +1709,8 @@ When this creature wins a battle, destroy it.</rules_text>
 		artist="Dustmoss">
 		<rules_text>Destroy 1 of your opponent's untapped creatures.</rules_text>
 		<flavor_text>Savor the taste of fear!</flavor_text>
-        		<effects>
+        <effects>
+			<todo />
 		</effects>
 	</card>
 
@@ -1671,6 +1729,7 @@ Your opponent discards a card at random from his hand.</rules_text>
 		<flavor_text></flavor_text>
         <effects>
 			<shieldtrigger />
+			<todo />
 		</effects>
 	</card>
 
@@ -1685,7 +1744,7 @@ Your opponent discards a card at random from his hand.</rules_text>
 		artist="Katsuya">
 		<rules_text></rules_text>
 		<flavor_text>"Rip. Tear. Gnash. They all make the same delightful noises."</flavor_text>
-        		<effects>
+        <effects>
 		</effects>
 	</card>
 
@@ -1704,6 +1763,7 @@ This creature can't attack.</rules_text>
 		<flavor_text>Devouring nice, fresh brains is all they know . . . and all they care about.</flavor_text>
         <effects>
 			<blocker mode="all" />
+			<notattacking mode="all" />
 		</effects>
 	</card>
 
@@ -1718,7 +1778,7 @@ This creature can't attack.</rules_text>
 		artist="Eiji Kaneda">
 		<rules_text></rules_text>
 		<flavor_text>Seeking power, they gave up their intelligence. What they found was pain.</flavor_text>
-        		<effects>
+        <effects>
 		</effects>
 	</card>
 
@@ -1733,7 +1793,8 @@ This creature can't attack.</rules_text>
 		artist="Akifumi Yamamoto">
 		<rules_text>When you put this creature into the battle zone, put 1 card from your mana zone into your graveyard.</rules_text>
 		<flavor_text>"Fix it? That's easy. Just hit it." -Legendary Artisan Picora</flavor_text>
-        		<effects>
+        <effects>
+			<todo />
 		</effects>
 	</card>
 
@@ -1748,7 +1809,8 @@ This creature can't attack.</rules_text>
 		artist="Tsutomu Kawade">
 		<rules_text>Power attacker +2000 (While attacking, this creature gets +2000 power.)</rules_text>
 		<flavor_text>"I wouldn't, if I were you. You don't want to get hurt."</flavor_text>
-        		<effects>
+        <effects>
+			<powerattacker mode="power" power="2000" />
 		</effects>
 	</card>
 
@@ -1763,7 +1825,10 @@ This creature can't attack.</rules_text>
 		artist="Miho Midorikawa">
 		<rules_text>One of your creatures gets "power attacker +2000" until the end of the turn. (While attacking, a creature that has "power attacker +2000" gets +2000 power.)</rules_text>
 		<flavor_text>Witness the power of whirling fire!</flavor_text>
-        		<effects>
+        <effects>
+			<give mode="turn" count="1">
+				<powerattacker mode="power" power="2000" />
+			</give>
 		</effects>
 	</card>
 
@@ -1778,7 +1843,8 @@ This creature can't attack.</rules_text>
 		artist="Daisuke Izuka">
 		<rules_text>Destroy 1 of your opponent's creatures that has power 2000 or less.</rules_text>
 		<flavor_text>There's nothing a Machine Eater enjoys more than a good game of Whack-a-Hulcus.</flavor_text>
-        		<effects>
+        <effects>
+			<todo />
 		</effects>
 	</card>
 
@@ -1793,7 +1859,8 @@ This creature can't attack.</rules_text>
 		artist="Yusaku Nakaaki">
 		<rules_text>This creature attacks each turn if able.</rules_text>
 		<flavor_text>A Dragonoid's true home is the battlefield.</flavor_text>
-        		<effects>
+        <effects>
+			<mustattack />
 		</effects>
 	</card>
 
@@ -1808,7 +1875,8 @@ This creature can't attack.</rules_text>
 		artist="Dai">
 		<rules_text>While you have at least 1 Armorloid in the battle zone, this creature gets +2000 power during its attacks.</rules_text>
 		<flavor_text>"Any final words?"</flavor_text>
-        		<effects>
+        <effects>
+			<powerattacker mode="race" race="Armorloid" power="2000" />
 		</effects>
 	</card>
 
@@ -1823,7 +1891,8 @@ This creature can't attack.</rules_text>
 		artist="Sansyu">
 		<rules_text>Power attacker +2000 (While attacking, this creature gets +2000 power.)</rules_text>
 		<flavor_text>Those who leave battle last are the ones who savor victory the longest.</flavor_text>
-        		<effects>
+        <effects>
+			<powerattacker mode="power" power="2000" />
 		</effects>
 	</card>
 
@@ -1853,7 +1922,8 @@ This creature can't attack.</rules_text>
 		artist="Yusaku Nakaaki">
 		<rules_text>When you put this creature into the battle zone, put the top card of your deck into your mana zone.</rules_text>
 		<flavor_text>They're bringing some friends to the party.</flavor_text>
-        		<effects>
+        <effects>
+			<todo />
 		</effects>
 	</card>
 
@@ -1868,7 +1938,7 @@ This creature can't attack.</rules_text>
 		artist="Sansyu">
 		<rules_text></rules_text>
 		<flavor_text>It pulled a young tree up by the roots, swinging it over its head as though it were a twig.</flavor_text>
-        		<effects>
+        <effects>
 		</effects>
 	</card>
 
@@ -1887,6 +1957,7 @@ Search your deck. You may take a creature from your deck, show that creature to 
 		<flavor_text></flavor_text>
         <effects>
 			<shieldtrigger />
+			<findcard mode="deck" type="creature" count="1" />
 		</effects>
 	</card>
 
@@ -1901,7 +1972,7 @@ Search your deck. You may take a creature from your deck, show that creature to 
 		artist="Norikatsu Miyoshi">
 		<rules_text></rules_text>
 		<flavor_text>The Beast Folk are gifted with huge muscles to withstand the tremendous gravity of the World Tree.</flavor_text>
-        		<effects>
+        <effects>
 		</effects>
 	</card>
 
@@ -1916,7 +1987,8 @@ Search your deck. You may take a creature from your deck, show that creature to 
 		artist="Miho Midorikawa">
 		<rules_text>Power attacker +2000 (While attacking, this creature gets +2000 power.)</rules_text>
 		<flavor_text>Hawk warriors hunt faster than the wind.</flavor_text>
-        		<effects>
+        <effects>
+			<powerattacker mode="power" power="2000" />
 		</effects>
 	</card>
 
@@ -1931,7 +2003,8 @@ Search your deck. You may take a creature from your deck, show that creature to 
 		artist="Dustmoss">
 		<rules_text>When this creature would be destroyed, put it into your mana zone instead.</rules_text>
 		<flavor_text>"I am not pink!"</flavor_text>
-        		<effects>
+        <effects>
+			<ondeath mode="tomana" />
 		</effects>
 	</card>
 
@@ -1946,7 +2019,8 @@ Search your deck. You may take a creature from your deck, show that creature to 
 		artist="Katsuya">
 		<rules_text>This creature can't attack players.</rules_text>
 		<flavor_text>"Me big. Me tough. Me smash." -Iron Hammer, Boar Warrior</flavor_text>
-        		<effects>
+        <effects>
+			<notattacking mode="player" />
 		</effects>
 	</card>
 
@@ -1961,7 +2035,8 @@ Search your deck. You may take a creature from your deck, show that creature to 
 		artist="Sansyu">
 		<rules_text>Put the top 2 cards of your deck into your mana zone.</rules_text>
 		<flavor_text>"Great Earth, give me your might!" -Fighter Dual Fang</flavor_text>
-        		<effects>
+        <effects>
+			<todo />
 		</effects>
 	</card>
 </cardset>

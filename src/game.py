@@ -719,8 +719,28 @@ class Game(QWidget):
         opp_card = self.opp_bfield[opp_pos]
         your_power = int(your_card.power)
         for effect in your_card.effects:
-            if "powerattacker" in effect.keys():
-                your_power += int(effect["powerattacker"]["power"])
+            if "powerattacker" in effect:
+                if effect["powerattacker"]["mode"] == "power":
+                    your_power += int(effect["powerattacker"]["power"])
+                elif effect["powerattacker"]["mode"] == "race":
+                    # Check if there are any creatures with that race on your bfield
+                    for creature in self.bfield:
+                        if creature.race == effect["powerattacker"]["race"]:
+                            your_power += int(effect["powerattacker"]["power"])
+                            try:
+                                effect["powerattacker"]["each"]
+                            except KeyError:
+                                break
+                elif effect["powerattacker"]["mode"] == "graveyard":
+                    # Check if there are any creatures with that civ in your graveyard
+                    for card in self.graveyard:
+                        if card.civ == effect["powerattacker"]["civ"]:
+                            your_power += int(effect["powerattacker"]["power"])
+                            try:
+                                effect["powerattacker"]["each"]
+                            except KeyError:
+                                break
+
         if int(opp_card.power) < your_power:
             # Your creature wins
             self.m_move_to_graveyard("op_bf", opp_pos)

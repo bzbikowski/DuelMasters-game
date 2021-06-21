@@ -177,9 +177,16 @@ class CardView(QGraphicsPixmapItem):
                 block_action.triggered.connect(lambda: self.parent.m_shield_block_with_creature(self.set, self.iden))
                 menu.addAction(block_action)
             if not self.parent.bfield.has_summon_sickness(self.iden) and not self.parent.bfield.is_tapped(self.iden):
-                attack_action = QAction("Attack with this creature")
-                attack_action.triggered.connect(lambda: self.parent.m_select_creature(self.set, self.iden))
-                menu.addAction(attack_action)
+                can_attack = True
+                for effect in self.parent.bfield[self.iden].effects:
+                    if "notattacking" in effect:
+                        if effect["notattacking"]["mode"] == "all":
+                            can_attack = False
+                            break
+                if can_attack:
+                    attack_action = QAction("Attack with this creature")
+                    attack_action.triggered.connect(lambda: self.parent.m_select_creature(self.set, self.iden))
+                    menu.addAction(attack_action)
             if self.parent.select_mode == 2 and (self.set, self.iden) in self.parent.selected_card:
                 unselect_action = QAction("Unselect this card")
                 unselect_action.triggered.connect(lambda: self.parent.m_unselect_creature(self.set, self.iden))
