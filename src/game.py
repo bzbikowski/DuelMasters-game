@@ -676,35 +676,6 @@ class Game(QWidget):
         for i in range(len(items)-2):
             self.preview_scene.removeItem(items[i])
 
-    def summon_effect(self, card):
-        """Check and trigger the effects of played card"""
-        print(f"Effects of card {card.name}: {str(card.effects)}")
-        for effect in card.effects:
-            if "teleport" in effect.keys():
-                count = int(effect["teleport"]["count"])
-                print(f"Teleport {count}")
-                self.fun_queue.append((self.teleport, [True, count]))
-            if "draw" in effect.keys():
-                count = int(effect["draw"]["count"])
-                print(f"Draw {count}")
-                self.fun_queue.append((self.draw_cards, [count]))
-            if "destroyblockers" in effect.keys():
-                self.fun_queue.append((self.destroy_all_blockers, []))
-            #if "destroy_blockers" in effect.keys():
-            #    if effect["destroy_blockers"]["mode"] == "all":
-            #        self.destroy_blocker(-1)
-        if len(self.fun_queue) > 0:
-            action, args = self.fun_queue.pop(0)
-            action(*args)
-        else:
-            print("Shouldn't be here")
-            if self.your_turn == 5:
-                if len(self.shields_to_destroy) == 0:
-                    self.your_turn = 0
-                    self.send_message(214)
-                else:
-                    self.add_log(f"You still have {len(self.shields_to_destroy)} shields to decide.")
-
     def can_attack_shield(self):
         if len(self.selected_card) == 0:
             return False
@@ -747,11 +718,12 @@ class Game(QWidget):
             destroyafterbattle = False
             for effect in your_card.effects:
                 if "destroyafterbattle" in effect:
-                    self.m_move_to_graveyard("yu_bf", self.selected_card[0][1])
-                    self.add_log(f"Both creatures were destoyed due to battle results.")
                     destroyafterbattle = True
                     break
-            if not destroyafterbattle:
+            if destroyafterbattle or self.opp_bfield.has_effect("slayer", opp_pos):
+                self.m_move_to_graveyard("yu_bf", self.selected_card[0][1])
+                self.add_log(f"Both creatures were destoyed due to battle results.")
+            else:
                 self.bfield.set_tapped(self.selected_card[0][1])
                 self.add_log(f"Your creature {your_card.name} destroyed opponent {opp_card.name}")
         elif int(opp_card.power) == your_power:
@@ -762,10 +734,16 @@ class Game(QWidget):
         else:
             # Your creature dies
             self.m_move_to_graveyard("yu_bf", self.selected_card[0][1])
+            destroyafterbattle = False
             for effect in opp_card.effects:
                 if "destroyafterbattle" in effect:
-                    self.m_move_to_graveyard("op_bf", opp_pos)
-            self.add_log(f"Your creature {your_card.name} was destoyed by opponent {opp_card.name} ")
+                    destroyafterbattle = True
+                    break
+            if destroyafterbattle or self.bfield.has_effect("slayer", self.selected_card[0][1]):
+                self.m_move_to_graveyard("op_bf", opp_pos)
+                self.add_log(f"Both creatures were destoyed due to battle results.")
+            else:
+                self.add_log(f"Your creature {your_card.name} was destoyed by opponent {opp_card.name} ")
         self.your_turn = 1
         self.select_mode = 0
         self.selected_card = []
@@ -892,6 +870,73 @@ class Game(QWidget):
         self.focus_request = True
         self.select_mode = 1
 
+    def summon_effect(self, card):
+        """Check and trigger the effects of played card"""
+        print(f"Effects of card {card.name}: {str(card.effects)}")
+        for effect in card.effects:
+            if "teleport" in effect.keys():
+                mode = effect["teleport"]["mode"]
+                if mode == "count":
+                    count = int(effect["teleport"]["count"])
+                    self.fun_queue.append((self.teleport, [True, mode, count]))
+                elif mode == "power":
+                    power = int(effect["teleport"]["power"])
+                    self.fun_queue.append((self.teleport, [True, mode, power]))
+            if "draw" in effect.keys():
+                count = int(effect["draw"]["count"])
+                self.fun_queue.append((self.draw_cards, [count]))
+            if "destroyblockers" in effect.keys():
+                self.fun_queue.append((self.destroy_all_blockers, []))
+            if "returngraveyard" in effect.keys():
+                mode = effect["returngraveyard"]["mode"]
+                count = int(effect["returngraveyard"]["count"])
+                self.fun_queue.append((self.return_from_graveyard, [mode, count]))
+            if "findcard" in effect.keys():
+                mode = effect["findcard"]["mode"]
+                type = effect["findcard"]["type"]
+                count = effect["findcard"]["count"]
+                self.fun_queue.append((self.search_for_card, [mode, type, count]))
+            if "destroycreatures" in effect.keys():
+                try:
+                    count = effect["destroycreatures"]["count"]
+                except KeyError:
+                    count = None
+                try:
+                    power = effect["destroycreatures"]["power"]
+                except KeyError:
+                    power = None
+                try:
+                    opp_choice = effect["destroycreatures"]["opponentchoose"]
+                except KeyError:
+                    opp_choice = None
+                self.fun_queue.append((self.destroy_creature, [count, power, opp_choice]))
+            if "puttomana" in effect.keys():
+                mode = effect["puttomana"]["mode"]
+                count = effect["puttomana"]["count"]
+                self.fun_queue.append((self.put_card_to_mana, [mode, count]))
+            if "tap" in effect.keys():
+                mode = effect["tap"]["mode"]
+                if mode == "count":
+                    count = effect["tap"]["count"]
+                    self.fun_queue.append((self.tap_creature, [mode, count]))
+                else:
+                    self.fun_queue.append((self.tap_creature, [mode]))
+            if "oneforone" in effect.keys():
+                count = effect["oneforone"]["count"]
+                self.fun_queue.append((self.one_for_one, [count]))
+
+        if len(self.fun_queue) > 0:
+            action, args = self.fun_queue.pop(0)
+            action(*args)
+        else:
+            print("Shouldn't be here")
+            if self.your_turn == 5:
+                if len(self.shields_to_destroy) == 0:
+                    self.your_turn = 0
+                    self.send_message(214)
+                else:
+                    self.add_log(f"You still have {len(self.shields_to_destroy)} shields to decide.")
+
     #  EFFECT METHODS
     #####################################################
 
@@ -911,14 +956,27 @@ class Game(QWidget):
                 self.your_turn = 0
                 self.send_message(214)
 
-    def teleport(self, firsttime, count=0):
+    def teleport(self, firsttime, mode, *args):
+        print(args)
         if firsttime:
-            self.add_log(f"Choose {count} cards in the battlefield to activate the effect.")
-            self.card_to_choose = count
-            self.type_to_choose = ["yu_bf", "op_bf"]
-            self.selected_card = []
-            self.fun_queue.insert(0, (self.teleport, [False]))
-            self.select_mode = 1
+            if mode=="count":
+                count = args[0]
+                self.add_log(f"Choose {count} cards in the battlefield to activate the effect.")
+                self.card_to_choose = count
+                self.type_to_choose = ["yu_bf", "op_bf"]
+                self.selected_card = []
+                self.fun_queue.insert(0, (self.teleport, [False]))
+                self.select_mode = 1
+            elif mode=="power":
+                power = args[0]
+                self.add_log(f"All cards with power equal or less than {power} are returned to hand.")
+                for pos in self.bfield.cards.keys():
+                    if self.bfield[pos].power <= power:
+                        self.m_return_card_to_hand("yu_bf", pos)
+                for pos in self.opp_bfield.cards.keys():
+                    if self.opp_bfield[pos].power <= power:
+                        self.m_return_card_to_hand("op_bf", pos)
+                self.post_effect()
         else:
             print(self.selected_card)
             for card in self.selected_card:
@@ -947,6 +1005,30 @@ class Game(QWidget):
                 if "blocker" in effect:
                     self.m_move_to_graveyard("op_bf", creature_pos)
         self.post_effect()
+
+    def return_from_graveyard(self, mode, count):
+        # TODO
+        pass
+
+    def search_for_card(self, mode, type, count):
+        # TODO
+        pass
+
+    def destroy_creature(count, power, opp_choice):
+        # TODO
+        pass
+
+    def put_card_to_mana(self, mode, count):
+        # TODO
+        pass
+
+    def tap_creature(self, mode, count=0):
+        # TODO
+        pass
+
+    def one_for_one(self, count):
+        # TODO
+        pass
 
     #   MENU METHODS
     #####################################################
@@ -1101,9 +1183,22 @@ class Game(QWidget):
     def m_move_to_graveyard(self, set, iden):
         # Action: Move a card to the graveyard
         if set == "yu_bf":
+            # TODO: on death effect
             card = self.bfield.remove_card(iden)
-            self.graveyard.add_card(card)
-            self.send_message(6, 1, 1, iden)
+            moved = False
+            for effect in card.effects:
+                if "ondeath" in effect:
+                    if effect["ondeath"]["mode"] == "tohand":
+                        self.send_message(6, 1, 1, iden) # TODO
+                        self.hand.add_card(card)
+                        moved = True
+                    elif effect["ondeath"]["mode"] == "tomana":
+                        self.send_message(6, 1, 1, iden) # TODO
+                        self.mana.add_card(card)
+                        moved = True
+            if not moved:
+                self.graveyard.add_card(card)
+                self.send_message(6, 1, 1, iden)
         elif set == "yu_sf":
             card = self.sfield.remove_card()
             self.graveyard.add_card(card)
@@ -1117,6 +1212,7 @@ class Game(QWidget):
             self.opp_graveyard.add_card(card)
             self.send_message(6, 0, 0, iden)
         elif set == "op_bf":
+            # TODO: on death effect
             card = self.opp_bfield.remove_card(iden)
             self.opp_graveyard.add_card(card)
             self.send_message(6, 0, 1, iden)

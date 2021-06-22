@@ -16,7 +16,7 @@
 		</rules_text>
 		<flavor_text>Water surrounds, enfolds, buoys...and attacks.</flavor_text>
 		<effects>
-			<teleport count="2" />
+			<teleport mode="count" count="2" />
 		</effects>
 	</card>
 
@@ -225,7 +225,7 @@ This creature can't attack players.</rules_text>
 		<rules_text>When you put this creature into the battle zone, draw up to 2 cards.</rules_text>
 		<flavor_text>Long ago, the Cyber Lords built a city on his back.</flavor_text>
         <effects>
-            <draw count="2" />
+            <draw mode="count" count="2" />
         </effects>
 	</card>
 
@@ -273,7 +273,7 @@ This creature can't attack players.</rules_text>
 		<rules_text>When you put this creature into the battle zone, destroy all creatures that have power 3000 or less.</rules_text>
 		<flavor_text>Dark Lords have no mercy for the weak.</flavor_text>
         <effects>
-            <destroycreatures mode="power" power="3000" />
+            <destroycreatures mode="all" power="3000" />
         </effects>
 	</card>
 
@@ -563,7 +563,9 @@ Search your deck. You may take a card from your deck and put it into your hand. 
 		<rules_text>Whenever any of your creatures becomes blocked this turn, it gets "slayer" until the end of the turn. (When a creature that has "slayer" loses a battle, destroy the other creature.)</rules_text>
 		<flavor_text>Witness the power of the Dark!</flavor_text>
 		<effects>
-			<todo />
+			<give mode="turn" count="all">
+				<slayer mode="onblock" />
+			</give>
 		</effects>
 	</card>
 
@@ -603,7 +605,7 @@ When this creature wins a battle, destroy it.</rules_text>
 Double breaker (This creature breaks 2 shields.)</rules_text>
 		<flavor_text></flavor_text>
 		<effects>
-			<todo />
+			<sacrifice count="2" />
 			<shieldbreaker count="2" />
 		</effects>
 	</card>
@@ -620,7 +622,7 @@ Double breaker (This creature breaks 2 shields.)</rules_text>
 		<rules_text>Slayer (When this creature loses a battle, destroy the other creature.)</rules_text>
 		<flavor_text>By assembling parts of different magical beasts, the Dark Lords created a nightmare.</flavor_text>
 		<effects>
-			<slayer />
+			<slayer mode="all" />
 		</effects>
 	</card>
 
@@ -655,7 +657,7 @@ Destroy 1 of your opponent's creatures.</rules_text>
 		<flavor_text></flavor_text>
 		<effects>
 			<shieldtrigger />
-			<destroycreatures mode="count" count="1" />
+			<destroycreatures mode="all" count="1" />
 		</effects>
 	</card>
 
@@ -671,9 +673,7 @@ Destroy 1 of your opponent's creatures.</rules_text>
 		<rules_text>Choose 1 of your opponent's untapped creatures in the battle zone. Your creatures can attack it this turn as though it were tapped.</rules_text>
 		<flavor_text>"You won't escape me!"</flavor_text>
         <effects>
-			<give mode="turn" count="1">
-				<todo />
-			</give>
+			<treatastaped count="1" />
 		</effects>
 	</card>
 
@@ -708,7 +708,7 @@ Double breaker (This creature breaks 2 shields.)</rules_text>
 		<flavor_text>Dragonoid fighters never retreat. They believe that a heroic fighter will become a Dragon in his next life.</flavor_text>
         <effects>
 			<shieldbreaker count="2" />
-			<todo />
+			<manasacrifice count="2" />
 		</effects>
 	</card>
 
@@ -759,7 +759,7 @@ Double breaker (This creature breaks 2 shields.)</rules_text>
 		<rules_text>When you put this creature into the battle zone, destroy 1 of your creatures. Then your opponent chooses 1 of his creatures and destroys it.</rules_text>
 		<flavor_text>"Though battered and scarred, I march on through wars, storms, and strife. I march on."</flavor_text>
         <effects>
-			<todo />
+			<oneforone opponentchoose=""/>
 		</effects>
 	</card>
 
@@ -796,7 +796,7 @@ Choose 1 of your opponent's creatures in the battle zone and put it into his man
 		<flavor_text></flavor_text>
         <effects>
 			<shieldtrigger />
-			<todo />
+			<puttomana mode="opponentbf" count="1" />
 		</effects>
 	</card>
 
@@ -844,7 +844,7 @@ Choose 1 of your opponent's creatures in the battle zone and put it into his man
 		<rules_text>When you put this creature into the battle zone, your opponent chooses 1 of his creatures in the battle zone and puts it into his mana zone.</rules_text>
 		<flavor_text>A Colony Beetle's spawning is a virtual nightmare. It covers the earth with a hail of its bullet-like eggs.</flavor_text>
         <effects>
-			<todo />
+			<puttomana mode="opponentbf" count="1" opponentchoose="" />
 		</effects>
 	</card>
 
@@ -1001,7 +1001,7 @@ Draw up to 2 cards.</rules_text>
 		<flavor_text></flavor_text>
         <effects>
 			<shieldtrigger />
-			<draw count="2" />
+			<draw mode="count" count="2" />
 		</effects>
 	</card>
 
@@ -1033,7 +1033,7 @@ Draw up to 2 cards.</rules_text>
 		<rules_text>When you put this creature into the battle zone, if you have a Cyber Lord in the battle zone, draw up to 3 cards.</rules_text>
 		<flavor_text>The Cyber Lords' devotion to beauty is so extreme, they even designed their warrior race to have a pleasant appearance.</flavor_text>
         <effects>
-			<todo />
+			<draw mode="race" race="Cyber Lord" count="3" />
 		</effects>
 	</card>
 
@@ -1135,7 +1135,7 @@ Return a creature from your graveyard to your hand.</rules_text>
 		<rules_text>When you put this creature into the battle zone, your opponent discards a card at random from his hand.</rules_text>
 		<flavor_text>Seeking to live forever, they left their bodies behind.</flavor_text>
         <effects>
-			<todo />
+			<discard count="1" />
 		</effects>
 	</card>
 
@@ -1151,7 +1151,7 @@ Return a creature from your graveyard to your hand.</rules_text>
 		<rules_text>When you put this creature into the battle zone, destroy 1 of your creatures.</rules_text>
 		<flavor_text>When worms kill a creature, they can still make it move.</flavor_text>
         <effects>
-			<todo />
+			<sacrifice count="1" />
 		</effects>
 	</card>
 
@@ -1167,7 +1167,7 @@ Return a creature from your graveyard to your hand.</rules_text>
 		<rules_text>When you put this creature into the battle zone, your opponent chooses 1 of his creatures and destroys it.</rules_text>
 		<flavor_text>Flesh is its food. Bones are its toothpicks.</flavor_text>
         <effects>
-			<destroycreatures mode="count" count="1" opponentchoose="" />
+			<destroycreatures mode="all" count="1" opponentchoose="" />
 		</effects>
 	</card>
 
@@ -1199,7 +1199,7 @@ Return a creature from your graveyard to your hand.</rules_text>
 		<rules_text>When you put this creature into the battle zone, you may destroy 1 of your opponent's creatures that has power 2000 or less.</rules_text>
 		<flavor_text></flavor_text>
         <effects>
-			<todo />
+			<destroycreatures mode="all"count="1" power="2000" />
 		</effects>
 	</card>
 
@@ -1215,7 +1215,7 @@ Return a creature from your graveyard to your hand.</rules_text>
 		<rules_text>When you put this creature into the battle zone, put 1 card from your mana zone into your graveyard.</rules_text>
 		<flavor_text>The first to the front lines are the first to taste victory.</flavor_text>
         <effects>
-			<todo />
+			<manasacrifice count="1" />
 		</effects>
 	</card>
 
@@ -1266,7 +1266,7 @@ Destroy 1 of your opponent's creatures that has power 4000 or less.</rules_text>
 		<flavor_text></flavor_text>
         <effects>
 			<shieldtrigger />
-			<todo />
+			<destroycreatures mode="all" count="1" power="4000" />
 		</effects>
 	</card>
 
@@ -1329,7 +1329,7 @@ Destroy 1 of your opponent's creatures that has power 4000 or less.</rules_text>
 		<rules_text>Put 1 of your creatures from the battle zone into your mana zone.</rules_text>
 		<flavor_text>"Here's something better for you to do." -Fighter Dual Fang</flavor_text>
         <effects>
-			<todo />
+			<puttomana mode="battlefield" count="1" />
 		</effects>
 	</card>
 
@@ -1517,7 +1517,7 @@ Choose 1 of your opponent's creatures in the battle zone and tap it.</rules_text
 		<rules_text>When you put this creature into the battle zone, you may draw a card.</rules_text>
 		<flavor_text>Liquid People freely control liquid. For them, water is armor and shield.</flavor_text>
         <effects>
-			<draw count="1" />
+			<draw mode="count" count="1" />
 		</effects>
 	</card>
 
@@ -1656,7 +1656,7 @@ Choose 1 creature in the battle zone and return it to its owner's hand.</rules_t
 		<rules_text>When you put this creature into the battle zone, destroy 1 of your creatures.</rules_text>
 		<flavor_text> </flavor_text>
         <effects>
-			<todo />
+			<sacrifice count="1" />
 		</effects>
 	</card>
 
@@ -1694,7 +1694,7 @@ When this creature wins a battle, destroy it.</rules_text>
 		<rules_text>Slayer (When this creature loses a battle, destroy the other creature.)</rules_text>
 		<flavor_text>Commanders send them to the front line. It's too dangerous to have them close.</flavor_text>
         <effects>
-			<slayer />
+			<slayer mode="all" />
 		</effects>
 	</card>
 
@@ -1710,7 +1710,7 @@ When this creature wins a battle, destroy it.</rules_text>
 		<rules_text>Destroy 1 of your opponent's untapped creatures.</rules_text>
 		<flavor_text>Savor the taste of fear!</flavor_text>
         <effects>
-			<todo />
+			<destroycreatures mode="untapped" count="1" />
 		</effects>
 	</card>
 
@@ -1729,7 +1729,7 @@ Your opponent discards a card at random from his hand.</rules_text>
 		<flavor_text></flavor_text>
         <effects>
 			<shieldtrigger />
-			<todo />
+			<discard count="1" />
 		</effects>
 	</card>
 
@@ -1794,7 +1794,7 @@ This creature can't attack.</rules_text>
 		<rules_text>When you put this creature into the battle zone, put 1 card from your mana zone into your graveyard.</rules_text>
 		<flavor_text>"Fix it? That's easy. Just hit it." -Legendary Artisan Picora</flavor_text>
         <effects>
-			<todo />
+			<manasacrifice count="1" />
 		</effects>
 	</card>
 
@@ -1844,7 +1844,7 @@ This creature can't attack.</rules_text>
 		<rules_text>Destroy 1 of your opponent's creatures that has power 2000 or less.</rules_text>
 		<flavor_text>There's nothing a Machine Eater enjoys more than a good game of Whack-a-Hulcus.</flavor_text>
         <effects>
-			<todo />
+			<destroycreatures mode="all" count="1" power="2000" />
 		</effects>
 	</card>
 
@@ -1923,7 +1923,7 @@ This creature can't attack.</rules_text>
 		<rules_text>When you put this creature into the battle zone, put the top card of your deck into your mana zone.</rules_text>
 		<flavor_text>They're bringing some friends to the party.</flavor_text>
         <effects>
-			<todo />
+			<puttomana mode="top" count="1" />
 		</effects>
 	</card>
 
@@ -2036,7 +2036,7 @@ Search your deck. You may take a creature from your deck, show that creature to 
 		<rules_text>Put the top 2 cards of your deck into your mana zone.</rules_text>
 		<flavor_text>"Great Earth, give me your might!" -Fighter Dual Fang</flavor_text>
         <effects>
-			<todo />
+			<puttomana mode="top" count="2" />
 		</effects>
 	</card>
 </cardset>

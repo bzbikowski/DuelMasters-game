@@ -136,6 +136,12 @@ class Battlezone():
     def set_tapped(self, pos):
         self.cards[pos]["tapped"] = True
 
+    def has_effect(self, effect_name, pos):
+        for effect in self.cards[pos]["card"].effects:
+            if effect_name in effect.keys():
+                return True
+        return False
+
     def remove_card(self, pos):
         # TODO: to keep proper layout, min. 5 spaces (empty or not) are required
         card = self.cards[pos]["card"]
