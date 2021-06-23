@@ -1624,7 +1624,7 @@ Choose 1 creature in the battle zone and return it to its owner's hand.</rules_t
 		<flavor_text></flavor_text>
         <effects>
 			<shieldtrigger />
-			<teleport count="1" />
+			<teleport mode="count" count="1" />
 		</effects>
 	</card>
 
