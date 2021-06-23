@@ -894,15 +894,15 @@ class Game(QWidget):
             if "findcard" in effect.keys():
                 mode = effect["findcard"]["mode"]
                 type = effect["findcard"]["type"]
-                count = effect["findcard"]["count"]
+                count =  int(effect["findcard"]["count"])
                 self.fun_queue.append((self.search_for_card, [mode, type, count]))
             if "destroycreatures" in effect.keys():
                 try:
-                    count = effect["destroycreatures"]["count"]
+                    count =  int(effect["destroycreatures"]["count"])
                 except KeyError:
                     count = None
                 try:
-                    power = effect["destroycreatures"]["power"]
+                    power =  int(effect["destroycreatures"]["power"])
                 except KeyError:
                     power = None
                 try:
@@ -912,26 +912,26 @@ class Game(QWidget):
                 self.fun_queue.append((self.destroy_creature, [count, power, opp_choice]))
             if "puttomana" in effect.keys():
                 mode = effect["puttomana"]["mode"]
-                count = effect["puttomana"]["count"]
+                count =  int(effect["puttomana"]["count"])
                 self.fun_queue.append((self.put_card_to_mana, [mode, count]))
             if "tap" in effect.keys():
                 mode = effect["tap"]["mode"]
                 if mode == "count":
-                    count = effect["tap"]["count"]
+                    count =  int(effect["tap"]["count"])
                     self.fun_queue.append((self.tap_creature, [mode, count]))
                 else:
                     self.fun_queue.append((self.tap_creature, [mode]))
             if "oneforone" in effect.keys():
-                count = effect["oneforone"]["count"]
+                count =  int(effect["oneforone"]["count"])
                 self.fun_queue.append((self.one_for_one, [count]))
             if "discard" in effect.keys():
-                count = effect["discard"]["count"]
+                count = int(effect["discard"]["count"])
                 self.fun_queue.append((self.discard_cards, [count]))
             if "sacrifice" in effect.keys():
-                count = effect["sacrifice"]["count"]
+                count =  int(effect["sacrifice"]["count"])
                 self.fun_queue.append((self.sacrifice_creature, [count]))
             if "sacrificemana" in effect.keys():
-                count = effect["sacrificemana"]["count"]
+                count =  int(effect["sacrificemana"]["count"])
                 self.fun_queue.append((self.sacrifice_mana, [count]))
 
         if len(self.fun_queue) > 0:
