@@ -753,8 +753,8 @@ class Game(QWidget):
         # Check if you have blockers available
         blocker_list = []
         blocker_available = False
-        for creature_pos in self.bfield.cards.keys():
-            for effect in self.bfield[creature_pos].effects:
+        for creature_pos, creature_card in self.bfield.get_creatures_with_pos():
+            for effect in creature_card.effects:
                 if "blocker" in effect:
                     if effect["blocker"]["mode"] == "all":
                         blocker_available = True
@@ -800,8 +800,8 @@ class Game(QWidget):
         # Check if you have blockers available
         blocker_list = []
         blocker_available = False
-        for creature_pos in self.bfield.cards.keys():
-            for effect in self.bfield[creature_pos].effects:
+        for creature_pos, creature_card in self.bfield.get_creatures_with_pos():
+            for effect in creature_card.effects:
                 if "blocker" in effect:
                     if effect["blocker"]["mode"] == "all":
                         blocker_available = True
@@ -979,11 +979,11 @@ class Game(QWidget):
             elif mode=="power":
                 power = args[0]
                 self.add_log(f"All cards with power equal or less than {power} are returned to hand.")
-                for pos in self.bfield.cards.keys():
-                    if self.bfield[pos].power <= power:
+                for pos, card in self.bfield.get_creatures_with_pos():
+                    if card.power <= power:
                         self.m_return_card_to_hand("yu_bf", pos)
-                for pos in self.opp_bfield.cards.keys():
-                    if self.opp_bfield[pos].power <= power:
+                for pos, card in self.opp_bfield.get_creatures_with_pos():
+                    if card.power <= power:
                         self.m_return_card_to_hand("op_bf", pos)
                 self.post_effect()
         else:
@@ -1004,13 +1004,13 @@ class Game(QWidget):
 
     def destroy_all_blockers(self):
         # Your blockers
-        for creature_pos in self.bfield.cards.keys():
-            for effect in self.bfield[creature_pos].effects:
+        for creature_pos, creature_card in self.bfield.get_creatures_with_pos():
+            for effect in creature_card.effects:
                 if "blocker" in effect:
                     self.m_move_to_graveyard("yu_bf", creature_pos)
         # Opponent blockers
-        for creature_pos in self.opp_bfield.cards.keys():
-            for effect in self.opp_bfield[creature_pos].effects:
+        for creature_pos, creature_card in self.opp_bfield.get_creatures_with_pos():
+            for effect in creature_card.effects:
                 if "blocker" in effect:
                     self.m_move_to_graveyard("op_bf", creature_pos)
         self.post_effect()
@@ -1082,8 +1082,8 @@ class Game(QWidget):
 
         # untap effect
         # TODO: for now by default untap, later there can be choice
-        for card_pos in self.bfield.cards.keys():
-            for effect in self.bfield[card_pos].effects:
+        for card_pos, card in self.bfield.get_creatures_with_pos():
+            for effect in card.effects:
                 if "untap" in effect:
                     mode = effect["untap"]["mode"]
                     if mode == "self":
@@ -1092,8 +1092,8 @@ class Game(QWidget):
                         break
                     elif mode == "all":
                         # Untap all your cards
-                        for card_pos2 in self.bfield.cards.keys():
-                            self.bfield.set_untapped(card_pos2)
+                        for card_pos_a, _ in self.bfield.get_creatures_with_pos():
+                            self.bfield.set_untapped(card_pos_a)
                         break
 
         self.selected_card = []
