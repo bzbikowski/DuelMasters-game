@@ -29,8 +29,8 @@ class GameView(QGraphicsScene):
             point.contextMenuEvent(event)
         else:
             print(f"GAME VIEW: select mode -> {self.parent.select_mode}, your_turn -> {self.parent.your_turn}")
-            if self.parent.your_turn == 0:
-                return
+            # if self.parent.your_turn == 0:
+            #     return
             menu = QMenu()
             print(f"BOARD: SELECT MODE - {str(self.parent.select_mode)}, {len(self.parent.selected_card)} == {self.parent.card_to_choose}")
             if self.parent.select_mode == 1 and len(self.parent.selected_card) == self.parent.card_to_choose:
