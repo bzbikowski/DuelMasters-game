@@ -1193,12 +1193,12 @@ class Game(QWidget):
         # Action: Play a shield with shield trigger
         self.shields_to_destroy.remove(iden)
         card = self.shields.remove_shield(iden)
-        if self.cardlist[card].card_type == 'Spell':
+        if card.card_type == 'Spell':
             self.sfield.set_card(card)
             self.send_message(4, card.id, 5)
             self.spell_played = True
             self.summon_effect(card)
-        elif self.cardlist[card].card_type == 'Creature':
+        elif card.card_type == 'Creature':
             # Handled in menu if there is space left
             pos = self.bfield.add_card(card)
             self.send_message(4, card.id, pos)

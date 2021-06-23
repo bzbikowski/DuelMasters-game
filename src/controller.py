@@ -161,7 +161,8 @@ class Controller:
             while len(msg) > 0:
                 shields_pos.append(int(msg[0:2], base=16))
                 msg = msg[2:]
-            self.master.add_log(f"Your shields {shields_pos} are being attacked by {self.master.opp_bfield[creature_pos].name}.")
+            shields_string = ", ".join(shields_pos)
+            self.master.add_log(f"Your shields at pos {shields_string} are being attacked by {self.master.opp_bfield[creature_pos].name}.")
             self.master.shields_attacked(creature_pos, shields_pos)
         elif command == 113:
             # 113,x - answer from the opponent, that either he blocks with blocker or shields will be destroyed
