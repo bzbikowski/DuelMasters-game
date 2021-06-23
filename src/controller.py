@@ -89,6 +89,7 @@ class Controller:
                 elif c_space == 2:
                     card = self.master.hand.remove_card(c_pos)
                     self.master.graveyard.add_card(card)
+                    self.master.send_message(15, card.id)
                     self.master.add_log("Your card from hand was discarded to your graveyard.")
             elif c_player == 1:
                 if c_space == 0:
@@ -192,6 +193,13 @@ class Controller:
             # 214 - opponent ended handling shield attack
             self.master.selected_card = []
             self.master.your_turn = 1
+        elif command == 15:
+            # 15 - id of the discarded card
+            c_id = int(msg[:2], base=16)
+            card = self.master.database.get_card(c_id)
+            self.master.opp_graveyard.add_card(card)
+            self.master.add_log(f"Opponent discarded {card.name}")
+            self.master.refresh_screen()
 
         elif command == 111:
             # 111,x - 
