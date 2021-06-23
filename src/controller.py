@@ -73,7 +73,7 @@ class Controller:
         elif command == 6:
             # 6,v,x,y - player v puts card from x space from y spot to his graveyard
             # v - 0/1 - you/opponent
-            # x - 0/1 - mana/battlefield
+            # x - 0/1 - mana/battlefield/hand
             c_player = int(msg[:2], base=16)
             c_space = int(msg[2:4], base=16)
             c_pos = int(msg[4:6], base=16)
@@ -86,6 +86,10 @@ class Controller:
                     card = self.master.bfield.remove_card(c_pos)
                     self.master.graveyard.add_card(card)
                     self.master.add_log("Your card from battle zone was moved to your graveyard.")
+                elif c_space == 2:
+                    card = self.master.hand.remove_card(c_pos)
+                    self.master.graveyard.add_card(card)
+                    self.master.add_log("Your card from hand was discarded to your graveyard.")
             elif c_player == 1:
                 if c_space == 0:
                     card = self.master.opp_mana.remove_card(c_pos)

@@ -1,3 +1,4 @@
+from random import choice
 from src.cards import Card
 
 class Graveyardzone():
@@ -34,6 +35,11 @@ class Handzone():
 
     def remove_card(self, pos):
         return self.cards.pop(pos)
+
+    def discard_random(self):
+        pos = choice(range(len(self.cards)))
+        self.cards.pop(pos)
+        return pos
 
     def __getitem__(self, index):
         return self.cards[index]

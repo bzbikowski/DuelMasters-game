@@ -1040,8 +1040,12 @@ class Game(QWidget):
         pass
 
     def discard_cards(self, count):
-        # TODO
-        pass
+        # Opponent discards x cards from his hand
+        for _ in range(count):
+            if len(self.opp_hand) > 0:
+                pos = self.opp_hand.discard_random()
+                self.send_message(6, 0, 2, pos)
+        self.post_effect()
 
     def sacrifice_creature(self, count):
         # TODO

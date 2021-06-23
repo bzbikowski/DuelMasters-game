@@ -198,17 +198,18 @@ class CardView(QGraphicsPixmapItem):
             destroy_action.triggered.connect(lambda: self.parent.m_move_to_graveyard(self.set, self.iden))
             menu.addAction(destroy_action)
         elif self.set == 'op_bf':
-            if self.parent.opp_bfield.is_tapped(self.iden):
-                select_action = QAction("Target card to attack")
-                select_action.triggered.connect(lambda: self.parent.m_attack_creature(self.set, self.iden))
-                menu.addAction(select_action)
-            else:
-                # check if selected creature can attack untapped creatures
-                for effect in self.parent.bfield[self.parent.selected_card[0][1]].effects:
-                    if "canattackuntapped" in effect.keys():
-                        select_action = QAction("Target card to attack")
-                        select_action.triggered.connect(lambda: self.parent.m_attack_creature(self.set, self.iden))
-                        menu.addAction(select_action)
+            if self.parent.select_mode == 2:
+                if self.parent.opp_bfield.is_tapped(self.iden):
+                    select_action = QAction("Target card to attack")
+                    select_action.triggered.connect(lambda: self.parent.m_attack_creature(self.set, self.iden))
+                    menu.addAction(select_action)
+                else:
+                    # check if selected creature can attack untapped creatures
+                    for effect in self.parent.bfield[self.parent.selected_card[0][1]].effects:
+                        if "canattackuntapped" in effect.keys():
+                            select_action = QAction("Target card to attack")
+                            select_action.triggered.connect(lambda: self.parent.m_attack_creature(self.set, self.iden))
+                            menu.addAction(select_action)
             return_action = QAction("Return a card to hand")
             return_action.triggered.connect(lambda: self.parent.m_return_card_to_hand(self.set, self.iden))
             menu.addAction(return_action)
