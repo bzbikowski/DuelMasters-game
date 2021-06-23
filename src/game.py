@@ -162,7 +162,7 @@ class Game(QWidget):
         if self.mode == 1:
             if random.random() < 0.5:
                 self.send_message(0)
-                self.turn_states(0)
+                self.new_round()
                 self.add_log("You start the game! Your turn.", False)
                 self.log.info(f"Turn {self.turn_count}: Host turn.")
             else:
@@ -635,14 +635,14 @@ class Game(QWidget):
         else:
             self.client.send_data(msg)
         
-    def turn_states(self, state): # TODO: change state to boolean, and name?
+    def new_round(self, not_first=True):
         """
         Set state of on start of your turn:
         0 -> first round of the game - don't draw a card
         1 -> every other round - draw a card
         """
-        # TODO: unlock and untap all your mana and creatures
-        if state == 1:
+        if not_first:
+            # TODO: send message -> about every untapped card
             self.mana.unlock_and_untap()
             self.bfield.reset_shield_count()
             self.card_to_draw = 1
@@ -725,6 +725,7 @@ class Game(QWidget):
                 self.add_log(f"Both creatures were destoyed due to battle results.")
             else:
                 self.bfield.set_tapped(self.selected_card[0][1])
+                self.send_message(16, 0, 1, self.selected_card[0][1])
                 self.add_log(f"Your creature {your_card.name} destroyed opponent {opp_card.name}")
         elif int(opp_card.power) == your_power:
             # Both are destroyed
@@ -841,8 +842,8 @@ class Game(QWidget):
     def attack_shield(self):
         self.send_message(14, *self.selected_shields)
         self.bfield.set_tapped(self.selected_card[0][1])
+        self.send_message(16, 0, 1, self.selected_card[0][1])
         self.selected_shields = []
-
 
     def shield_destroyed(self, idens):
         # Make all shields destroyed visible
@@ -883,8 +884,13 @@ class Game(QWidget):
                     power = int(effect["teleport"]["power"])
                     self.fun_queue.append((self.teleport, [True, mode, power]))
             if "draw" in effect.keys():
+                mode = effect["draw"]["mode"]
+                try:
+                    race =  effect["draw"]["race"]
+                except KeyError:
+                    race = None
                 count = int(effect["draw"]["count"])
-                self.fun_queue.append((self.draw_cards, [count]))
+                self.fun_queue.append((self.draw_cards, [mode, count, race]))
             if "destroyblockers" in effect.keys():
                 self.fun_queue.append((self.destroy_all_blockers, []))
             if "returngraveyard" in effect.keys():
@@ -966,7 +972,6 @@ class Game(QWidget):
                 self.send_message(214)
 
     def teleport(self, firsttime, mode, *args):
-        print(args)
         if firsttime:
             if mode=="count":
                 count = args[0]
@@ -987,7 +992,6 @@ class Game(QWidget):
                         self.m_return_card_to_hand("op_bf", pos)
                 self.post_effect()
         else:
-            print(self.selected_card)
             for card in self.selected_card:
                 self.m_return_card_to_hand(card[0], card[1])
             self.selected_card = []
@@ -996,10 +1000,24 @@ class Game(QWidget):
             self.refresh_screen()
             self.post_effect()
 
-    def draw_cards(self, count):
-        self.card_to_draw += count
-        while self.card_to_draw > 0:
-            self.m_draw_a_card()
+    def draw_cards(self, mode, *args):
+        if mode == "count":
+            count = args[0]
+            self.card_to_draw += count
+            while self.card_to_draw > 0:
+                self.m_draw_a_card()
+        elif mode == "race":
+            count = args[0]
+            race = args[1]
+            creature_exists = False
+            for card in self.bfield:
+                if card.race == race:
+                    creature_exists = True
+                    break
+            if creature_exists:
+                self.card_to_draw += count
+                while self.card_to_draw > 0:
+                    self.m_draw_a_card()
         self.post_effect()
 
     def destroy_all_blockers(self):
@@ -1027,13 +1045,45 @@ class Game(QWidget):
         # TODO
         pass
 
-    def put_card_to_mana(self, mode, count):
-        # TODO
-        pass
+    def put_card_to_mana(self, mode, count, *args):
+        if mode == "graveyard":
+            pass
+        elif mode == "hand":
+            pass
+        elif mode == "top":
+            pass
+        elif mode == "opponentbf":
+            pass
+        elif mode == "battlefield":
+            pass
 
-    def tap_creature(self, mode, count=0):
-        # TODO
-        pass
+    def tap_creature(self, firsttime, mode, count=0):
+        if firsttime:
+            if mode == "count":
+                self.add_log(f"Choose {count} cards in the battlefield to activate the effect.")
+                self.card_to_choose = count
+                self.type_to_choose = ["op_bf"]
+                self.selected_card = []
+                self.fun_queue.insert(0, (self.tap_creature, [False, mode]))
+                self.select_mode = 1
+            elif mode == "fullboard":
+                for pos, _ in self.opp_bfield.get_creatures_with_pos():
+                    self.opp_bfield.set_tapped(pos)
+                    self.send_message(16, 0, 1, pos)
+                self.add_log(f"All opponents creature have been tapped.")
+                self.refresh_screen()
+                self.post_effect()
+        else:
+            for card in self.selected_card:
+                self.opp_bfield.set_tapped(card[1])
+                self.send_message(16, 0, 1, card[1])
+            log_string = ", ".join([str(card[1]) for card in self.selected_card])
+            self.add_log(f"{log_string} opponents creature have been tapped.")
+            self.selected_card = []
+            self.type_to_choose = []
+            self.select_mode = 0
+            self.refresh_screen()
+            self.post_effect()
 
     def one_for_one(self, count):
         # TODO

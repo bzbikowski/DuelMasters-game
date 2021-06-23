@@ -160,7 +160,7 @@ class Battlezone():
                 self._cards[pos]["tapped"] = False
                 self._cards[pos]["summon_sickness"] = False
                 if "shieldbreaker" in self._cards[pos]["card"].effects:
-                    self._cards[pos]["shield_count"] = self._cards[pos]["card"].effects["shieldbreaker"]["count"]
+                    self._cards[pos]["shield_count"] = int(self._cards[pos]["card"].effects["shieldbreaker"]["count"])
                 elif "notattacking" in self._cards[pos]["card"].effects:
                     if self._cards[pos]["card"].effects["not_attacking"]["mode"] in ["all", "player"]:
                         self._cards[pos]["shield_count"] = 0
