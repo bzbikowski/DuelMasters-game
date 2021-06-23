@@ -44,6 +44,7 @@ class Controller:
                 self.master.opp_sfield.set_card(card)
             else:
                 self.master.opp_bfield.add_card(card)
+            self.master.opp_hand.remove_card(0)
             self.master.add_log(f"Opponent played a card {card.name}.")
         elif command == 5:
             # 5,v,x,y - player v picks up card from x space from y spot to his hand
