@@ -680,7 +680,7 @@ class Game(QWidget):
         if len(self.selected_card) == 0:
             return False
         pos = self.selected_card[0][1]
-        if not self.bfield.is_tapped(pos) and self.bfield.get_shield_count(pos) > 0:
+        if not self.bfield.is_tapped(pos) and self.bfield.get_shield_count(pos) > len(self.selected_shields):
             return True
         return False
 
@@ -974,7 +974,7 @@ class Game(QWidget):
                 self.card_to_choose = count
                 self.type_to_choose = ["yu_bf", "op_bf"]
                 self.selected_card = []
-                self.fun_queue.insert(0, (self.teleport, [False]))
+                self.fun_queue.insert(0, (self.teleport, [False, mode]))
                 self.select_mode = 1
             elif mode=="power":
                 power = args[0]

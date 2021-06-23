@@ -186,7 +186,8 @@ class Battlezone():
 
     def __iter__(self):
         for card_pos in self.cards.keys():
-            yield self.cards[card_pos]["card"]
+            if self.is_taken(card_pos):
+                yield self.cards[card_pos]["card"]
 
 class Manazone():
     def __init__(self, opponent=False, parent=None):

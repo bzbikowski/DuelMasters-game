@@ -156,11 +156,12 @@ class Controller:
             # x - position of creature on the board
             # ya - a-th shield attacked by this creature
             creature_pos = int(msg[:2], base=16)
+            msg = msg[2:]
             shields_pos = []
             while len(msg) > 0:
                 shields_pos.append(int(msg[0:2], base=16))
                 msg = msg[2:]
-            self.master.add_log(f"Your shields {shields_pos} are being attacked by {creature_pos}.")
+            self.master.add_log(f"Your shields {shields_pos} are being attacked by {self.master.opp_bfield[creature_pos].name}.")
             self.master.shields_attacked(creature_pos, shields_pos)
         elif command == 113:
             # 113,x - answer from the opponent, that either he blocks with blocker or shields will be destroyed

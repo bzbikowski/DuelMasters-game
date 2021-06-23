@@ -274,7 +274,7 @@ class GraveyardView(QWidget):
         """
         card = CardHandle(id, self)
         pixmap = QPixmap()
-        if not pixmap.loadFromData(self.parent.database.getdata(id, 'low_res')):
+        if not pixmap.loadFromData(self.parent.database.get_data(id, 'low_res')):
             pass
         card.setPixmap(pixmap)
         card.setPos(x, y)
