@@ -52,6 +52,9 @@ class GameView(QGraphicsScene):
             end_action = QAction("End turn")
             end_action.triggered.connect(self.parent.m_end_turn)
             menu.addAction(end_action)
+            debug_action = QAction("Print debug info")
+            debug_action.triggered.connect(self.parent.m_debug_info)
+            menu.addAction(debug_action)
             menu.exec_(QCursor.pos())
 
 

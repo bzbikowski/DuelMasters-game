@@ -1361,3 +1361,11 @@ class Game(QWidget):
         else:
             return
         graveyard_look.show()
+
+    def m_debug_info(self):
+        print("====DEBUG====")
+        print(f"your_turn: {self.your_turn}")
+        print(f"select_mode: {self.select_mode}")
+        print(f"selected_card: {self.selected_card}")
+        print(f"selected_shields: {self.selected_shields}")
+        print("=============")
