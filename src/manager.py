@@ -122,7 +122,7 @@ class DeckManager(QWidget):
         """
         view = []
         for card in self.actual_view:
-            if str.lower(name) in str.lower(self.database.getdata(card, 'name')):
+            if str.lower(name) in str.lower(self.parent.database.get_data(card, 'name')):
                 view.append(card)
         return view
 
@@ -132,7 +132,7 @@ class DeckManager(QWidget):
         """
         view = []
         for card in self.actual_view:
-            if typ == self.database.getdata(card, "type"):
+            if typ == self.parent.database.get_data(card, "type"):
                 view.append(card)
         return view
 
@@ -142,7 +142,7 @@ class DeckManager(QWidget):
         """
         view = []
         for card in self.actual_view:
-            if civ in self.database.getdata(card, "civilization"):
+            if civ in self.parent.database.get_data(card, "civilization"):
                 view.append(card)
         return view
 
@@ -152,8 +152,8 @@ class DeckManager(QWidget):
         """
         view = []
         for card in self.actual_view:
-            card_power = self.database.getdata(card, "power")
-            card_type = self.database.getdata(card, "type")
+            card_power = self.parent.database.get_data(card, "power")
+            card_type = self.parent.database.get_data(card, "type")
             if card_type == "Spell":
                 continue
             if sign == "<=":
@@ -174,7 +174,7 @@ class DeckManager(QWidget):
         """
         view = []
         for card in self.actual_view:
-            if cost == self.database.getdata(card, "cost"):
+            if cost == self.parent.database.get_data(card, "cost"):
                 view.append(card)
         return view
 
@@ -209,7 +209,7 @@ class DeckManager(QWidget):
                 card_dict[card] += 1
 
         for card in card_dict.keys():
-            self.draw_result(y, card, card_dict[card], self.database.getdata(card, 'civilization'))
+            self.draw_result(y, card, card_dict[card], self.parent.database.get_data(card, 'civilization'))
             y += 32
             if y > 400:
                 self.ui.deck_view.setSceneRect(0, 0, 400, y)
@@ -222,7 +222,7 @@ class DeckManager(QWidget):
         """
         card = CardHandle(id, self)
         pixmap = QPixmap()
-        if not pixmap.loadFromData(self.database.getdata(id, 'low_res')):
+        if not pixmap.loadFromData(self.parent.database.get_data(id, 'low_res')):
             pass
         card.setPixmap(pixmap)
         card.setPos(x, y)
@@ -256,7 +256,7 @@ class DeckManager(QWidget):
         rect.setPen(QPen(QColor(127, 127, 127)))
         self.deck_scene.addItem(rect)
 
-        text = QGraphicsTextItem("{0} x {1}".format(count, self.database.getdata(id, "name")))
+        text = QGraphicsTextItem("{0} x {1}".format(count, self.parent.database.get_data(id, "name")))
         text.setPos(10, y)
         text.setFont(QFont("Arial", 10))
         text.setDefaultTextColor(palette[civ])
@@ -266,7 +266,7 @@ class DeckManager(QWidget):
         """
         Show card image in better resolution
         """
-        self.info_window = CardInfo(self, self.database.getdata(card_id, "high_res"))
+        self.info_window = CardInfo(self, self.parent.database.get_data(card_id, "high_res"))
         self.info_window.show()
 
     def clear_deck(self):

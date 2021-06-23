@@ -924,6 +924,15 @@ class Game(QWidget):
             if "oneforone" in effect.keys():
                 count = effect["oneforone"]["count"]
                 self.fun_queue.append((self.one_for_one, [count]))
+            if "discard" in effect.keys():
+                count = effect["discard"]["count"]
+                self.fun_queue.append((self.discard_cards, [count]))
+            if "sacrifice" in effect.keys():
+                count = effect["sacrifice"]["count"]
+                self.fun_queue.append((self.sacrifice_creature, [count]))
+            if "sacrificemana" in effect.keys():
+                count = effect["sacrificemana"]["count"]
+                self.fun_queue.append((self.sacrifice_mana, [count]))
 
         if len(self.fun_queue) > 0:
             action, args = self.fun_queue.pop(0)
@@ -1027,6 +1036,18 @@ class Game(QWidget):
         pass
 
     def one_for_one(self, count):
+        # TODO
+        pass
+
+    def discard_cards(self, count):
+        # TODO
+        pass
+
+    def sacrifice_creature(self, count):
+        # TODO
+        pass
+
+    def sacrifice_mana(self, count):
         # TODO
         pass
 
