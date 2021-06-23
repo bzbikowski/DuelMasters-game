@@ -1199,7 +1199,7 @@ Return a creature from your graveyard to your hand.</rules_text>
 		<rules_text>When you put this creature into the battle zone, you may destroy 1 of your opponent's creatures that has power 2000 or less.</rules_text>
 		<flavor_text></flavor_text>
         <effects>
-			<destroycreatures mode="all"count="1" power="2000" />
+			<destroycreatures mode="all" count="1" power="2000" />
 		</effects>
 	</card>
 
