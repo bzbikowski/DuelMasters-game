@@ -1051,7 +1051,18 @@ class Game(QWidget):
         elif mode == "hand":
             pass
         elif mode == "top":
-            pass
+            # Put a card from the top of your deck to mana
+            for _ in range(count):
+                if not len(self.deck) == 0:
+                    card_id = self.deck.pop(0)
+                    card = self.database.get_card(card_id)
+                    self.add_log(f"You put {card.name} from the top of the deck to mana.")
+                    self.mana.add_card(card)
+                    # self.send_message(3)
+                else:
+                    self.add_log("You don't have enough cards to put to mana. You lose!")
+                    self.lose()
+            self.post_effect()
         elif mode == "opponentbf":
             pass
         elif mode == "battlefield":
