@@ -12,7 +12,7 @@ from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
-from src.deckbuilder import DeckBuilder
+from src.views.builder import DeckBuilder
 
 
 class Ui_Manager(object):

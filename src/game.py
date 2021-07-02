@@ -29,11 +29,13 @@ class Game(QWidget):
         self.database = database
         # self.move((screen_width - self.width)/2, (screen_height - self.height)/2 - 20)
         self.debug_mode = debug
+        self.parent = parent
+        self.deck = deck
+
+        # Game variables
         self.locked = False
         self.isServer = False
         self.started = False
-        self.parent = parent
-        self.deck = deck
         self.card_to_draw = 0
         self.card_to_mana = 0
         self.your_turn = 0 # 0 - not your turn, 1 - your turn, 2 - special turn, 3 - block or pass creature, 4 - block or pass shield, 5 - shield destroyed
@@ -44,6 +46,7 @@ class Game(QWidget):
         self.turn_count = 0
         self.spell_played = None
 
+        # Setup scenes
         self.view_scene = GameView(self)
         self.ui.view.setScene(self.view_scene)
         self.view_scene.setBackgroundBrush(QBrush(QColor(0, 0, 0)))
@@ -52,17 +55,22 @@ class Game(QWidget):
         self.ui.preview.setScene(self.preview_scene)
         self.preview_scene.setBackgroundBrush(QBrush(QColor(0, 0, 0)))
 
+        # Setup logging on the screen
         self.log_panel = Logger()
+
+        # Setup logging of the application to the file
         self.setup_logger()
 
         self.controller = Controller(self)
 
+        # Run application in specific mode
         if self.mode == 1:
             self.wait_for_connection()
         else:
             self.connect_to_room()
 
-    ## Internal
+    ## Getters
+    #######################
     def get_your_turn(self):
         return self.your_turn
 
@@ -84,9 +92,8 @@ class Game(QWidget):
     def get_type_to_choose(self):
         return self.type_to_choose
 
-    def pop_fun_queue(self, index):
-        return self.fun_queue.pop(index)
-
+    ## Internal functions
+    #######################
     def setup_logger(self):
         self.log = logging.getLogger("dm_game")
         if self.debug_mode:
@@ -647,6 +654,24 @@ class Game(QWidget):
                 item.setPos(x, y)
                 self.view_scene.addItem(item)
 
+    def message_screen_request(self, bg_color, frame_color, text):
+        """Message box for displaying important information. After one click it disappears."""
+        # TODO: Debug why the box is not appearing
+        bg = QGraphicsRectItem(100, 100, 200, 200)
+        bg.setBrush(QBrush(bg_color))
+        bg.setZValue(1.0)
+        self.view_scene.addItem(bg)
+        frame = QGraphicsRectItem(99, 99, 202, 202)
+        frame.setPen(QPen(frame_color))
+        frame.setZValue(2.0)
+        self.view_scene.addItem(frame)
+        text = QGraphicsTextItem(text)
+        text.setPos(110, 110)
+        text.setZValue(3.0)
+        self.view_scene.addItem(text)
+        self.focus_request = True
+        self.select_mode = 1
+
     def add_log(self, msg, refresh=True):
         """Add log to log panel"""
         self.log_panel.append(msg)
@@ -701,6 +726,7 @@ class Game(QWidget):
             self.preview_scene.removeItem(items[i])
 
     def can_attack_shield(self):
+        """Check if selected creature can attack shield"""
         if len(self.selected_card) == 0:
             return False
         pos = self.selected_card[0][1]
@@ -708,7 +734,12 @@ class Game(QWidget):
             return True
         return False
 
+    def pop_fun_queue(self, index):
+        """Pop and return item from the effects queue"""
+        return self.fun_queue.pop(index)
+
     def attack_creature(self, opp_pos):
+        """Attack your opponent creature with selected card"""
         # TODO: check if it was card originaly selected, if yes, opponent didn't block (inform in log)
         your_card = self.bfield[self.selected_card[0][1]]
         opp_card = self.opp_bfield[opp_pos]
@@ -774,7 +805,7 @@ class Game(QWidget):
         self.selected_card = []
 
     def creature_attacked(self, opp_pos, your_pos):
-        # Opponent action - one of the creature is attacked
+        """One of the creature is attacked"""
         # Check if you have blockers available
         blocker_list = []
         blocker_available = False
@@ -821,7 +852,7 @@ class Game(QWidget):
         self.your_turn = 3 # special turn - block or pass - creature
 
     def shields_attacked(self, opp_pos, shields_pos):
-        # Opponent action - one of the shield is attacked
+        """One of the shield is attacked"""
         # Check if you have blockers available
         blocker_list = []
         blocker_available = False
@@ -864,12 +895,14 @@ class Game(QWidget):
         self.your_turn = 4 # special turn - block or pass - shield
 
     def attack_shield(self):
+        """Send information to opponent that you destroyed his shields"""
         self.send_message(14, *self.selected_shields)
         self.bfield.set_tapped(self.selected_card[0][1])
         self.send_message(16, 0, 1, self.selected_card[0][1])
         self.selected_shields = []
 
     def shield_destroyed(self, idens):
+        """Your shields were destroyed."""
         # Make all shields destroyed visible
         for iden in idens:
             self.shields.set_shield_visible(iden)
@@ -877,27 +910,8 @@ class Game(QWidget):
         self.your_turn = 5
         self.add_log(f"{idens} shields were destroyed. Decide what to do with it.")
 
-    def message_screen_request(self, bg_color, frame_color, text):
-        """Message box for displaying important information. After one click it disappears."""
-        # TODO: Debug why the box is not appearing
-        bg = QGraphicsRectItem(100, 100, 200, 200)
-        bg.setBrush(QBrush(bg_color))
-        bg.setZValue(1.0)
-        self.view_scene.addItem(bg)
-        frame = QGraphicsRectItem(99, 99, 202, 202)
-        frame.setPen(QPen(frame_color))
-        frame.setZValue(2.0)
-        self.view_scene.addItem(frame)
-        text = QGraphicsTextItem(text)
-        text.setPos(110, 110)
-        text.setZValue(3.0)
-        self.view_scene.addItem(text)
-        self.focus_request = True
-        self.select_mode = 1
-
     def summon_effect(self, card):
         """Check and trigger the effects of played card"""
-        print(f"Effects of card {card.name}: {str(card.effects)}")
         for effect in card.effects:
             if "teleport" in effect.keys():
                 mode = effect["teleport"]["mode"]
@@ -968,7 +982,6 @@ class Game(QWidget):
             action, args = self.fun_queue.pop(0)
             action(*args)
         else:
-            print("Shouldn't be here")
             if self.your_turn == 5:
                 if len(self.shields_to_destroy) == 0:
                     self.your_turn = 0
@@ -980,16 +993,17 @@ class Game(QWidget):
     #####################################################
 
     def post_effect(self):
-        # If it was effect from the spell
-        if self.spell_played:
-            self.spell_played = False
-            self.move_to_graveyard("yu_sf", 0)
-            self.refresh_screen()
+        """Run after every effect function"""
         if len(self.fun_queue) > 0:
             # functions still in the queue, run them
             action, args = self.fun_queue.pop(0)
             action(*args)
         else:
+            # If it was effect from the spell, move card to the graveyard
+            if self.spell_played:
+                self.spell_played = False
+                self.move_to_graveyard("yu_sf", 0)
+                self.refresh_screen()
             # If card was from shield, check if all shields were handled
             if self.your_turn == 5 and len(self.shields_to_destroy) == 0:
                 self.your_turn = 0
@@ -1121,7 +1135,7 @@ class Game(QWidget):
             self.post_effect()
 
     def one_for_one(self, count):
-        # TODO
+        # TODO: rothus
         pass
 
     def discard_cards(self, count):
