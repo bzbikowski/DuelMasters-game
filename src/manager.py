@@ -1,11 +1,11 @@
-from PySide2.QtCore import Qt
-from PySide2.QtGui import QBrush, QColor, QPixmap, QPen, QFont
-from PySide2.QtWidgets import QWidget, QPushButton, QVBoxLayout, QGraphicsView, QGraphicsScene, \
+from PySide6.QtCore import Qt, Slot
+from PySide6.QtGui import QBrush, QColor, QPixmap, QPen, QFont
+from PySide6.QtWidgets import QWidget, QPushButton, QVBoxLayout, QGraphicsView, QGraphicsScene, \
     QGraphicsPixmapItem, QGraphicsEllipseItem, QGraphicsTextItem, QGraphicsRectItem, QDialog, \
     QInputDialog, QMessageBox
 
-
 from src.ui.ui_manager import Ui_Manager
+from src.views.manager import ManagerCardHandle
 
 
 class DeckManager(QWidget):
@@ -23,8 +23,8 @@ class DeckManager(QWidget):
         else:
             self.deck = []
         self.parent = parent
-        self.row_size = 5
-        self.column_size = 4
+        self.row_size = 0
+        self.column_size = 0
         self.ui = Ui_Manager()
         self.ui.setupUi(self)
         self.setup_all_components()
@@ -38,10 +38,13 @@ class DeckManager(QWidget):
         """
         Build all components of the GUI
         """
-        deck_view_width = 400
-        deck_view_height = 600
-        self.ui.deck_view.setFixedSize(deck_view_width, deck_view_height)
+        self.setWindowState(Qt.WindowMaximized)
+
+        deck_view_width = int(self.width() * 0.4)
+        deck_view_height = self.height()
+        # self.ui.deck_view.setFixedSize(deck_view_width, deck_view_height)
         self.ui.deck_view.setSceneRect(0, 0, deck_view_width, deck_view_height)
+
         self.deck_scene = QGraphicsScene(self)
         self.deck_scene.setBackgroundBrush(QBrush(QColor(0, 0, 0)))
         self.ui.deck_view.setScene(self.deck_scene)
@@ -63,12 +66,18 @@ class DeckManager(QWidget):
 
         self.ui.search_button.clicked.connect(self.search_cards)
 
-        view_width = 10 + 90 * self.row_size
-        view_height = 10 + 120 * self.column_size
-        self.ui.view.setFixedSize(view_width, view_height)
+        view_width = int(self.width() * 0.4)
+        view_height = self.height()
+
+        self.row_size = view_width // 100
+        self.column_size = view_height // 130
+
+
+        # self.ui.view.setFixedSize(view_width, view_height)
         self.ui.view.setSceneRect(0, 0, view_width, view_height)
         self.ui.view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.ui.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.ui.view.changeRow.connect(self.handleDeckbuilderRowChanged)
 
         self.canvas = QGraphicsScene(self)
         self.canvas.setBackgroundBrush(QBrush(QColor(0, 0, 0)))
@@ -220,7 +229,7 @@ class DeckManager(QWidget):
         """
         Draw card item with its image on the screen
         """
-        card = CardHandle(id, self)
+        card = ManagerCardHandle(id, self)
         pixmap = QPixmap()
         if not pixmap.loadFromData(self.parent.database.get_data(id, 'low_res')):
             pass
@@ -295,6 +304,16 @@ class DeckManager(QWidget):
             _ = QMessageBox.information(self, "Information", "Incorrect file name.",
                                              QMessageBox.Ok, QMessageBox.NoButton)
 
+    @Slot(int)
+    def handleDeckbuilderRowChanged(self, direction):
+        if direction == -1:
+            if self.actual_row > 0:
+                self.actual_row -= 1
+        elif direction == 1:
+            if len(self.actual_view) > (self.actual_row+1) * self.row_size:
+                self.actual_row += 1
+        self.redraw()
+
     @staticmethod
     def validate_file_name(name):
         """
@@ -312,30 +331,6 @@ class DeckManager(QWidget):
 
     def closeEvent(self, event):
         self.parent.show_window()
-
-
-class CardHandle(QGraphicsPixmapItem):
-    """
-    Single card handle to check more info, add or remove card from your deck.
-    """
-    def __init__(self, id, parent):
-        super(CardHandle, self).__init__()
-        self.parent = parent
-        self.id = id
-
-    def mousePressEvent(self, event):
-        if event.button() == Qt.MidButton:
-            self.parent.pop_window(self.id)
-            return
-        if event.button() == Qt.LeftButton:
-            if len(self.parent.deck) < 40:
-                if self.parent.deck.count(self.id) < 4:
-                    self.parent.deck.append(self.id)
-        elif event.button() == Qt.RightButton:
-            if self.id in self.parent.deck:
-                index = self.parent.deck.index(self.id)
-                self.parent.deck.pop(index)
-        self.parent.redraw()
 
 
 class CardInfo(QDialog):

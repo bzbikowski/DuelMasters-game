@@ -1,15 +1,16 @@
 import logging
 import random
 
-from PySide2.QtCore import Qt, QTimer, QThread, Slot, Signal
-from PySide2.QtGui import QBrush, QColor, QPen, QPixmap, QTransform, QImage, QFont
-from PySide2.QtWidgets import QWidget, QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, \
+from PySide6.QtCore import Qt, QTimer, QThread, Slot, Signal
+from PySide6.QtGui import QBrush, QColor, QPen, QPixmap, QTransform, QImage, QFont
+from PySide6.QtWidgets import QWidget, QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, \
     QTextEdit, QLabel, QPushButton, QGraphicsRectItem, QGraphicsTextItem, QMessageBox
 
 from src.logs import Logger
 from src.network.client import Client
 from src.network.server import Server
-from src.views import GameView, CardView, GraveyardView
+from src.views import GameView, CardView
+from src.views.graveyard import GraveyardWindow
 from src.dialog import ServerDialog, ClientDialog
 from src.controller import Controller
 from src.ui.ui_game import Ui_Game
@@ -1445,9 +1446,9 @@ class Game(QWidget):
         
     def look_graveyard(self, set):
         if set == "op_gv":
-            graveyard_look = GraveyardView(self.opp_graveyard, self)
+            graveyard_look = GraveyardWindow(self.opp_graveyard, self)
         elif set == "yu_gv":
-            graveyard_look = GraveyardView(self.graveyard, self)
+            graveyard_look = GraveyardWindow(self.graveyard, self)
         else:
             return
         graveyard_look.show()

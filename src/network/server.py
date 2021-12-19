@@ -1,7 +1,7 @@
 import re
 
-from PySide2.QtCore import QIODevice, QDataStream, QByteArray, Signal
-from PySide2.QtNetwork import QTcpServer, QHostAddress, QNetworkInterface
+from PySide6.QtCore import QIODevice, QDataStream, QByteArray, Signal
+from PySide6.QtNetwork import QTcpServer, QHostAddress, QNetworkInterface
 
 import logging
 

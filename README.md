@@ -9,7 +9,7 @@ To turn it on, pass an argument "--debug=True" when launching the "main.py" file
 
 ```python main.py --debug=True```
 
-You also need to have installed PySide2 on your Python interpreter.
+You also need to have installed PySide6 on your Python interpreter.
 Run ```pip install -r requirements.txt``` to install all required libraries in your python interpeter.
 
 ### Todo things:
@@ -20,14 +20,20 @@ Run ```pip install -r requirements.txt``` to install all required libraries in y
 * refactor tcp error system
 * complete whole documentation for project
 * make all effects for all cards
-* ~~check tcp connection with other player~~
-* all minor and major changes with graphics and GUI
-* creating your own avatar and cardback
-* popup help messages
-* add high resolution and size cards for manager
-* implement debug mode as separate window with commands without restrictions
-* client <-> server <-> client architecture
-* add loading database menu during first start
+
+* General
+  * popup help messages when hovering over elements
+* Main Menu
+  * add loading database menu during first start
+* Game
+  * implement for debug mode separate tool window, which could run commands without restrictions
+* Manager
+  * highlight when hovering over nameplates of added cards
+  * enable clicks to add, preview or delete cards
+  * add high resolution and size cards
+* In far future
+  * change architecture to client <-> external server <-> client from client <-> local server
+  * creating your own avatar and cardback
 
 ### Spreedsheets:
 
@@ -52,3 +58,5 @@ Message system (TODO: translate to English):
                 x - 0/1 - ręka/tarcza
         12,x,y - (info) ja atakuje swoją kartą x twoją kartę y na polu bitwy
         13,x - ja niszcze ci tarczę na pozycji x
+
+pyside6-uic -o src/ui/ui_manager.py ui/manager.ui

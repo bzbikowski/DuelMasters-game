@@ -1,6 +1,6 @@
 import sys
 sys.path.insert(0, "D:\Projects\DuelMasters-game\src")
-from PySide2.QtWidgets import QApplication, QLineEdit, QPushButton, QWidget
+from PySide6.QtWidgets import QApplication, QLineEdit, QPushButton, QWidget
 
 from src.network.client import Client
 

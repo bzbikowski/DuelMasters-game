@@ -1,7 +1,7 @@
 import json
 import xml.dom.minidom as minidom
 
-from PySide2.QtCore import QFile, QIODevice
+from PySide6.QtCore import QFile, QIODevice
 
 
 class Card:

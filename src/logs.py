@@ -1,7 +1,7 @@
 from collections import deque
 
 
-class Logger(object):
+class Logger:
     """
     Class for displaying, containing and modifying logs messages, which are displayed in game screen on the right side.
     """

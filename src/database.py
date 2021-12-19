@@ -1,5 +1,5 @@
-from PySide2.QtCore import QFile, QIODevice
-from PySide2.QtSql import QSqlDatabase, QSqlQuery
+from PySide6.QtCore import QFile, QIODevice
+from PySide6.QtSql import QSqlDatabase, QSqlQuery
 
 from src.cards import Card
 import json

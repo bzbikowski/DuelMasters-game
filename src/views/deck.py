@@ -1,8 +1,8 @@
 from src.ui.ui_deck import Ui_Deck
 
-from PySide2.QtCore import QObject, Slot, Qt
-from PySide2.QtGui import QCursor, QTransform, QPixmap
-from PySide2.QtWidgets import QGraphicsScene, QGraphicsPixmapItem, QMenu, QAction, QWidget
+from PySide6.QtCore import QObject, Slot, Qt
+from PySide6.QtGui import QCursor, QTransform, QPixmap, QAction
+from PySide6.QtWidgets import QGraphicsScene, QGraphicsPixmapItem, QMenu, QWidget
 
 
 class DeckView(QWidget):
@@ -71,7 +71,7 @@ class DeckCardHandle(QGraphicsPixmapItem):
         self.id = id
 
     # def mousePressEvent(self, event):
-    #     if event.button() == Qt.MidButton:
+    #     if event.button() == Qt.MiddleButton:
     #         self.parent.pop_window(self.id)
     #         return
     #     if event.button() == Qt.LeftButton:
