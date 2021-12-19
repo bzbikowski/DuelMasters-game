@@ -2,7 +2,7 @@ import datetime
 import logging
 import sys
 
-from PySide2.QtWidgets import QWidget, QPushButton, QGridLayout, QFileDialog, QMessageBox
+from PySide6.QtWidgets import QWidget, QPushButton, QGridLayout, QFileDialog, QMessageBox
 
 from src.database import Database
 from src.game import Game

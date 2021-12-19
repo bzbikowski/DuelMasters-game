@@ -1,5 +1,5 @@
 import sys
-from PySide2.QtWidgets import QApplication, QTextEdit, QWidget
+from PySide6.QtWidgets import QApplication, QTextEdit, QWidget
 from src.network.server import Server
 
 class ChatServer(QWidget):

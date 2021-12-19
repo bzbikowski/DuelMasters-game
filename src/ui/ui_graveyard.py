@@ -8,9 +8,11 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide2.QtCore import *
-from PySide2.QtGui import *
-from PySide2.QtWidgets import *
+from PySide6.QtCore import *
+from PySide6.QtGui import *
+from PySide6.QtWidgets import *
+
+from src.views.graveyard.graveyardview import GraveyardView
 
 
 class Ui_Graveyard(object):
@@ -24,7 +26,7 @@ class Ui_Graveyard(object):
         self.verticalLayout = QVBoxLayout(self.verticalLayoutWidget)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
-        self.graphicsView = QGraphicsView(self.verticalLayoutWidget)
+        self.graphicsView = GraveyardView(self.verticalLayoutWidget)
         self.graphicsView.setObjectName(u"graphicsView")
 
         self.verticalLayout.addWidget(self.graphicsView)

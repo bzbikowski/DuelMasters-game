@@ -1,11 +1,14 @@
-from PySide2.QtWidgets import QGraphicsView
+from PySide6.QtCore import QObject, Slot, Qt
+from PySide6.QtGui import QCursor, QTransform, QPixmap, QAction
+from PySide6.QtWidgets import QGraphicsScene, QGraphicsPixmapItem, QMenu, QWidget, QGraphicsView
 
-class DeckBuilder(QGraphicsView):
+
+class GraveyardView(QGraphicsView):
     """
-    View representing all the cards in the deck. Scrolling through this view shows different cards in the database.
+    View representing all the cards in the graveyard. Scrolling through this view shows different cards in the database.
     """
     def __init__(self, parent):
-        super(DeckBuilder, self).__init__(parent)
+        super(GraveyardView, self).__init__(parent)
         self.parent = parent
 
     def wheelEvent(self, event):

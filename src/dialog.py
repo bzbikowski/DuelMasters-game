@@ -1,5 +1,5 @@
-from PySide2.QtCore import QObject, Signal, Slot 
-from PySide2.QtWidgets import QDialog
+from PySide6.QtCore import QObject, Signal, Slot 
+from PySide6.QtWidgets import QDialog
 from src.ui.ui_client import Ui_ClientDialog
 from src.ui.ui_server import Ui_ServerDialog
 

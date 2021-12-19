@@ -1,8 +1,8 @@
 import argparse
 import sys
 
-from PySide2.QtWidgets import QApplication
-from PySide2.QtGui import QGuiApplication
+from PySide6.QtWidgets import QApplication
+from PySide6.QtGui import QGuiApplication
 
 from src.window import Window
 
@@ -24,7 +24,6 @@ if __name__ == "__main__":
     parsed_args, unparsed_args = process_args()
     qt_args = sys.argv[:1] + unparsed_args
     app = QApplication(qt_args)
-    size = QGuiApplication.primaryScreen().availableGeometry()
-    window = Window((size.width(), size.height()), parsed_args)
+    window = Window(parsed_args)
     window.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())

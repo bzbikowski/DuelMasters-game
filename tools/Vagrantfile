@@ -1,0 +1,39 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/focal64"
+
+  config.vm.box_check_update = false
+
+  config.ssh.forward_agent = true
+  config.ssh.forward_x11 = true
+
+  config.vm.define "server" do |server|
+    server.vm.provider "virtualbox" do |vb|
+      vb.name = "Server"
+      vb.cpus = 1
+      vb.memory = "2048"
+    end
+    server.vm.hostname = "server"
+    server.vm.network "private_network", ip: "192.168.56.2"
+    server.vm.network  "forwarded_port", guest: 22, host: 2710
+    server.vm.synced_folder "../", "/home/vagrant/game"
+    server.vm.provision "setup-host", :type => "shell", :path => "scripts\\install.sh"
+  end
+
+  config.vm.define "client" do |client|
+    client.vm.provider "virtualbox" do |vb|
+      vb.name = "Client"
+      vb.cpus = 1
+      vb.memory = "2048"
+    end
+    client.vm.hostname = "client"
+    client.vm.network "private_network", ip: "192.168.56.3"
+    client.vm.network "forwarded_port", guest: 22, host: 2711
+    client.vm.synced_folder "../", "/home/vagrant/game"
+    client.vm.provision "setup-host", :type => "shell", :path => "scripts\\install.sh"
+  end
+
+end

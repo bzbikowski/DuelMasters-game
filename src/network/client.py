@@ -1,5 +1,5 @@
-from PySide2.QtCore import QIODevice, QDataStream, QByteArray, Signal
-from PySide2.QtNetwork import QTcpSocket, QHostAddress, QAbstractSocket
+from PySide6.QtCore import QIODevice, QDataStream, QByteArray, Signal
+from PySide6.QtNetwork import QTcpSocket, QHostAddress, QAbstractSocket
 
 import logging
 

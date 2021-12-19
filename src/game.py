@@ -1,15 +1,16 @@
 import logging
 import random
 
-from PySide2.QtCore import Qt, QTimer, QThread, Slot, Signal
-from PySide2.QtGui import QBrush, QColor, QPen, QPixmap, QTransform, QImage, QFont
-from PySide2.QtWidgets import QWidget, QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, \
+from PySide6.QtCore import Qt, QTimer, QThread, Slot, Signal
+from PySide6.QtGui import QBrush, QColor, QPen, QPixmap, QTransform, QImage, QFont
+from PySide6.QtWidgets import QWidget, QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, \
     QTextEdit, QLabel, QPushButton, QGraphicsRectItem, QGraphicsTextItem, QMessageBox
 
 from src.logs import Logger
 from src.network.client import Client
 from src.network.server import Server
-from src.views import GameView, CardView, GraveyardView
+from src.views import GameView, CardView
+from src.views.graveyard import GraveyardWindow
 from src.dialog import ServerDialog, ClientDialog
 from src.controller import Controller
 from src.ui.ui_game import Ui_Game
@@ -29,11 +30,13 @@ class Game(QWidget):
         self.database = database
         # self.move((screen_width - self.width)/2, (screen_height - self.height)/2 - 20)
         self.debug_mode = debug
+        self.parent = parent
+        self.deck = deck
+
+        # Game variables
         self.locked = False
         self.isServer = False
         self.started = False
-        self.parent = parent
-        self.deck = deck
         self.card_to_draw = 0
         self.card_to_mana = 0
         self.your_turn = 0 # 0 - not your turn, 1 - your turn, 2 - special turn, 3 - block or pass creature, 4 - block or pass shield, 5 - shield destroyed
@@ -44,6 +47,7 @@ class Game(QWidget):
         self.turn_count = 0
         self.spell_played = None
 
+        # Setup scenes
         self.view_scene = GameView(self)
         self.ui.view.setScene(self.view_scene)
         self.view_scene.setBackgroundBrush(QBrush(QColor(0, 0, 0)))
@@ -52,17 +56,45 @@ class Game(QWidget):
         self.ui.preview.setScene(self.preview_scene)
         self.preview_scene.setBackgroundBrush(QBrush(QColor(0, 0, 0)))
 
+        # Setup logging on the screen
         self.log_panel = Logger()
+
+        # Setup logging of the application to the file
         self.setup_logger()
 
         self.controller = Controller(self)
 
+        # Run application in specific mode
         if self.mode == 1:
             self.wait_for_connection()
         else:
             self.connect_to_room()
 
-    ## Internal
+    ## Getters
+    #######################
+    def get_your_turn(self):
+        return self.your_turn
+
+    def get_select_mode(self):
+        return self.select_mode
+
+    def get_spell_played(self):
+        return self.spell_played
+    
+    def get_selected_card(self):
+        return self.selected_card
+
+    def get_selected_shields(self):
+        return self.selected_shields
+
+    def get_card_to_choose(self):
+        return self.card_to_choose
+
+    def get_type_to_choose(self):
+        return self.type_to_choose
+
+    ## Internal functions
+    #######################
     def setup_logger(self):
         self.log = logging.getLogger("dm_game")
         if self.debug_mode:
@@ -623,6 +655,24 @@ class Game(QWidget):
                 item.setPos(x, y)
                 self.view_scene.addItem(item)
 
+    def message_screen_request(self, bg_color, frame_color, text):
+        """Message box for displaying important information. After one click it disappears."""
+        # TODO: Debug why the box is not appearing
+        bg = QGraphicsRectItem(100, 100, 200, 200)
+        bg.setBrush(QBrush(bg_color))
+        bg.setZValue(1.0)
+        self.view_scene.addItem(bg)
+        frame = QGraphicsRectItem(99, 99, 202, 202)
+        frame.setPen(QPen(frame_color))
+        frame.setZValue(2.0)
+        self.view_scene.addItem(frame)
+        text = QGraphicsTextItem(text)
+        text.setPos(110, 110)
+        text.setZValue(3.0)
+        self.view_scene.addItem(text)
+        self.focus_request = True
+        self.select_mode = 1
+
     def add_log(self, msg, refresh=True):
         """Add log to log panel"""
         self.log_panel.append(msg)
@@ -646,7 +696,7 @@ class Game(QWidget):
             self.mana.unlock_and_untap()
             self.bfield.reset_shield_count()
             self.card_to_draw = 1
-            self.m_draw_a_card()
+            self.draw_card()
         self.card_to_mana = 1
         self.your_turn = 1
 
@@ -677,6 +727,7 @@ class Game(QWidget):
             self.preview_scene.removeItem(items[i])
 
     def can_attack_shield(self):
+        """Check if selected creature can attack shield"""
         if len(self.selected_card) == 0:
             return False
         pos = self.selected_card[0][1]
@@ -684,7 +735,12 @@ class Game(QWidget):
             return True
         return False
 
+    def pop_fun_queue(self, index):
+        """Pop and return item from the effects queue"""
+        return self.fun_queue.pop(index)
+
     def attack_creature(self, opp_pos):
+        """Attack your opponent creature with selected card"""
         # TODO: check if it was card originaly selected, if yes, opponent didn't block (inform in log)
         your_card = self.bfield[self.selected_card[0][1]]
         opp_card = self.opp_bfield[opp_pos]
@@ -714,14 +770,14 @@ class Game(QWidget):
 
         if int(opp_card.power) < your_power:
             # Your creature wins
-            self.m_move_to_graveyard("op_bf", opp_pos)
+            self.move_to_graveyard("op_bf", opp_pos)
             destroyafterbattle = False
             for effect in your_card.effects:
                 if "destroyafterbattle" in effect:
                     destroyafterbattle = True
                     break
             if destroyafterbattle or self.opp_bfield.has_effect("slayer", opp_pos):
-                self.m_move_to_graveyard("yu_bf", self.selected_card[0][1])
+                self.move_to_graveyard("yu_bf", self.selected_card[0][1])
                 self.add_log(f"Both creatures were destoyed due to battle results.")
             else:
                 self.bfield.set_tapped(self.selected_card[0][1])
@@ -729,19 +785,19 @@ class Game(QWidget):
                 self.add_log(f"Your creature {your_card.name} destroyed opponent {opp_card.name}")
         elif int(opp_card.power) == your_power:
             # Both are destroyed
-            self.m_move_to_graveyard("yu_bf", self.selected_card[0][1])
-            self.m_move_to_graveyard("op_bf", opp_pos)
+            self.move_to_graveyard("yu_bf", self.selected_card[0][1])
+            self.move_to_graveyard("op_bf", opp_pos)
             self.add_log(f"Both creatures were destoyed due to battle results.")
         else:
             # Your creature dies
-            self.m_move_to_graveyard("yu_bf", self.selected_card[0][1])
+            self.move_to_graveyard("yu_bf", self.selected_card[0][1])
             destroyafterbattle = False
             for effect in opp_card.effects:
                 if "destroyafterbattle" in effect:
                     destroyafterbattle = True
                     break
             if destroyafterbattle or self.bfield.has_effect("slayer", self.selected_card[0][1]):
-                self.m_move_to_graveyard("op_bf", opp_pos)
+                self.move_to_graveyard("op_bf", opp_pos)
                 self.add_log(f"Both creatures were destoyed due to battle results.")
             else:
                 self.add_log(f"Your creature {your_card.name} was destoyed by opponent {opp_card.name} ")
@@ -750,7 +806,7 @@ class Game(QWidget):
         self.selected_card = []
 
     def creature_attacked(self, opp_pos, your_pos):
-        # Opponent action - one of the creature is attacked
+        """One of the creature is attacked"""
         # Check if you have blockers available
         blocker_list = []
         blocker_available = False
@@ -797,7 +853,7 @@ class Game(QWidget):
         self.your_turn = 3 # special turn - block or pass - creature
 
     def shields_attacked(self, opp_pos, shields_pos):
-        # Opponent action - one of the shield is attacked
+        """One of the shield is attacked"""
         # Check if you have blockers available
         blocker_list = []
         blocker_available = False
@@ -840,12 +896,14 @@ class Game(QWidget):
         self.your_turn = 4 # special turn - block or pass - shield
 
     def attack_shield(self):
+        """Send information to opponent that you destroyed his shields"""
         self.send_message(14, *self.selected_shields)
         self.bfield.set_tapped(self.selected_card[0][1])
         self.send_message(16, 0, 1, self.selected_card[0][1])
         self.selected_shields = []
 
     def shield_destroyed(self, idens):
+        """Your shields were destroyed."""
         # Make all shields destroyed visible
         for iden in idens:
             self.shields.set_shield_visible(iden)
@@ -853,27 +911,8 @@ class Game(QWidget):
         self.your_turn = 5
         self.add_log(f"{idens} shields were destroyed. Decide what to do with it.")
 
-    def message_screen_request(self, bg_color, frame_color, text):
-        """Message box for displaying important information. After one click it disappears."""
-        # TODO: Debug why the box is not appearing
-        bg = QGraphicsRectItem(100, 100, 200, 200)
-        bg.setBrush(QBrush(bg_color))
-        bg.setZValue(1.0)
-        self.view_scene.addItem(bg)
-        frame = QGraphicsRectItem(99, 99, 202, 202)
-        frame.setPen(QPen(frame_color))
-        frame.setZValue(2.0)
-        self.view_scene.addItem(frame)
-        text = QGraphicsTextItem(text)
-        text.setPos(110, 110)
-        text.setZValue(3.0)
-        self.view_scene.addItem(text)
-        self.focus_request = True
-        self.select_mode = 1
-
     def summon_effect(self, card):
         """Check and trigger the effects of played card"""
-        print(f"Effects of card {card.name}: {str(card.effects)}")
         for effect in card.effects:
             if "teleport" in effect.keys():
                 mode = effect["teleport"]["mode"]
@@ -944,7 +983,6 @@ class Game(QWidget):
             action, args = self.fun_queue.pop(0)
             action(*args)
         else:
-            print("Shouldn't be here")
             if self.your_turn == 5:
                 if len(self.shields_to_destroy) == 0:
                     self.your_turn = 0
@@ -956,16 +994,17 @@ class Game(QWidget):
     #####################################################
 
     def post_effect(self):
-        # If it was effect from the spell
-        if self.spell_played:
-            self.spell_played = False
-            self.m_move_to_graveyard("yu_sf", 0)
-            self.refresh_screen()
+        """Run after every effect function"""
         if len(self.fun_queue) > 0:
             # functions still in the queue, run them
             action, args = self.fun_queue.pop(0)
             action(*args)
         else:
+            # If it was effect from the spell, move card to the graveyard
+            if self.spell_played:
+                self.spell_played = False
+                self.move_to_graveyard("yu_sf", 0)
+                self.refresh_screen()
             # If card was from shield, check if all shields were handled
             if self.your_turn == 5 and len(self.shields_to_destroy) == 0:
                 self.your_turn = 0
@@ -986,14 +1025,14 @@ class Game(QWidget):
                 self.add_log(f"All cards with power equal or less than {power} are returned to hand.")
                 for pos, card in self.bfield.get_creatures_with_pos():
                     if card.power <= power:
-                        self.m_return_card_to_hand("yu_bf", pos)
+                        self.return_card_to_hand("yu_bf", pos)
                 for pos, card in self.opp_bfield.get_creatures_with_pos():
                     if card.power <= power:
-                        self.m_return_card_to_hand("op_bf", pos)
+                        self.return_card_to_hand("op_bf", pos)
                 self.post_effect()
         else:
             for card in self.selected_card:
-                self.m_return_card_to_hand(card[0], card[1])
+                self.return_card_to_hand(card[0], card[1])
             self.selected_card = []
             self.type_to_choose = []
             self.select_mode = 0
@@ -1005,7 +1044,7 @@ class Game(QWidget):
             count = args[0]
             self.card_to_draw += count
             while self.card_to_draw > 0:
-                self.m_draw_a_card()
+                self.draw_card()
         elif mode == "race":
             count = args[0]
             race = args[1]
@@ -1017,7 +1056,7 @@ class Game(QWidget):
             if creature_exists:
                 self.card_to_draw += count
                 while self.card_to_draw > 0:
-                    self.m_draw_a_card()
+                    self.draw_card()
         self.post_effect()
 
     def destroy_all_blockers(self):
@@ -1025,12 +1064,12 @@ class Game(QWidget):
         for creature_pos, creature_card in self.bfield.get_creatures_with_pos():
             for effect in creature_card.effects:
                 if "blocker" in effect:
-                    self.m_move_to_graveyard("yu_bf", creature_pos)
+                    self.move_to_graveyard("yu_bf", creature_pos)
         # Opponent blockers
         for creature_pos, creature_card in self.opp_bfield.get_creatures_with_pos():
             for effect in creature_card.effects:
                 if "blocker" in effect:
-                    self.m_move_to_graveyard("op_bf", creature_pos)
+                    self.move_to_graveyard("op_bf", creature_pos)
         self.post_effect()
 
     def return_from_graveyard(self, mode, count):
@@ -1097,7 +1136,7 @@ class Game(QWidget):
             self.post_effect()
 
     def one_for_one(self, count):
-        # TODO
+        # TODO: rothus
         pass
 
     def discard_cards(self, count):
@@ -1116,10 +1155,10 @@ class Game(QWidget):
         # TODO
         pass
 
-    #   MENU METHODS
+    #  GAME METHODS
     #####################################################
 
-    def m_draw_a_card(self):
+    def draw_card(self):
         """Draw a top card from your deck and add it to your hand"""
         # Check if you are allowed to draw a card
         if self.card_to_draw == 0:
@@ -1136,11 +1175,10 @@ class Game(QWidget):
         self.card_to_draw -= 1
         self.refresh_screen()
 
-    def m_end_turn(self):
-        # Action: end your turn
+    def end_turn(self):
+        """End your turn"""
         self.add_log("End of your turn.")
         self.send_message(2)
-
         # untap effect
         # TODO: for now by default untap, later there can be choice
         for card_pos, card in self.bfield.get_creatures_with_pos():
@@ -1153,22 +1191,14 @@ class Game(QWidget):
                         break
                     elif mode == "all":
                         # Untap all your cards
-                        for card_pos_a, _ in self.bfield.get_creatures_with_pos():
-                            self.bfield.set_untapped(card_pos_a)
+                        for pos, _ in self.bfield.get_creatures_with_pos():
+                            self.bfield.set_untapped(pos)
                         break
 
         self.selected_card = []
         self.your_turn = 0
-
-    def m_accept_cards(self):
-        action, args = self.fun_queue.pop(0)
-        action(*args)
-        if self.spell_played:
-            # Move spell to graveyard after usage
-            self.m_move_to_graveyard("yu_sf", 0)
-            self.spell_played = False
         
-    def m_summon_card(self, iden):
+    def summon_card(self, iden):
         card = self.hand[iden]
         if self.mana.can_be_played(card):
             # TODO: check if card can be played due to effect (e.g. not enough opponent's cards)
@@ -1198,7 +1228,7 @@ class Game(QWidget):
             return
         self.refresh_screen()
 
-    def m_choose_card(self, set, iden):
+    def choose_card(self, set, iden):
         # Action: Choose a card as a target for e.g. effect, attack
         if [set, iden] in self.selected_card:
             # can't choose the same card twice
@@ -1213,11 +1243,11 @@ class Game(QWidget):
             self.bfield.set_shield_count(iden, count)
         self.refresh_screen()
 
-    def m_unchoose_card(self, set, iden):
+    def unchoose_card(self, set, iden):
         self.selected_card.remove((set, iden))
         self.refresh_screen()
         
-    def m_return_card_to_hand(self, set, iden):
+    def return_card_to_hand(self, set, iden):
         # Action: Return a card to hand 
         if set == "yu_bf":
             card = self.bfield.remove_card(iden)
@@ -1237,7 +1267,7 @@ class Game(QWidget):
             self.opp_hand.add_placeholder()
         self.refresh_screen()
         
-    def m_return_shield_to_hand(self, iden):
+    def return_shield_to_hand(self, iden):
         # Action: Return your card under destroyed shield to hand
         card = self.shields.remove_shield(iden)
         self.hand.add_card(card)
@@ -1250,7 +1280,7 @@ class Game(QWidget):
             self.add_log(f"You still have {len(self.shields_to_destroy)} shields to decide.")
         self.refresh_screen()
 
-    def m_play_destroyed_shield(self, set, iden):
+    def play_destroyed_shield(self, set, iden):
         # Action: Play a shield with shield trigger
         self.shields_to_destroy.remove(iden)
         card = self.shields.remove_shield(iden)
@@ -1266,7 +1296,7 @@ class Game(QWidget):
             self.summon_effect(card)
         self.refresh_screen()
 
-    def m_move_to_graveyard(self, set, iden):
+    def move_to_graveyard(self, set, iden):
         # Action: Move a card to the graveyard
         if set == "yu_bf":
             # TODO: on death effect
@@ -1308,7 +1338,7 @@ class Game(QWidget):
             self.send_message(6, 0, 1, 5)
         self.refresh_screen()
         
-    def m_add_to_mana(self, iden):
+    def add_to_mana(self, iden):
         if self.card_to_mana > 0:
             card = self.hand.remove_card(iden)
             self.mana.add_card(card)
@@ -1316,35 +1346,35 @@ class Game(QWidget):
             self.send_message(7, card.id)
             self.refresh_screen()
         
-    def m_add_to_shield(self, iden):
+    def add_to_shield(self, iden):
         card = self.hand.remove_card(iden)
         pos = self.shields.add_shield(card)
         self.send_message(8, pos)
         self.refresh_screen()
         
-    def m_tap_mana(self, set, iden):
+    def tap_mana(self, set, iden):
         if not self.mana.is_tapped(iden):
             self.mana.tap_card(iden)
             self.send_message(9, 1, iden)
         self.refresh_screen()
         
-    def m_untap_mana(self, set, iden):
+    def untap_mana(self, set, iden):
         if self.mana.is_tapped(iden):
             self.mana.untap_card(iden)
             self.send_message(9, 0, iden)
         self.refresh_screen()
         
-    def m_look_at_shield(self, iden):
+    def look_at_shield(self, iden):
         self.shields.set_shield_visible(iden)
         self.send_message(10, iden)
         self.refresh_screen()
 
-    def m_put_shield(self, iden):
+    def put_shield(self, iden):
         # TODO: implement this as action on the end of turn if shield was revealed
         # self.shields[iden-1][1] = True
         self.refresh_screen()
         
-    def m_select_creature(self, set, iden):
+    def select_creature(self, set, iden):
         # Action: select your creature to attack another creature or shield
         # TODO: check if creature can attack (ability, tapped)
         if self.bfield.is_tapped(iden):
@@ -1352,12 +1382,12 @@ class Game(QWidget):
         self.selected_card = [(set, iden)]
         self.select_mode = 2
 
-    def m_unselect_creature(self, set, iden):
+    def unselect_creature(self, set, iden):
         # Action: unselect your creature to attack another creature or shield
         self.selected_card.remove((set, iden))
         self.select_mode = 0
 
-    def m_attack_creature(self, set, iden):
+    def attack_creature(self, set, iden):
         # Action: attack creature with your creature
         if len(self.selected_card) == 0 or not self.select_mode == 2: 
             # None of the attacking creatures is selected
@@ -1368,65 +1398,57 @@ class Game(QWidget):
         self.send_message(12, self.selected_card[0][1], iden) # Inform opponent about the attack
         self.your_turn = 0
 
-    def m_select_shield_to_attack(self, iden):
+    def select_shield_to_attack(self, iden):
         if iden in self.selected_shields:
             return
         self.selected_shields.append(iden)
         self.select_mode = 21
 
-    def m_remove_shield_to_attack(self, iden):
+    def remove_shield_to_attack(self, iden):
         self.selected_shields.remove(iden)
 
-    def m_shield_attack(self):
+    def shield_attack(self):
         if len(self.selected_card) == 0 or not self.select_mode == 21:
             return
         self.send_message(13, self.selected_card[0][1], *self.selected_shields)
         self.select_mode = 0
         self.your_turn = 0
 
-    def m_block_with_creature(self, set, iden):
+    def block_with_creature(self, set, iden):
         self.add_log(f"Blocking attack with {iden}")
         self.your_turn = 0
         self.blocker_list = []
         self.send_message(112, iden)
 
-    def m_pass_attack(self): 
+    def pass_attack(self): 
         self.add_log(f"Passing blocking")
         self.your_turn = 0
         self.blocker_list = []
         self.send_message(112, self.chosen)
 
-    def m_shield_block_with_creature(self, set, iden):
+    def shield_block_with_creature(self, set, iden):
         self.add_log(f"Blocking attack with {iden}")
         self.your_turn = 0
         self.blocker_list = []
         self.send_message(113, iden)
 
-    def m_shield_pass_attack(self): 
+    def shield_pass_attack(self): 
         self.add_log(f"Passing blocking")
         self.your_turn = 0
         self.blocker_list = []
         self.send_message(113)  
    
-    def m_opp_look_at_hand(self, iden):
+    def opp_look_at_hand(self, iden):
         self.send_message(11, 0, iden)
         
-    def m_opp_look_at_shield(self, iden):
+    def opp_look_at_shield(self, iden):
         self.send_message(11, 1, iden)
         
-    def m_look_graveyard(self, set):
+    def look_graveyard(self, set):
         if set == "op_gv":
-            graveyard_look = GraveyardView(self.opp_graveyard, self)
+            graveyard_look = GraveyardWindow(self.opp_graveyard, self)
         elif set == "yu_gv":
-            graveyard_look = GraveyardView(self.graveyard, self)
+            graveyard_look = GraveyardWindow(self.graveyard, self)
         else:
             return
         graveyard_look.show()
-
-    def m_debug_info(self):
-        print("====DEBUG====")
-        print(f"your_turn: {self.your_turn}")
-        print(f"select_mode: {self.select_mode}")
-        print(f"selected_card: {self.selected_card}")
-        print(f"selected_shields: {self.selected_shields}")
-        print("=============")

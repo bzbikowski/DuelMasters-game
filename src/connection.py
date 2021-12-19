@@ -1,7 +1,7 @@
-from PySide2.QtWidgets import QDialog
+from PySide6.QtWidgets import QDialog
 
 
-from PySide2.QtWidgets import QDialog
+from PySide6.QtWidgets import QDialog
 from src.ui.ui_connection import Ui_ConnectionMenu
 
 class ConnectionDialog(QDialog):
