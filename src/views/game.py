@@ -65,20 +65,20 @@ class GameView(QGraphicsScene):
         action(*args)
 
     def m_draw_a_card(self):
-        self.parent.draw_card()
+        self.parent.a_draw_card()
 
     def m_end_turn(self):
         # Action: end your turn
-        self.parent.end_turn()
+        self.parent.a_end_turn()
 
     def m_shield_attack(self):
-        self.parent.shield_attack()
+        self.parent.a_shield_attack()
 
     def m_pass_attack(self):
-        self.parent.pass_attack()
+        self.parent.a_pass_attack()
 
     def m_shield_pass_attack(self): 
-        self.parent.shield_pass_attack()
+        self.parent.a_shield_pass_attack()
 
     def m_debug_info(self):
         print("====DEBUG====")

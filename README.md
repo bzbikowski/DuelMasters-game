@@ -59,4 +59,6 @@ Message system (TODO: translate to English):
         12,x,y - (info) ja atakuje swoją kartą x twoją kartę y na polu bitwy
         13,x - ja niszcze ci tarczę na pozycji x
 
+### Usefull commands
+export PATH="$PATH:/c/Users/zbiku/AppData/Local/Packages/PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0/LocalCache/local-packages/Python310/Scripts"
 pyside6-uic -o src/ui/ui_manager.py ui/manager.ui

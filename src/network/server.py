@@ -52,7 +52,7 @@ class Server(QTcpServer):
             self.log.error(f"Couldn't create a valid connection with host {client_ip_address}:{client_port}.")
             self.close_connection()
         self.socket.readyRead.connect(self.receive_data)
-        self.socket.error.connect(self.socket_error_handle)
+        self.socket.errorOccurred.connect(self.socket_error_handle)
         self.socket.disconnected.connect(self.client_disconnected)
         self.log.info("Connection OK")
         self.connectionOk.emit()

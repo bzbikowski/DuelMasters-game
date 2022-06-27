@@ -46,11 +46,11 @@ class Card:
         return json_parse, json.dumps({"effects": json_parse})
 
     @staticmethod
-    def load_images(set_name, set_id):
+    def load_images(folder_path, set_name, set_id):
         images = {}
         sizes = ["low", "medium", "high"]
         for size in sizes:
-            path = f"res//img//{set_name}//{str(set_id)}//{size}.jpg"
+            path = f"{folder_path}//{set_name}//{str(set_id)}//{size}.jpg"
             file = QFile(path)
             if not file.open(QIODevice.ReadOnly):
                 print(f"ERROR: couldn't open file {path}")

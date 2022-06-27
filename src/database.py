@@ -1,8 +1,11 @@
-from PySide6.QtCore import QFile, QIODevice
+import json
+import os
+from PySide6.QtCore import QFile, QIODevice, QStandardPaths, Qt
 from PySide6.QtSql import QSqlDatabase, QSqlQuery
 
+
 from src.cards import Card
-import json
+
 
 
 class Database(object):
@@ -10,9 +13,11 @@ class Database(object):
         # TODO: cleanup class and add doc
         # TODO: proper gid and sid logic
         self.db = QSqlDatabase.addDatabase("QSQLITE")
-        self.db.setDatabaseName("dataset.db")
+        # set db location to $HOME/.local/share/
+        self.db.setDatabaseName(os.path.join(QStandardPaths.writableLocation(QStandardPaths.AppLocalDataLocation), "dataset.db"))
         # db.setUserName(os.getenv("DB_LOG"))
         # db.setPassword(os.getenv("DB_PASS"))
+        res_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, "res")
         if not self.db.open():
             print(self.db.lastError())
             return
@@ -27,7 +32,10 @@ class Database(object):
             if not as_ok:
                 print(as_querry.lastError().text())
                 return
-            assets = [("cardback", "res//img//cardback.png"), ("background", "res//img//background.png"), ("preview", "res//img//console.png"), ("lock", "res//img//lock.png")]
+            # TODO: change to absolute path to the file
+            
+            images_res_path = os.path.join(res_path, "img")
+            assets = [("cardback", f"{images_res_path}//cardback.png"), ("background", f"{images_res_path}//background.png"), ("preview", f"{images_res_path}//console.png"), ("lock", f"{images_res_path}//lock.png")]
             for asset_name, asset_path in assets:
                 file = QFile(asset_path)
                 if not file.open(QIODevice.ReadOnly):
@@ -52,8 +60,8 @@ class Database(object):
             if not cd_ok:
                 print(cd_querry.lastError().text())
                 return
-            for id, global_id, setname, cardname, civ, card_type, race, cost, power, rarity, col_num, artist, rule_text, flavor_text, raw_effects in Card.parseFile("res//cards.xml"):
-                images = Card.load_images(setname, id)
+            for id, global_id, setname, cardname, civ, card_type, race, cost, power, rarity, col_num, artist, rule_text, flavor_text, raw_effects in Card.parseFile(f"{res_path}//cards.xml"):
+                images = Card.load_images(images_res_path, setname, id)
                 _, effects_string = Card.parse_effects(raw_effects)
                 querry = QSqlQuery(self.db)
                 q = "INSERT INTO card (sid, gid, name, civilization, type, race, cost, power, rarity, collector_number, artist," \

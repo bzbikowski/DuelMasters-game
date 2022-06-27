@@ -24,6 +24,7 @@ if __name__ == "__main__":
     parsed_args, unparsed_args = process_args()
     qt_args = sys.argv[:1] + unparsed_args
     app = QApplication(qt_args)
+    app.setApplicationName("Duel_Masters_Game")
     window = Window(parsed_args)
     window.show()
     sys.exit(app.exec())

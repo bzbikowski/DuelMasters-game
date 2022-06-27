@@ -177,70 +177,70 @@ class CardView(QGraphicsPixmapItem):
         menu.exec_(QCursor.pos())
         
     def m_summon_card(self, iden):
-        self.parent.summon_card(iden)
+        self.parent.a_summon_card(iden)
 
     def m_choose_card(self, set, iden):
-        self.parent.choose_card(set, iden)
+        self.parent.a_choose_card(set, iden)
 
     def m_unchoose_card(self, set, iden):
-        self.parent.unchoose_card(set, iden)
+        self.parent.a_unchoose_card(set, iden)
         
     def m_return_card_to_hand(self, set, iden):
-        self.parent.return_card_to_hand(set, iden)
+        self.parent.a_return_card_to_hand(set, iden)
         
     def m_return_shield_to_hand(self, iden):
-        self.parent.return_shield_to_hand(iden)
+        self.parent.a_return_shield_to_hand(iden)
 
     def m_play_destroyed_shield(self, set, iden):
-        self.parent.play_destroyed_shield(set, iden)
+        self.parent.a_play_destroyed_shield(set, iden)
 
     def m_move_to_graveyard(self, set, iden):
-        self.parent.move_to_graveyard(set, iden)
+        self.parent.a_move_to_graveyard(set, iden)
         
     def m_add_to_mana(self, iden):
-        self.parent.add_to_mana(iden)
+        self.parent.a_add_to_mana(iden)
         
     def m_add_to_shield(self, iden):
-        self.parent.add_to_shield(iden)
+        self.parent.a_add_to_shield(iden)
         
     def m_tap_mana(self, set, iden):
-        self.parent.tap_mana(set, iden)
+        self.parent.a_tap_mana(set, iden)
         
     def m_untap_mana(self, set, iden):
-        self.parent.untap_mana(set, iden)
+        self.parent.a_untap_mana(set, iden)
         
     def m_look_at_shield(self, iden):
-        self.parent.look_at_shield(iden)
+        self.parent.a_look_at_shield(iden)
 
     def m_put_shield(self, iden):
-        self.parent.put_shield(iden)
+        self.parent.a_put_shield(iden)
         
     def m_select_creature(self, set, iden):
-        self.parent.select_creature(set, iden)
+        self.parent.a_select_creature(set, iden)
 
     def m_unselect_creature(self, set, iden):
-        self.parent.unselect_creature(set, iden)
+        self.parent.a_unselect_creature(set, iden)
 
     def m_attack_creature(self, set, iden):
-        self.parent.attack_creature(set, iden)
+        self.parent.a_attack_creature(set, iden)
 
     def m_select_shield_to_attack(self, iden):
-        self.parent.select_shield_to_attack(iden)
+        self.parent.a_select_shield_to_attack(iden)
 
     def m_remove_shield_to_attack(self, iden):
-        self.parent.remove_shield_to_attack(iden)
+        self.parent.a_remove_shield_to_attack(iden)
 
     def m_block_with_creature(self, set, iden):
-        self.parent.block_with_creature(set, iden)
+        self.parent.a_block_with_creature(set, iden)
 
     def m_shield_block_with_creature(self, set, iden):
-        self.parent.shield_block_with_creature(set, iden)
+        self.parent.a_shield_block_with_creature(set, iden)
    
     def m_opp_look_at_hand(self, iden):
-        self.parent.opp_look_at_hand(iden)
+        self.parent.a_opp_look_at_hand(iden)
         
     def m_opp_look_at_shield(self, iden):
-        self.parent.opp_look_at_shield(iden)
+        self.parent.a_opp_look_at_shield(iden)
         
     def m_look_graveyard(self, set):
-        self.parent.look_graveyard(set)
+        self.parent.a_look_graveyard(set)

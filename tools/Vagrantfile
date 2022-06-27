@@ -21,6 +21,10 @@ Vagrant.configure("2") do |config|
     server.vm.network  "forwarded_port", guest: 22, host: 2710
     server.vm.synced_folder "../", "/home/vagrant/game"
     server.vm.provision "setup-host", :type => "shell", :path => "scripts\\install.sh"
+    server.trigger.after [:provision] do |t|
+      t.name = "Reboot after provisioning"
+      t.run = { :inline => "vagrant reload" }
+    end
   end
 
   config.vm.define "client" do |client|
@@ -34,6 +38,10 @@ Vagrant.configure("2") do |config|
     client.vm.network "forwarded_port", guest: 22, host: 2711
     client.vm.synced_folder "../", "/home/vagrant/game"
     client.vm.provision "setup-host", :type => "shell", :path => "scripts\\install.sh"
+    client.trigger.after [:provision] do |t|
+      t.name = "Reboot after provisioning"
+      t.run = { :inline => "vagrant reload" }
+    end
   end
 
 end

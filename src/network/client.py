@@ -19,7 +19,7 @@ class Client(QTcpSocket):
         self.address = address
         self.port = port
         self.parent = parent
-        self.error.connect(self.error_handle)
+        self.errorOccurred.connect(self.error_handle)
         self.readyRead.connect(self.receive_data)
         self.disconnected.connect(self.disconnected_with_server)
         self.setup_logger()

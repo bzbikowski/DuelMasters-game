@@ -2,12 +2,13 @@ from PySide6.QtWidgets import QDialog
 
 
 from PySide6.QtWidgets import QDialog
-from src.ui.ui_connection import Ui_ConnectionMenu
+from src.ui.ui_connection import Ui_ConnectionDialog
+
 
 class ConnectionDialog(QDialog):
     def __init__(self, parent=None):
         super(ConnectionDialog, self).__init__(parent)
-        self.ui = Ui_ConnectionMenu()
+        self.ui = Ui_ConnectionDialog()
         self.ui.setupUi(self)
         self.ui.server_button.clicked.connect(self.server_mode)
         self.ui.client_button.clicked.connect(self.client_mode)

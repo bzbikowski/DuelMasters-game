@@ -3,22 +3,27 @@
 ################################################################################
 ## Form generated from reading UI file 'connection.ui'
 ##
-## Created by: Qt User Interface Compiler version 5.15.3
+## Created by: Qt User Interface Compiler version 6.2.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide6.QtCore import *
-from PySide6.QtGui import *
-from PySide6.QtWidgets import *
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
+    QFont, QFontDatabase, QGradient, QIcon,
+    QImage, QKeySequence, QLinearGradient, QPainter,
+    QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtWidgets import (QApplication, QDialog, QPushButton, QSizePolicy,
+    QVBoxLayout, QWidget)
 
-
-class Ui_ConnectionMenu(object):
-    def setupUi(self, ConnectionMenu):
-        if not ConnectionMenu.objectName():
-            ConnectionMenu.setObjectName(u"ConnectionMenu")
-        ConnectionMenu.resize(400, 300)
-        self.verticalLayoutWidget = QWidget(ConnectionMenu)
+class Ui_ConnectionDialog(object):
+    def setupUi(self, ConnectionDialog):
+        if not ConnectionDialog.objectName():
+            ConnectionDialog.setObjectName(u"ConnectionDialog")
+        ConnectionDialog.resize(400, 300)
+        self.verticalLayoutWidget = QWidget(ConnectionDialog)
         self.verticalLayoutWidget.setObjectName(u"verticalLayoutWidget")
         self.verticalLayoutWidget.setGeometry(QRect(9, 9, 381, 281))
         self.verticalLayout = QVBoxLayout(self.verticalLayoutWidget)
@@ -50,15 +55,15 @@ class Ui_ConnectionMenu(object):
         self.verticalLayout.addWidget(self.back_button)
 
 
-        self.retranslateUi(ConnectionMenu)
+        self.retranslateUi(ConnectionDialog)
 
-        QMetaObject.connectSlotsByName(ConnectionMenu)
+        QMetaObject.connectSlotsByName(ConnectionDialog)
     # setupUi
 
-    def retranslateUi(self, ConnectionMenu):
-        ConnectionMenu.setWindowTitle(QCoreApplication.translate("ConnectionMenu", u"Choose connection", None))
-        self.server_button.setText(QCoreApplication.translate("ConnectionMenu", u"Create a game room", None))
-        self.client_button.setText(QCoreApplication.translate("ConnectionMenu", u"Connect to existing game", None))
-        self.back_button.setText(QCoreApplication.translate("ConnectionMenu", u"Back", None))
+    def retranslateUi(self, ConnectionDialog):
+        ConnectionDialog.setWindowTitle(QCoreApplication.translate("ConnectionDialog", u"Choose connection", None))
+        self.server_button.setText(QCoreApplication.translate("ConnectionDialog", u"Create a game room", None))
+        self.client_button.setText(QCoreApplication.translate("ConnectionDialog", u"Connect to existing game", None))
+        self.back_button.setText(QCoreApplication.translate("ConnectionDialog", u"Back to menu", None))
     # retranslateUi
 

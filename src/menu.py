@@ -8,7 +8,7 @@ from src.database import Database
 from src.game import Game
 from src.manager import DeckManager
 from src.ui.ui_menu import Ui_Menu
-from src.connection import ConnectionDialog
+from src.dialogs import ConnectionDialog
 
 
 class MainMenu(QWidget):
@@ -66,6 +66,7 @@ class MainMenu(QWidget):
             self.log.info("Started connection menu")
             self.connection = ConnectionDialog(self)
             mode = self.connection.exec_()
+            # TODO: change to enum
             if mode == 0:
                 self.show_window()
             elif mode in [1, 2]:

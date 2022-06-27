@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'graveyard.ui'
+## Form generated from reading UI file 'common.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.2.2
 ##
@@ -18,12 +18,12 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
 from PySide6.QtWidgets import (QApplication, QGraphicsView, QHBoxLayout, QPushButton,
     QSizePolicy, QVBoxLayout, QWidget)
 
-class Ui_Graveyard(object):
-    def setupUi(self, Graveyard):
-        if not Graveyard.objectName():
-            Graveyard.setObjectName(u"Graveyard")
-        Graveyard.resize(800, 600)
-        self.verticalLayoutWidget = QWidget(Graveyard)
+class Ui_CommonDialog(object):
+    def setupUi(self, CommonDialog):
+        if not CommonDialog.objectName():
+            CommonDialog.setObjectName(u"CommonDialog")
+        CommonDialog.resize(800, 600)
+        self.verticalLayoutWidget = QWidget(CommonDialog)
         self.verticalLayoutWidget.setObjectName(u"verticalLayoutWidget")
         self.verticalLayoutWidget.setGeometry(QRect(10, 10, 771, 571))
         self.verticalLayout = QVBoxLayout(self.verticalLayoutWidget)
@@ -36,22 +36,22 @@ class Ui_Graveyard(object):
 
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.closeButton = QPushButton(self.verticalLayoutWidget)
-        self.closeButton.setObjectName(u"closeButton")
+        self.selectButton = QPushButton(self.verticalLayoutWidget)
+        self.selectButton.setObjectName(u"selectButton")
 
-        self.horizontalLayout.addWidget(self.closeButton)
+        self.horizontalLayout.addWidget(self.selectButton)
 
 
         self.verticalLayout.addLayout(self.horizontalLayout)
 
 
-        self.retranslateUi(Graveyard)
+        self.retranslateUi(CommonDialog)
 
-        QMetaObject.connectSlotsByName(Graveyard)
+        QMetaObject.connectSlotsByName(CommonDialog)
     # setupUi
 
-    def retranslateUi(self, Graveyard):
-        Graveyard.setWindowTitle(QCoreApplication.translate("Graveyard", u"Graveyard", None))
-        self.closeButton.setText(QCoreApplication.translate("Graveyard", u"Close", None))
+    def retranslateUi(self, CommonDialog):
+        CommonDialog.setWindowTitle(QCoreApplication.translate("CommonDialog", u"Select cards", None))
+        self.selectButton.setText(QCoreApplication.translate("CommonDialog", u"Ok", None))
     # retranslateUi
 
