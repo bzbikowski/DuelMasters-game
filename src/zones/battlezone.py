@@ -1,8 +1,12 @@
+import logging
+
+
 class Battlezone():
     # TODO: separate summon sickness from tapping
     # TODO: make battlezone accept infinite cards, not only 5
     def __init__(self, opponent=False, parent=None):
         self._cards = {}
+        self.log = logging.getLogger("dm_game")
 
     def add_card(self, card):
         for i in range(5):
@@ -84,4 +88,7 @@ class Battlezone():
     def __iter__(self):
         for card_pos in self._cards.keys():
             if self.is_taken(card_pos):
+                self.log.debug(f"{card_pos} - {self._cards[card_pos]['card'].name}")
                 yield self._cards[card_pos]["card"]
+            else:
+                self.log.debug(f"{card_pos} - free")

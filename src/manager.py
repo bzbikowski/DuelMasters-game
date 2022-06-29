@@ -1,3 +1,4 @@
+import os
 from PySide6.QtCore import Qt, Slot
 from PySide6.QtGui import QBrush, QColor, QPixmap, QPen, QFont
 from PySide6.QtWidgets import QWidget, QPushButton, QVBoxLayout, QGraphicsView, QGraphicsScene, \
@@ -292,12 +293,12 @@ class DeckManager(QWidget):
                                          QMessageBox.Ok, QMessageBox.Cancel)
             if button == QMessageBox.Cancel:
                 return
-        name, ok_pressed = QInputDialog.getText(self, "Name your deck", "Name")
+        deck_name, ok_pressed = QInputDialog.getText(self, "Name your deck", "Name")
         if not ok_pressed:
             return
-        check = self.validate_file_name(name)
+        check = self.validate_file_name(deck_name)
         if check:
-            with open("decks/{}.txt".format(name), "w") as f:
+            with open(os.path.join(os.path.dirname(__file__), os.pardir, f"decks/{deck_name}.txt"), "w") as f:
                 for card in self.deck:
                     f.write("{0}\n".format(card))
         else:

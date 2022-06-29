@@ -15,6 +15,7 @@ from src.views.graveyard import GraveyardWindow
 from src.dialogs import ServerDialog, ClientDialog
 from src.controller import Controller
 from src.zones import Battlezone, Graveyardzone, Handzone, Manazone, Shieldzone, Spellzone
+from src.enums import SetName
 
 
 class Game(QWidget):
@@ -45,7 +46,8 @@ class Game(QWidget):
         self.focus_request = False
         # TODO: change to enum
         self.select_mode = 0  # 0 - no select mode, 1 - effects, 2 - creature, 21 - shields attack
-        self.card_to_choose = 0
+        self.selected_card_choose = 0
+        self.selected_card_targets = []
         self.turn_count = 0
         self.spell_played = None
 
@@ -89,11 +91,17 @@ class Game(QWidget):
     def get_selected_shields(self):
         return self.selected_shields
 
-    def get_card_to_choose(self):
-        return self.card_to_choose
+    def get_selected_card_choose(self):
+        return self.selected_card_choose
 
-    def get_type_to_choose(self):
-        return self.type_to_choose
+    def get_selected_card_targets(self):
+        return self.selected_card_targets
+
+    def get_your_bf(self):
+        return [card for card in self.bfield]
+
+    def get_your_mn(self):
+        return [card for card in self.mana]
 
     ## Internal functions
     #######################
@@ -197,8 +205,8 @@ class Game(QWidget):
         if self.mode == 1:
             if random.random() < 0.5:
                 self.send_message(0)
-                self.new_round()
                 self.add_log("You start the game! Your turn.", False)
+                self.new_round()
                 self.log.info(f"Turn {self.turn_count}: Host turn.")
             else:
                 self.send_message(1)
@@ -701,6 +709,7 @@ class Game(QWidget):
             self.a_draw_card()
         self.card_to_mana = 1
         self.your_turn = 1
+        self.blocker_list = []
 
     def win(self):
         """Do someting when you win"""
@@ -944,6 +953,7 @@ class Game(QWidget):
                 count =  int(effect["findcard"]["count"])
                 self.fun_queue.append((self.search_for_card, [mode, type, count]))
             if "destroycreatures" in effect.keys():
+                mode = effect["destroycreatures"]["mode"]
                 try:
                     count =  int(effect["destroycreatures"]["count"])
                 except KeyError:
@@ -956,7 +966,7 @@ class Game(QWidget):
                     opp_choice = effect["destroycreatures"]["opponentchoose"]
                 except KeyError:
                     opp_choice = None
-                self.fun_queue.append((self.destroy_creature, [count, power, opp_choice]))
+                self.fun_queue.append((self.destroy_creature, [mode, count, power, opp_choice]))
             if "puttomana" in effect.keys():
                 mode = effect["puttomana"]["mode"]
                 count =  int(effect["puttomana"]["count"])
@@ -992,9 +1002,9 @@ class Game(QWidget):
                 else:
                     self.add_log(f"You still have {len(self.shields_to_destroy)} shields to decide.")
 
-    #  EFFECT METHODS
-    #####################################################
-
+    ####################
+    #  EFFECT METHODS  #
+    ####################
     def post_effect(self):
         """Run after every effect function"""
         if len(self.fun_queue) > 0:
@@ -1017,8 +1027,8 @@ class Game(QWidget):
             if mode=="count":
                 count = args[0]
                 self.add_log(f"Choose {count} cards in the battlefield to activate the effect.")
-                self.card_to_choose = count
-                self.type_to_choose = ["yu_bf", "op_bf"]
+                self.selected_card_choose = count
+                self.selected_card_targets = [("yu_bf", ["*"]), ("op_bf", ["*"])]
                 self.selected_card = []
                 self.fun_queue.insert(0, (self.teleport, [False, mode]))
                 self.select_mode = 1
@@ -1036,7 +1046,7 @@ class Game(QWidget):
             for card in self.selected_card:
                 self.a_return_card_to_hand(card[0], card[1])
             self.selected_card = []
-            self.type_to_choose = []
+            self.selected_card_targets = []
             self.select_mode = 0
             self.refresh_screen()
             self.post_effect()
@@ -1082,16 +1092,125 @@ class Game(QWidget):
         if mode == "deck":
             settings = {"cards": self.deck, "type": type, "count": count}
             cards_window = CommonWindow(settings)
-            selected_cards = cards_window.getSelectedCards()
+            selected_cards = cards_window.get_selected_cards()
             # TODO
         elif mode == "graveyard":
             # TODO
             pass
 
-    def destroy_creature(self, count, power, opp_choice):
-        # TODO
-        pass
+    def destroy_creature(self, mode, count, power, opp_choice):
+        # TODO: better doc
+        # count - int, power - int, opp_choice
+        # E.g. terror pit
+        valid_targets = {"op_bf": [], "yu_bf": []}
 
+        if mode == "untapped":
+            # Untappped opponent cards
+            for pos, _ in self.opp_bfield.get_creatures_with_pos():
+                if not self.opp_bfield.is_tapped(pos):
+                    valid_targets["op_bf"].append(pos)
+        elif mode == "all":
+            # All creatures cards on battlefields
+            for pos, _ in self.bfield.get_creatures_with_pos():
+                valid_targets["yu_bf"].append(pos)
+            for pos, _ in self.opp_bfield.get_creatures_with_pos():
+                valid_targets["op_bf"].append(pos)
+        elif mode == "opponent":
+            # All opponent creatures
+            for pos, _ in self.opp_bfield.get_creatures_with_pos():
+                valid_targets["op_bf"].append(pos)
+
+        if count == None:
+            # Destroy cards based on power
+            if power == None:
+                # Destroy all cards
+                for pos in valid_targets["yu_bf"]:
+                    self.a_move_to_graveyard("yu_bf", pos)
+                for pos in valid_targets["op_bf"]:
+                    self.a_move_to_graveyard("op_bf", pos)
+            else:
+                # Destroy all cards based on power
+                for pos in valid_targets["yu_bf"]:
+                    card_power = self.bfield[pos]['card'].power
+                    if card_power <= power:
+                        self.a_move_to_graveyard(set, pos)
+                for pos in valid_targets["op_bf"]:
+                    card_power = self.opp_bfield[pos]['card'].power
+                    if card_power <= power:
+                        self.a_move_to_graveyard(set, pos)
+            self.refresh_screen()
+            self.post_effect()
+        else:
+            # Only selected targets will be destroyed
+            filtered_targets = {"op_bf": [], "yu_bf": []}
+            if power != None:
+                # Filter out targets by power
+                for pos in valid_targets["yu_bf"]:
+                    card_power = self.bfield[pos]['card'].power
+                    if card_power <= power:
+                        filtered_targets["yu_bf"].append(pos)
+                for pos in valid_targets["op_bf"]:
+                    card_power = self.opp_bfield[pos]['card'].power
+                    if card_power <= power:
+                        filtered_targets["op_bf"].append(pos)
+            else:
+                filtered_targets = valid_targets
+
+            if len(filtered_targets["yu_bf"]) == 0 and len(filtered_targets["op_bf"]) == 0:
+                # No valid targets - do nothing
+                return
+
+            if opp_choice == None:
+                # You will choose which cards to delete
+                self.add_log(f"Select {count} targets from valid target list") # TODO: better log
+                self.selected_card = []
+                self.selected_card_choose = count
+                self.select_mode = 1 # effect
+                self.selected_card_targets = [("yu_bf", filtered_targets["yu_bf"]), ("op_bf", filtered_targets["op_bf"])]
+                self.fun_queue.insert(0, (self.destroy_selected_creatures, []))
+            else:
+                # Opponent chooses which cards to delete
+                self.add_log(f"Your opponent selects {count} targets to be removed") # TODO: better log
+                args = []
+                # invert sets
+                for pos in filtered_targets["yu_bf"]:
+                    args.append(SetName["op_bf"].value)
+                    args.append(pos)
+                for pos in filtered_targets["op_bf"]:
+                    args.append(SetName["yu_bf"].value)
+                    args.append(pos)
+                # TODO: disable your_turn when opponent will be choosing targets
+                self.your_turn = 0
+                self.send_message(17, count, *args)
+
+    def select_creatures_to_be_destoyed(self, count, target_list):
+        self.add_log(f"Select {count} targets from valid target list") # TODO: better log
+        self.your_turn = 2
+        self.selected_card = []
+        self.selected_card_choose = count
+        self.select_mode = 1 # effect
+        targets = {"yu_bf": [pos for (set, pos) in target_list if SetName(set).name == "yu_bf"], "op_bf": [pos for (set, pos) in target_list if SetName(set).name == "op_bf"]}
+        self.selected_card_targets = [("yu_bf", targets["yu_bf"]), ("op_bf", targets["op_bf"])]
+        self.fun_queue.insert(0, (self.destroy_selected_creatures, [True]))
+
+    def destroy_selected_creatures(self, from_opp=False):
+        for set, iden in self.selected_card:
+            self.a_move_to_graveyard(set, iden)
+        self.selected_card = []
+        self.selected_card_choose = 0
+        self.select_mode = 0
+        self.selected_card_targets = []
+        if from_opp:
+            self.your_turn = 0
+            self.send_message(117)
+        self.refresh_screen()
+        self.post_effect()
+
+    def post_destroy_creatures(self):
+        self.your_turn = 1
+        self.refresh_screen()
+        self.post_effect()
+    
     def put_card_to_mana(self, mode, count, *args):
         if mode == "graveyard":
             # TODO
@@ -1123,8 +1242,8 @@ class Game(QWidget):
         if firsttime:
             if mode == "count":
                 self.add_log(f"Choose {count} cards in the battlefield to activate the effect.")
-                self.card_to_choose = count
-                self.type_to_choose = ["op_bf"]
+                self.selected_card_choose = count
+                self.selected_card_targets = [("op_bf", ["*"])]
                 self.selected_card = []
                 self.fun_queue.insert(0, (self.tap_creature, [False, mode]))
                 self.select_mode = 1
@@ -1142,7 +1261,7 @@ class Game(QWidget):
             log_string = ", ".join([str(card[1]) for card in self.selected_card])
             self.add_log(f"{log_string} opponents creature have been tapped.")
             self.selected_card = []
-            self.type_to_choose = []
+            self.selected_card_targets = []
             self.select_mode = 0
             self.refresh_screen()
             self.post_effect()
@@ -1167,8 +1286,9 @@ class Game(QWidget):
         # TODO
         pass
 
-    #  GAME METHODS
-    #####################################################
+    ##################
+    #  GAME METHODS  #
+    ##################
 
     def a_draw_card(self):
         """Draw a top card from your deck and add it to your hand"""
@@ -1236,7 +1356,8 @@ class Game(QWidget):
                     self.spell_played = True
                     self.summon_effect(card)
         else:
-            # Not enough mana tapped, do nothing
+            # TODO: print some info that more or less mana must be tapped instead of doing nothing
+            # Not enough mana tapped, too much mana tapped -> do nothing
             return
         self.refresh_screen()
 
@@ -1422,6 +1543,7 @@ class Game(QWidget):
     def a_shield_attack(self):
         if len(self.selected_card) == 0 or not self.select_mode == 21:
             return
+        self.add_log(f"Attacking shields {self.selected_shields} with card {self.bfield[self.selected_card[0][1]].name}")
         self.send_message(13, self.selected_card[0][1], *self.selected_shields)
         self.select_mode = 0
         self.your_turn = 0
@@ -1464,3 +1586,16 @@ class Game(QWidget):
         else:
             return
         graveyard_look.show()
+
+#### DEBUG ACTIONS
+    def a_debug_info(self):
+        print("====DEBUG====")
+        print(f"your_turn: {self.get_your_turn()}")
+        print(f"select_mode: {self.get_select_mode()}")
+        print(f"selected_card: {self.get_selected_card()}")
+        print(f"selected_shields: {self.get_selected_shields()}")
+        print(f"selected_card_targets: {self.get_selected_card_targets()}")
+        print(f"selected_card_choose: {self.get_selected_card_choose()}")
+        print(f"your_bf: {self.get_your_bf()}")
+        print(f"your_mn: {self.get_your_mn()}")
+        print("=============")

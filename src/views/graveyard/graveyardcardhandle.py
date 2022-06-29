@@ -7,10 +7,9 @@ class GraveyardCardHandle(QGraphicsPixmapItem):
     """
     Single card handle to check more info, add or remove card from your deck.
     """
-    def __init__(self, set, iden, parent):
+    def __init__(self, iden, parent):
         super(GraveyardCardHandle, self).__init__()
         self.parent = parent
-        self.set = set
         self.iden = iden
 
     def contextMenuEvent(self, event):
@@ -21,17 +20,17 @@ class GraveyardCardHandle(QGraphicsPixmapItem):
             return
         menu = QMenu()
         select_action = QAction('Select card from the graveyard')
-        select_action.triggered.connect(lambda: self.m_select_card(self.set, self.iden))
+        select_action.triggered.connect(lambda: self.m_select_card(self.iden))
         menu.addAction(select_action)
         unselect_action = QAction('Unselect card')
-        unselect_action.triggered.connect(lambda: self.m_select_card(self.set, self.iden))
+        unselect_action.triggered.connect(lambda: self.m_select_card(self.iden))
         menu.addAction(unselect_action)
         menu.exec_(QCursor.pos())
 
-    def m_select_card(self, set, iden):
+    def m_select_card(self, iden):
         pass
 
-    def m_unselect_card(self, set, iden):
+    def m_unselect_card(self, iden):
         pass
 
     # def mousePressEvent(self, event):

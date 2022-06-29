@@ -657,7 +657,7 @@ Destroy 1 of your opponent's creatures.</rules_text>
 		<flavor_text></flavor_text>
 		<effects>
 			<shieldtrigger />
-			<destroycreatures mode="all" count="1" />
+			<destroycreatures mode="opponent" count="1" />
 		</effects>
 	</card>
 
@@ -1167,7 +1167,7 @@ Return a creature from your graveyard to your hand.</rules_text>
 		<rules_text>When you put this creature into the battle zone, your opponent chooses 1 of his creatures and destroys it.</rules_text>
 		<flavor_text>Flesh is its food. Bones are its toothpicks.</flavor_text>
         <effects>
-			<destroycreatures mode="all" count="1" opponentchoose="" />
+			<destroycreatures mode="opponent" count="1" opponentchoose="" />
 		</effects>
 	</card>
 
@@ -1199,7 +1199,7 @@ Return a creature from your graveyard to your hand.</rules_text>
 		<rules_text>When you put this creature into the battle zone, you may destroy 1 of your opponent's creatures that has power 2000 or less.</rules_text>
 		<flavor_text></flavor_text>
         <effects>
-			<destroycreatures mode="all" count="1" power="2000" />
+			<destroycreatures mode="opponent" count="1" power="2000" />
 		</effects>
 	</card>
 
@@ -1266,7 +1266,7 @@ Destroy 1 of your opponent's creatures that has power 4000 or less.</rules_text>
 		<flavor_text></flavor_text>
         <effects>
 			<shieldtrigger />
-			<destroycreatures mode="all" count="1" power="4000" />
+			<destroycreatures mode="opponent" count="1" power="4000" />
 		</effects>
 	</card>
 
@@ -1844,7 +1844,7 @@ This creature can't attack.</rules_text>
 		<rules_text>Destroy 1 of your opponent's creatures that has power 2000 or less.</rules_text>
 		<flavor_text>There's nothing a Machine Eater enjoys more than a good game of Whack-a-Hulcus.</flavor_text>
         <effects>
-			<destroycreatures mode="all" count="1" power="2000" />
+			<destroycreatures mode="opponent" count="1" power="2000" />
 		</effects>
 	</card>
 

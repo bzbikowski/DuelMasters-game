@@ -1,6 +1,6 @@
 import json
 import os
-from PySide6.QtCore import QFile, QIODevice, QStandardPaths, Qt
+from PySide6.QtCore import QFile, QIODevice, QStandardPaths
 from PySide6.QtSql import QSqlDatabase, QSqlQuery
 
 
@@ -14,6 +14,8 @@ class Database(object):
         # TODO: proper gid and sid logic
         self.db = QSqlDatabase.addDatabase("QSQLITE")
         # set db location to $HOME/.local/share/
+        if not os.path.exists(QStandardPaths.writableLocation(QStandardPaths.AppLocalDataLocation)):
+            os.mkdir(QStandardPaths.writableLocation(QStandardPaths.AppLocalDataLocation))
         self.db.setDatabaseName(os.path.join(QStandardPaths.writableLocation(QStandardPaths.AppLocalDataLocation), "dataset.db"))
         # db.setUserName(os.getenv("DB_LOG"))
         # db.setPassword(os.getenv("DB_PASS"))
@@ -32,7 +34,6 @@ class Database(object):
             if not as_ok:
                 print(as_querry.lastError().text())
                 return
-            # TODO: change to absolute path to the file
             
             images_res_path = os.path.join(res_path, "img")
             assets = [("cardback", f"{images_res_path}//cardback.png"), ("background", f"{images_res_path}//background.png"), ("preview", f"{images_res_path}//console.png"), ("lock", f"{images_res_path}//lock.png")]

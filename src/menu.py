@@ -2,6 +2,7 @@ import datetime
 import logging
 import sys
 
+from PySide6.QtCore import QStandardPaths
 from PySide6.QtWidgets import QWidget, QPushButton, QGridLayout, QFileDialog, QMessageBox
 
 from src.database import Database
@@ -43,15 +44,13 @@ class MainMenu(QWidget):
         Setup main logger, that will be used across all classes
         """
         import os
-        if not os.path.exists('./logs'):
-            os.mkdir('./logs')
+        path_to_logs_folder = os.path.join(QStandardPaths.writableLocation(QStandardPaths.AppLocalDataLocation), "logs")
+        if not os.path.exists(path_to_logs_folder):
+            os.mkdir(path_to_logs_folder)
         self.log = logging.getLogger("dm_game")
-        if dm:
-            self.log.setLevel(logging.DEBUG)
-        else:
-            self.log.setLevel(logging.INFO)
+        self.log.setLevel(logging.DEBUG)
         time = datetime.datetime.now()
-        terminal = logging.FileHandler('logs/{0}-{1}-{2}_{3}-{4}-{5}.log'.format(time.year, time.month, time.day, time.hour, time.minute, time.second))
+        terminal = logging.FileHandler('{0}/{1}-{2}-{3}_{4}-{5}-{6}.log'.format(path_to_logs_folder, time.year, time.month, time.day, time.hour, time.minute, time.second))
         terminal.setLevel(logging.DEBUG)
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         terminal.setFormatter(formatter)

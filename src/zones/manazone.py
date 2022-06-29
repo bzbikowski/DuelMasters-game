@@ -1,8 +1,13 @@
+import logging
+
+
 class Manazone():
     def __init__(self, opponent=False, parent=None):
         self.cards = []
         self.weights = [0, 0, 0, 0, 0]
         self.dict_civ = {"Light": 0, "Nature": 1, "Darkness": 2, "Fire": 3, "Water": 4}
+
+        self.log = logging.getLogger("dm_game")
 
     def __getitem__(self, index):
         return self.cards[index]["card"]
@@ -17,11 +22,11 @@ class Manazone():
         return self.cards[index]["locked"]
 
     def can_be_played(self, card):
-        print(f"WEIGHTS: {str(self.weights)}")
+        self.log.debug(f"Can be played: weights {str(self.weights)}, card {card.name}")
         sum = 0
         for item in self.weights:
             sum += item
-        return sum >= int(card.cost) and not self.weights[self.dict_civ[card.civ]] == 0
+        return sum == int(card.cost) and not self.weights[self.dict_civ[card.civ]] == 0
 
     def lock_used_mana(self):
         # TODO: lock only used mana if more cards are tapped in mana

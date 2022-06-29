@@ -15,7 +15,7 @@ class ClientDialog(QDialog):
         self.ui.ok_button.clicked.connect(self.verify_data)
         self.ui.back_button.clicked.connect(self.return_to_menu)
 
-        self.ui.ip_address_field.setText("192.168.56.101") # TODO: remove it when ready
+        self.ui.ip_address_field.setText("192.168.56.2") # TODO: remove it when ready
         self.ui.port_field.setText("10023") # TODO: remove it when ready
 
     def return_to_menu(self):

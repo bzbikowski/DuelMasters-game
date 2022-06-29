@@ -38,6 +38,18 @@ class CardView(QGraphicsPixmapItem):
     def set_card(self, card):
         self.card = card
 
+    def check_if_card_in_target(self):
+        for set, targets in self.parent.get_selected_card_targets():
+            if set == self.set:
+                if len(targets) == 0:
+                    continue
+                else:
+                    if targets[0] == "*":
+                        # Allow all cards in that zone to be selected
+                        return True
+                    return self.iden in targets
+        return False
+
     def contextMenuEvent(self, event):
         your_turn = self.parent.get_your_turn()
         select_mode = self.parent.get_select_mode()
@@ -49,7 +61,7 @@ class CardView(QGraphicsPixmapItem):
             unchoose_action = QAction("Cancel selection")
             unchoose_action.triggered.connect(lambda: self.m_unchoose_card(self.set, self.iden))
             menu.addAction(unchoose_action)
-        elif select_mode == 1 and self.set in self.parent.get_type_to_choose():
+        elif select_mode == 1 and self.check_if_card_in_target():
             choose_action = QAction("Choose a card")
             choose_action.triggered.connect(lambda: self.m_choose_card(self.set, self.iden))
             menu.addAction(choose_action)
@@ -82,6 +94,7 @@ class CardView(QGraphicsPixmapItem):
                         use_effect_from_shield.triggered.connect(lambda: self.m_play_destroyed_shield(self.set, self.iden))
                         menu.addAction(use_effect_from_shield)
                         break
+            # TODO: hide these options
             peek_action = QAction('Look at shield')
             peek_action.triggered.connect(lambda: self.m_look_at_shield(self.iden))
             menu.addAction(peek_action)
@@ -160,6 +173,7 @@ class CardView(QGraphicsPixmapItem):
                             select_action = QAction("Target card to attack")
                             select_action.triggered.connect(lambda: self.m_attack_creature(self.set, self.iden))
                             menu.addAction(select_action)
+            # TODO: hide these options
             return_action = QAction("Return a card to hand")
             return_action.triggered.connect(lambda: self.m_return_card_to_hand(self.set, self.iden))
             menu.addAction(return_action)

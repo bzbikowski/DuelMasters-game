@@ -1,3 +1,5 @@
+import logging
+
 
 class Controller:
     """
@@ -9,6 +11,7 @@ class Controller:
         Set class to control
         """
         self.master = module
+        self.log = logging.getLogger("dm_game")
 
     def received_message(self, msg):
         """
@@ -16,8 +19,8 @@ class Controller:
         """
         command = int(msg[:2], base=16)
         msg = msg[2:]
-        print("CONTROLLER - COMMAND: " + str(command))
-        print("CONTROLLER - MSG: " + str(msg))
+        self.log.debug("CONTROLLER - RECEIVED COMMAND: " + str(command))
+        self.log.debug("CONTROLLER - MSG: " + str(msg))
         if command == 0:
             # 0 - you win
             # self.master.win()
@@ -57,20 +60,22 @@ class Controller:
                 if c_space == 0:
                     card = self.master.mana.remove_card(c_pos)
                     self.master.hand.add_card(card)
-                    self.master.add_log("You pick up card from mana to your hand.")
+                    self.master.add_log(f"You pick up {card.name} from mana zone to your hand.")
                 elif c_space == 1:
                     card = self.master.bfield.remove_card(c_pos)
                     self.master.hand.add_card(card)
-                    self.master.add_log("You pick up card from battle zone to your hand.")
+                    self.master.add_log(f"You pick up {card.name} from battle zone to your hand.")
             elif c_player == 1:
                 if c_space == 0:
-                    self.master.opp_mana.remove_card(c_pos)
+                    card = self.master.opp_mana.remove_card(c_pos)
                     self.master.opp_hand.add_placeholder()
-                    self.master.add_log("Opponent picks up card from mana to your hand.")
+                    # TODO: add better logging (which card etc.)
+                    self.master.add_log(f"Opponent picks up {card.name} from mana to his hand.")
                 elif c_space == 1:
-                    self.master.opp_bfield.remove_card(c_pos)
+                    card = self.master.opp_bfield.remove_card(c_pos)
                     self.master.opp_hand.add_placeholder()
-                    self.master.add_log("Opponent picks up card from battle zone to your hand.")
+                    # TODO: add better logging (which card etc.)
+                    self.master.add_log(f"Opponent picks up {card.name} from battle zone to his hand.")
         elif command == 6:
             # 6,v,x,y - player v puts card from x space from y spot to his graveyard
             # v - 0/1 - you/opponent
@@ -82,28 +87,28 @@ class Controller:
                 if c_space == 0:
                     card = self.master.mana.remove_card(c_pos)
                     self.master.graveyard.add_card(card)
-                    self.master.add_log("Your card from mana zone was moved to your graveyard.")
+                    self.master.add_log(f"Your card {card.name} from mana zone was moved to your graveyard.")
                 elif c_space == 1:
                     card = self.master.bfield.remove_card(c_pos)
                     self.master.graveyard.add_card(card)
-                    self.master.add_log("Your card from battle zone was moved to your graveyard.")
+                    self.master.add_log(f"Your card {card.name} from battle zone was moved to your graveyard.")
                 elif c_space == 2:
                     card = self.master.hand.remove_card(c_pos)
                     self.master.graveyard.add_card(card)
                     self.master.send_message(15, card.id)
-                    self.master.add_log("Your card from hand was discarded to your graveyard.")
+                    self.master.add_log(f"Your card {card.name} from hand was discarded to your graveyard.")
             elif c_player == 1:
                 if c_space == 0:
                     card = self.master.opp_mana.remove_card(c_pos)
                     self.master.opp_graveyard.add_card(card)
-                    self.master.add_log("Opponent's card from mana zone was moved to his graveyard.")
+                    self.master.add_log(f"Opponent's card {card.name} from mana zone was moved to his graveyard.")
                 elif c_space == 1:
                     if c_pos == 5:
                         card = self.master.opp_sfield.remove_card()
                     else:
                         card = self.master.opp_bfield.remove_card(c_pos)
                     self.master.opp_graveyard.add_card(card)
-                    self.master.add_log("Opponent's card from battle zone was moved to his graveyard.")
+                    self.master.add_log(f"Opponent's card {card.name} from battle zone was moved to his graveyard.")
         elif command == 7:
             # 7,x - opponent adds card x from his hand to mana
             c_id = int(msg[:2], base=16)
@@ -153,7 +158,9 @@ class Controller:
             # 12,x,y - opponent attacks your x card with his y card on the battlefield
             c_opp_pos = int(msg[:2], base=16)
             c_my_pos = int(msg[2:4], base=16)
-            self.master.add_log(f"Opponent is attacking your card {c_my_pos} with card {c_opp_pos}.")
+            opp_card = self.master.opp_bfield[c_opp_pos]
+            my_card = self.master.bfield[c_my_pos]
+            self.master.add_log(f"Opponent is attacking your card {my_card.name} with card {opp_card.name}.")
             self.master.creature_attacked(c_opp_pos, c_my_pos)
         elif command == 112:
             # 112,x - returned which card you will attack
@@ -209,7 +216,6 @@ class Controller:
             self.master.add_log(f"Opponent discarded {card.name}")
             self.master.refresh_screen()
         elif command == 16:
-            # TODO: add logs
             # 16,v,x,y - x player taps/untaps a y creature
             # v - 0/1 - tap/untap
             # x - 0/1 - you/opponent
@@ -222,16 +228,37 @@ class Controller:
                 if c_player == 0:
                     # You
                     self.master.bfield.set_tapped(c_pos)
+                    self.master.add_log(f"Your creature at pos {c_pos} is now tapped.")
                 elif c_player == 1:
                     self.master.opp_bfield.set_tapped(c_pos)
+                    self.master.add_log(f"Opponent creature at pos {c_pos} is now tapped.")
             if c_tap == 1:
                 # Untap
                 if c_player == 0:
                     # You
                     self.master.bfield.set_untapped(c_pos)
+                    self.master.add_log(f"Your creature at pos {c_pos} is now untapped.")
                 elif c_player == 1:
                     self.master.opp_bfield.set_untapped(c_pos)
+                    self.master.add_log(f"Opponent creature at pos {c_pos} is now untapped.")
             self.master.refresh_screen()
+        elif command == 17:
+            # 17,c,s1,p1,s2,p2... - opponent chooses which cards to destroy from the list
+            # c - how many creatures to destoy
+            # sa - set of a-th card
+            # pa - position of a-th card
+            target_list = []
+            count=int(msg[0:2], base=16)
+            msg = msg[2:]
+            while len(msg) > 0:
+                set=int(msg[0:2], base=16)
+                pos=int(msg[2:4], base=16)
+                target_list.append((set, pos))
+                msg = msg[4:]
+            self.master.select_creatures_to_be_destoyed(count, target_list)
+        elif command == 117:
+            # 117 - opponent choosed cards and his actions ended
+            self.master.post_destroy_creatures()
 
             
 

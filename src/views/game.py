@@ -36,7 +36,7 @@ class GameView(QGraphicsScene):
                 menu.exec_(QCursor.pos())
             else:
                 menu = QMenu()
-                if select_mode == 1 and len(self.parent.get_selected_card()) == self.parent.get_card_to_choose():
+                if select_mode == 1 and len(self.parent.get_selected_card()) == self.parent.get_selected_card_choose():
                     accept_action = QAction("Trigger effect")
                     accept_action.triggered.connect(self.m_accept_cards)
                     menu.addAction(accept_action)
@@ -81,9 +81,4 @@ class GameView(QGraphicsScene):
         self.parent.a_shield_pass_attack()
 
     def m_debug_info(self):
-        print("====DEBUG====")
-        print(f"your_turn: {self.parent.get_your_turn()}")
-        print(f"select_mode: {self.parent.get_select_mode()}")
-        print(f"selected_card: {self.parent.get_selected_card()}")
-        print(f"selected_shields: {self.parent.get_selected_shields()}")
-        print("=============")
+        self.parent.a_debug_info()
