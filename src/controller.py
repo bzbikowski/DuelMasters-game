@@ -259,7 +259,12 @@ class Controller:
         elif command == 117:
             # 117 - opponent choosed cards and his actions ended
             self.master.post_destroy_creatures()
-
+        elif command == 18:
+            # 18,x - opponent adds card x from his deck to hand
+            c_id = int(msg[:2], base=16)
+            card = self.master.database.get_card(c_id)
+            self.master.opp_hand.add_placeholder()
+            self.master.add_log(f"Opponent added card {card.name} from his deck to his hand")
             
 
 

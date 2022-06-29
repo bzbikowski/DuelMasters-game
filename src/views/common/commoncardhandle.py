@@ -7,31 +7,30 @@ class CommonCardHandle(QGraphicsPixmapItem):
     """
     Single card handle to check more info, add or remove card from your deck.
     """
-    def __init__(self, iden, parent):
+    def __init__(self, cards_pos, parent):
         super(CommonCardHandle, self).__init__()
         self.parent = parent
-        self.iden = iden
+        self.cards_pos = cards_pos
 
     def contextMenuEvent(self, event):
-        your_turn = self.parent.get_your_turn()
-        select_mode = self.parent.get_select_mode()
-        selected_card = self.parent.get_selected_card()
-        if your_turn == 0:
-            return
+        selected_cards = self.parent.get_selected_cards()
         menu = QMenu()
-        select_action = QAction('Select card')
-        select_action.triggered.connect(lambda: self.m_select_card(self.iden))
-        menu.addAction(select_action)
-        unselect_action = QAction('Unselect card')
-        unselect_action.triggered.connect(lambda: self.m_select_card(self.iden))
-        menu.addAction(unselect_action)
+        if self.cards_pos in selected_cards:
+            unselect_action = QAction('Unselect card')
+            unselect_action.triggered.connect(lambda: self.m_select_card(self.cards_pos))
+            menu.addAction(unselect_action)
+        else:
+            if len(selected_cards) < self.parent.count:
+                select_action = QAction('Select card')
+                select_action.triggered.connect(lambda: self.m_select_card(self.cards_pos))
+                menu.addAction(select_action)
         menu.exec_(QCursor.pos())
 
-    def m_select_card(self, iden):
-        pass
+    def m_select_card(self, cards_pos):
+        self.parent.add_selected_cards(cards_pos)
 
-    def m_unselect_card(self, iden):
-        pass
+    def m_unselect_card(self, cards_pos):
+        self.parent.remove_selected_cards(cards_pos)
 
     # def mousePressEvent(self, event):
     #     if event.button() == Qt.MiddleButton:

@@ -950,6 +950,8 @@ class Game(QWidget):
             if "findcard" in effect.keys():
                 mode = effect["findcard"]["mode"]
                 type = effect["findcard"]["type"]
+                if type == "all":
+                    type = ["creature", "spell"]
                 count =  int(effect["findcard"]["count"])
                 self.fun_queue.append((self.search_for_card, [mode, type, count]))
             if "destroycreatures" in effect.keys():
@@ -1089,19 +1091,30 @@ class Game(QWidget):
         pass
 
     def search_for_card(self, mode, type, count):
+        # TODO: better doc
+        cards = []
         if mode == "deck":
-            settings = {"cards": self.deck, "type": type, "count": count}
-            cards_window = CommonWindow(settings)
-            selected_cards = cards_window.get_selected_cards()
-            # TODO
-        elif mode == "graveyard":
-            # TODO
-            pass
+            # TODO: cache results? make it faster?
+            cards = [iden for iden in self.deck if str.lower(self.database.get_card(iden).card_type) in type]
+            settings = {"cards": cards, "type": type, "count": count}
+            self.cards_window = CommonWindow(settings, self)
+            self.cards_window.card_choosed.connect(self.post_search_for_card)
+            self.cards_window.show()
+
+    def post_search_for_card(self):
+        # TODO: better doc
+        for card_id in self.cards_window.get_selected_items():
+            card = self.database.get_card(card_id)
+            self.deck.remove(card_id)
+            self.add_log(f"Added card {card.name} from deck to hand")
+            self.send_message(18, card_id)
+            self.hand.add_card(card)
+        random.shuffle(self.deck)
+        self.refresh_screen()
+        self.post_effect()
 
     def destroy_creature(self, mode, count, power, opp_choice):
         # TODO: better doc
-        # count - int, power - int, opp_choice
-        # E.g. terror pit
         valid_targets = {"op_bf": [], "yu_bf": []}
 
         if mode == "untapped":
@@ -1179,7 +1192,6 @@ class Game(QWidget):
                 for pos in filtered_targets["op_bf"]:
                     args.append(SetName["yu_bf"].value)
                     args.append(pos)
-                # TODO: disable your_turn when opponent will be choosing targets
                 self.your_turn = 0
                 self.send_message(17, count, *args)
 
