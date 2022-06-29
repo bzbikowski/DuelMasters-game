@@ -972,7 +972,8 @@ class Game(QWidget):
             if "puttomana" in effect.keys():
                 mode = effect["puttomana"]["mode"]
                 count =  int(effect["puttomana"]["count"])
-                self.fun_queue.append((self.put_card_to_mana, [mode, count]))
+                args = [value for key, value in effect["puttomana"] if key not in ["mode", "count"]]
+                self.fun_queue.append((self.put_card_to_mana, [mode, count, *args]))
             if "tap" in effect.keys():
                 mode = effect["tap"]["mode"]
                 if mode == "count":
@@ -1087,8 +1088,24 @@ class Game(QWidget):
         self.post_effect()
 
     def return_from_graveyard(self, mode, count):
-        # TODO
-        pass
+        # TODO: add typing, assume creatures for now
+        if mode == "hand":
+            cards = [card.id for card in self.graveyard if str.lower(card.card_type) == "creature"]
+            settings = {"cards": cards, "type": type, "count": count}
+            self.cards_window = CommonWindow(settings, self)
+            self.cards_window.card_choosed.connect(self.post_return_from_graveyard)
+            self.cards_window.show()
+
+    def post_return_from_graveyard(self):
+        # TODO: better doc
+        for card_id in self.cards_window.get_selected_items():
+            card = self.database.get_card(card_id)
+            self.graveyard.remove_card(card)
+            self.add_log(f"Added card {card.name} from graveyard to hand")
+            self.send_message(19, card_id)
+            self.hand.add_card(card)
+        self.refresh_screen()
+        self.post_effect()
 
     def search_for_card(self, mode, type, count):
         # TODO: better doc
@@ -1224,31 +1241,104 @@ class Game(QWidget):
         self.post_effect()
     
     def put_card_to_mana(self, mode, count, *args):
-        if mode == "graveyard":
-            # TODO
-            pass
-        elif mode == "hand":
-            # TODO
-            pass
-        elif mode == "top":
-            # Put a card from the top of your deck to mana
+        if mode == "top":
             for _ in range(count):
-                if not len(self.deck) == 0:
-                    card_id = self.deck.pop(0)
-                    card = self.database.get_card(card_id)
-                    self.add_log(f"You put {card.name} from the top of the deck to mana.")
-                    self.mana.add_card(card)
-                    # self.send_message(3)
-                else:
-                    self.add_log("You don't have enough cards to put to mana. You lose!")
-                    self.lose()
+                # Put a card from the top of your deck to mana
+                card = self.a_get_top_card()
+                self.add_log(f"You put {card.name} from the top of the deck to mana.")
+                self.mana.add_card(card)
+                self.send_message(7, 1, card.id)
+            self.refresh_screen()
             self.post_effect()
+            return
         elif mode == "opponentbf":
-            # TODO
-            pass
+            if args[0] is not None:
+                # TODO: better way to check if opponent select is set
+                # Opponent chooses which cards to sacrafice to mana zone
+                self.add_log(f"Your opponent selects {count} targets to be moved to mana zone from battlefield") # TODO: better log
+                args = []
+                for pos, _ in self.opp_bfield.get_creatures_with_pos():
+                    args.append(SetName["yu_bf"].value)
+                    args.append(pos)
+                self.your_turn = 0
+                self.send_message(20, count, *args)
+            else:
+                self.add_log(f"Select {count} targets from your opponent battlefield zone to be moved to mana zone")
+                self.selected_card = []
+                self.selected_card_choose = count
+                self.select_mode = 1 # effect
+                self.selected_card_targets = [("op_bf", ["*"])]
+                self.fun_queue.insert(0, (self.sacrafice_selected_creatures, []))
+            return
         elif mode == "battlefield":
-            # TODO
-            pass
+            self.add_log(f"Select {count} targets from your battlefield zone to be sacraficed to mana zone")
+            self.selected_card = []
+            self.selected_card_choose = count
+            self.select_mode = 1 # effect
+            self.selected_card_targets = [("yu_bf", ["*"])]
+            self.fun_queue.insert(0, (self.sacrafice_selected_creatures, []))
+            return
+        cards = []
+        if mode == "graveyard":
+            cards = [card.id for card in self.graveyard]
+        elif mode == "hand":
+            cards = [card.id for card in self.hand]
+        settings = {"cards": cards, "count": count}
+        self.cards_window = CommonWindow(settings, self)
+        self.cards_window.card_choosed.connect(lambda: self.post_put_card_to_mana(mode))
+        self.cards_window.show()
+
+    def post_put_card_to_mana(self, mode):
+        # TODO: better doc
+        for card_id in self.cards_window.get_selected_items():
+            card = self.database.get_card(card_id)
+            if mode == "graveyard":
+                self.graveyard.remove_card(card)
+                self.add_log(f"Added card {card.name} from graveyard to mana")
+                self.send_message(7, 2, card_id)
+                self.mana.add_card(card)
+            elif mode == "hand":
+                self.hand.remove_card(card)
+                self.add_log(f"Added card {card.name} from hand to mana")
+                self.send_message(7, 0, card_id)
+                self.mana.add_card(card)
+        self.refresh_screen()
+        self.post_effect()
+
+    def select_creatures_to_be_sacraficed(self, count, target_list):
+        self.add_log(f"Select {count} targets from valid target list") # TODO: better log
+        self.your_turn = 2
+        self.selected_card = []
+        self.selected_card_choose = count
+        self.select_mode = 1 # effect
+        targets = {"yu_bf": [pos for (set, pos) in target_list if SetName(set).name == "yu_bf"]}
+        self.selected_card_targets = [("yu_bf", targets["yu_bf"])]
+        self.fun_queue.insert(0, (self.sacrafice_selected_creatures, [True]))
+
+    def sacrafice_selected_creatures(self, from_opp=False):
+        for set, iden in self.selected_card:
+            if set == "yu_bf":
+                card = self.bfield.remove_card(iden)
+                self.mana.add_card(card)
+                self.send_message(21, 0, iden)
+            elif set == "op_bf":
+                card = self.opp_bfield.remove_card(iden)
+                self.opp_mana.add_card(card)
+                self.send_message(21, 1, iden)
+        self.selected_card = []
+        self.selected_card_choose = 0
+        self.select_mode = 0
+        self.selected_card_targets = []
+        if from_opp:
+            self.your_turn = 0
+            self.send_message(120)
+        self.refresh_screen()
+        self.post_effect()
+
+    def post_sacrafice_creatures(self):
+        self.your_turn = 1
+        self.refresh_screen()
+        self.post_effect()
 
     def tap_creature(self, firsttime, mode, count=0):
         if firsttime:
@@ -1302,20 +1392,25 @@ class Game(QWidget):
     #  GAME METHODS  #
     ##################
 
+    def a_get_top_card(self):
+        """Draw a top card from your deck and return it"""
+        if not len(self.deck) == 0:
+            card_id = self.deck.pop(0)
+            card = self.database.get_card(card_id)
+        else:
+            self.add_log("You don't have enough cards to draw from. You lose!")
+            self.lose()
+        return card
+
     def a_draw_card(self):
         """Draw a top card from your deck and add it to your hand"""
         # Check if you are allowed to draw a card
         if self.card_to_draw == 0:
             return
-        if not len(self.deck) == 0:
-            card_id = self.deck.pop(0)
-            card = self.database.get_card(card_id)
-            self.add_log("You draw a card {}.".format(card.name))
-            self.hand.add_card(card)
-            self.send_message(3)
-        else:
-            self.add_log("You don't have enough cards to draw from. You lose!")
-            self.lose()
+        card = self.a_get_top_card()
+        self.add_log("You draw a card {}.".format(card.name))
+        self.hand.add_card(card)
+        self.send_message(3)
         self.card_to_draw -= 1
         self.refresh_screen()
 
@@ -1488,7 +1583,7 @@ class Game(QWidget):
             card = self.hand.remove_card(iden)
             self.mana.add_card(card)
             self.card_to_mana -= 1
-            self.send_message(7, card.id)
+            self.send_message(7, 0, card.id)
             self.refresh_screen()
         
     def a_add_to_shield(self, iden):

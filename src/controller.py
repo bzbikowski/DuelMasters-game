@@ -22,8 +22,6 @@ class Controller:
         self.log.debug("CONTROLLER - RECEIVED COMMAND: " + str(command))
         self.log.debug("CONTROLLER - MSG: " + str(msg))
         if command == 0:
-            # 0 - you win
-            # self.master.win()
             # 0 - opponent start the game
             self.master.add_log("Opponent starts the game.")
         elif command == 1:
@@ -79,7 +77,7 @@ class Controller:
         elif command == 6:
             # 6,v,x,y - player v puts card from x space from y spot to his graveyard
             # v - 0/1 - you/opponent
-            # x - 0/1 - mana/battlefield/hand
+            # x - 0/1/2 - mana/battlefield/hand
             c_player = int(msg[:2], base=16)
             c_space = int(msg[2:4], base=16)
             c_pos = int(msg[4:6], base=16)
@@ -110,12 +108,24 @@ class Controller:
                     self.master.opp_graveyard.add_card(card)
                     self.master.add_log(f"Opponent's card {card.name} from battle zone was moved to his graveyard.")
         elif command == 7:
-            # 7,x - opponent adds card x from his hand to mana
-            c_id = int(msg[:2], base=16)
-            card = self.master.database.get_card(c_id)
-            self.master.opp_mana.add_card(card)
-            self.master.opp_hand.remove_card(0)
-            self.master.add_log(f"Opponent played card {card.name} from his hand to the mana zone")
+            # 7,x,y - opponent puts y card from x space to manazone
+            # x - 0/1/2/3 - hand/deck/graveyard
+            c_space = int(msg[0:2], base=16)
+            c_id = int(msg[2:4], base=16)
+            if c_space == 0:
+                card = self.master.database.get_card(c_id)
+                self.master.opp_mana.add_card(card)
+                self.master.opp_hand.remove_card(0)
+                self.master.add_log(f"Opponent added card {card.name} from his hand to the mana zone")
+            elif c_space == 1:
+                card = self.master.database.get_card(c_id)
+                self.master.opp_mana.add_card(card)
+                self.master.add_log(f"Opponent added card {card.name} from his deck to the mana zone")
+            elif c_space == 2:
+                card = self.master.database.get_card(c_id)
+                self.master.opp_mana.add_card(card)
+                self.master.opp_graveyard.remove_card(card)
+                self.master.add_log(f"Opponent added card {card.name} from his graveyard to the mana zone")
         elif command == 8:
             # 8,x - opponent adds card from his hand to y shield (face down)
             c_pos = int(msg[0:2], base=16)
@@ -265,15 +275,41 @@ class Controller:
             card = self.master.database.get_card(c_id)
             self.master.opp_hand.add_placeholder()
             self.master.add_log(f"Opponent added card {card.name} from his deck to his hand")
-            
-
-
-
-
-
-
-
-
-
-
-
+        elif command == 19:
+            # 19,x - opponent adds card x from his graveyard to his hand
+            c_id = int(msg[:2], base=16)
+            card = self.master.database.get_card(c_id)
+            self.master.opp_graveyard.remove_card(card)
+            self.master.opp_hand.add_placeholder()
+            self.master.add_log(f"Opponent added card {card.name} from his graveyard to his hand")
+        elif command == 20:
+            # 20,c,s1,p1,s2,p2... - opponent chooses which cards to move to manazone from the list
+            # c - how many creatures to sacrafice
+            # sa - set of a-th card
+            # pa - position of a-th card
+            target_list = []
+            count=int(msg[0:2], base=16)
+            msg = msg[2:]
+            while len(msg) > 0:
+                set=int(msg[0:2], base=16)
+                pos=int(msg[2:4], base=16)
+                target_list.append((set, pos))
+                msg = msg[4:]
+            self.master.select_creatures_to_be_sacraficed(count, target_list)
+        elif command == 120:
+            # 120 - opponent choosed cards and his actions ended
+            self.master.post_sacrafice_creatures()
+        elif command == 21:
+            # 21,y,x - player x puts card from y pos on battlefield zone to manazone
+            # x - 0/1 - opponent/you
+            # y - position
+            c_player = int(msg[0:2], base=16)
+            c_pos = int(msg[2:4], base=16)
+            if c_player == 0:
+                card = self.master.opp_bfield.remove_card(c_pos)
+                self.master.opp_mana.add_card(card)
+                self.master.add_log(f"Opponent moved card {card.name} from his battlezone to the mana zone")
+            elif c_player == 1:
+                card = self.master.bfield.remove_card(c_pos)
+                self.master.mana.add_card(card)
+                self.master.add_log(f"Opponent moved your card {card.name} from battlezone to your mana zone")

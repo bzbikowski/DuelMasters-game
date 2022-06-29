@@ -33,6 +33,9 @@ class Card:
         self.power = power
         self.effects = effect
 
+    def __eq__(self, other):
+        return self.globid == other.globid
+
     def is_placeholder(self):
         return self.id == -1
 

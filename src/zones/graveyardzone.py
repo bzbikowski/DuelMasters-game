@@ -16,3 +16,6 @@ class Graveyardzone():
 
     def add_card(self, card):
         self.cards.append(card)
+
+    def remove_card(self, card):
+        self.cards.remove(card)
