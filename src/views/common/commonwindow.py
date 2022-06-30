@@ -21,7 +21,6 @@ class CommonWindow(QWidget):
         self.ui.selectButton.clicked.connect(self.return_selected_items)
 
         self.cards = settings["cards"]
-        self.type = settings["type"]
         self.count = settings["count"]
 
         self.parent = parent

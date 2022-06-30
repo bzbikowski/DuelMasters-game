@@ -3,7 +3,7 @@ from PySide6.QtCore import Qt, Slot
 from PySide6.QtGui import QBrush, QColor, QPixmap, QPen, QFont
 from PySide6.QtWidgets import QWidget, QPushButton, QVBoxLayout, QGraphicsView, QGraphicsScene, \
     QGraphicsPixmapItem, QGraphicsEllipseItem, QGraphicsTextItem, QGraphicsRectItem, QDialog, \
-    QInputDialog, QMessageBox
+    QInputDialog, QMessageBox, QFileDialog
 
 from src.ui.ui_manager import Ui_Manager
 from src.views.manager import ManagerCardHandle
@@ -293,12 +293,15 @@ class DeckManager(QWidget):
                                          QMessageBox.Ok, QMessageBox.Cancel)
             if button == QMessageBox.Cancel:
                 return
-        deck_name, ok_pressed = QInputDialog.getText(self, "Name your deck", "Name")
-        if not ok_pressed:
+        deck_file = QFileDialog().getSaveFileName(self, "Save deck", os.path.join(os.path.dirname(__file__), os.pardir, "decks"), "Text files (*.txt)")
+        if not deck_file or deck_file[0] == "":
             return
-        check = self.validate_file_name(deck_name)
+        deck_file = deck_file[0]
+        if not deck_file.endswith(".txt"):
+            deck_file += ".txt"
+        check = self.validate_file_name(deck_file)
         if check:
-            with open(os.path.join(os.path.dirname(__file__), os.pardir, f"decks/{deck_name}.txt"), "w") as f:
+            with open(deck_file, "w") as f:
                 for card in self.deck:
                     f.write("{0}\n".format(card))
         else:
@@ -316,13 +319,14 @@ class DeckManager(QWidget):
         self.redraw()
 
     @staticmethod
-    def validate_file_name(name):
+    def validate_file_name(path):
         """
         Check string if it's acceptable for file name
         """
+        deck_name = os.path.basename(path)
         chars = ["!", "/", "?"]
         for char in chars:
-            if char in name:
+            if char in deck_name:
                 return False
         return True
 

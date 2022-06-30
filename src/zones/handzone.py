@@ -16,11 +16,15 @@ class Handzone():
         self.cards.append(Card(set_id=-1))
 
     def remove_card(self, pos):
+        # Remove by position on the hand and return card
         return self.cards.pop(pos)
 
-    def discard_random(self):
+    def remove_card_by_id(self, card):
+        # Remove by id of the card
+        self.cards.remove(card)
+
+    def return_random(self):
         pos = choice(range(len(self.cards)))
-        self.cards.pop(pos)
         return pos
 
     def __getitem__(self, index):

@@ -1,6 +1,7 @@
 import datetime
 import logging
 import sys
+import os
 
 from PySide6.QtCore import QStandardPaths
 from PySide6.QtWidgets import QWidget, QPushButton, QGridLayout, QFileDialog, QMessageBox
@@ -86,7 +87,7 @@ class MainMenu(QWidget):
         Load your deck from txt file.
         """
         self.log.debug("Loading file with deck")
-        file = QFileDialog().getOpenFileName(self, "Load deck", ".//decks", "Text files (*.txt)")
+        file = QFileDialog().getOpenFileName(self, "Load deck", os.path.join(os.path.dirname(__file__), os.pardir, "decks"), "Text files (*.txt)")
         if not file or file[0] == "":
             return
         self.log.debug(f"Trying to load {file[0]} file")

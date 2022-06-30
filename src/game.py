@@ -972,7 +972,7 @@ class Game(QWidget):
             if "puttomana" in effect.keys():
                 mode = effect["puttomana"]["mode"]
                 count =  int(effect["puttomana"]["count"])
-                args = [value for key, value in effect["puttomana"] if key not in ["mode", "count"]]
+                args = [(key, value) for key, value in effect["puttomana"].items() if key not in ["mode", "count"]]
                 self.fun_queue.append((self.put_card_to_mana, [mode, count, *args]))
             if "tap" in effect.keys():
                 mode = effect["tap"]["mode"]
@@ -1091,7 +1091,7 @@ class Game(QWidget):
         # TODO: add typing, assume creatures for now
         if mode == "hand":
             cards = [card.id for card in self.graveyard if str.lower(card.card_type) == "creature"]
-            settings = {"cards": cards, "type": type, "count": count}
+            settings = {"cards": cards, "count": count}
             self.cards_window = CommonWindow(settings, self)
             self.cards_window.card_choosed.connect(self.post_return_from_graveyard)
             self.cards_window.show()
@@ -1113,7 +1113,7 @@ class Game(QWidget):
         if mode == "deck":
             # TODO: cache results? make it faster?
             cards = [iden for iden in self.deck if str.lower(self.database.get_card(iden).card_type) in type]
-            settings = {"cards": cards, "type": type, "count": count}
+            settings = {"cards": cards, "count": count}
             self.cards_window = CommonWindow(settings, self)
             self.cards_window.card_choosed.connect(self.post_search_for_card)
             self.cards_window.show()
@@ -1252,16 +1252,15 @@ class Game(QWidget):
             self.post_effect()
             return
         elif mode == "opponentbf":
-            if args[0] is not None:
-                # TODO: better way to check if opponent select is set
+            if len(args) > 0 and args[0][0] == "opponentchoose":
                 # Opponent chooses which cards to sacrafice to mana zone
                 self.add_log(f"Your opponent selects {count} targets to be moved to mana zone from battlefield") # TODO: better log
-                args = []
+                arguments = []
                 for pos, _ in self.opp_bfield.get_creatures_with_pos():
-                    args.append(SetName["yu_bf"].value)
-                    args.append(pos)
+                    arguments.append(SetName["yu_bf"].value)
+                    arguments.append(pos)
                 self.your_turn = 0
-                self.send_message(20, count, *args)
+                self.send_message(20, count, *arguments)
             else:
                 self.add_log(f"Select {count} targets from your opponent battlefield zone to be moved to mana zone")
                 self.selected_card = []
@@ -1298,7 +1297,7 @@ class Game(QWidget):
                 self.send_message(7, 2, card_id)
                 self.mana.add_card(card)
             elif mode == "hand":
-                self.hand.remove_card(card)
+                self.hand.remove_card_by_id(card)
                 self.add_log(f"Added card {card.name} from hand to mana")
                 self.send_message(7, 0, card_id)
                 self.mana.add_card(card)
@@ -1376,8 +1375,8 @@ class Game(QWidget):
         # Opponent discards x cards from his hand
         for _ in range(count):
             if len(self.opp_hand) > 0:
-                pos = self.opp_hand.discard_random()
-                self.send_message(6, 0, 2, pos)
+                pos = self.opp_hand.return_random()
+                self.a_move_to_graveyard("op_hd", pos)
         self.post_effect()
 
     def sacrifice_creature(self, count):
@@ -1539,43 +1538,57 @@ class Game(QWidget):
     def a_move_to_graveyard(self, set, iden):
         # Action: Move a card to the graveyard
         if set == "yu_bf":
-            # TODO: on death effect
             card = self.bfield.remove_card(iden)
             moved = False
             for effect in card.effects:
                 if "ondeath" in effect:
                     if effect["ondeath"]["mode"] == "tohand":
-                        self.send_message(6, 1, 1, iden) # TODO
+                        self.add_log(f"Your card {card.name} returned to your hand due to its effect.")
+                        self.send_message(22, iden)
                         self.hand.add_card(card)
                         moved = True
                     elif effect["ondeath"]["mode"] == "tomana":
-                        self.send_message(6, 1, 1, iden) # TODO
+                        self.add_log(f"Your card {card.name} was moved to your mana due to its effect.")
+                        self.send_message(21, 0, iden)
                         self.mana.add_card(card)
                         moved = True
-            if not moved:
+            if not moved: # check if card was earlier handled by ondeath effect
+                self.add_log(f"Your card {card.name} was sent to graveyard.")
                 self.graveyard.add_card(card)
                 self.send_message(6, 1, 1, iden)
         elif set == "yu_sf":
             card = self.sfield.remove_card()
             self.graveyard.add_card(card)
+            self.add_log(f"Your card {card.name} was sent to graveyard.")
             self.send_message(6, 1, 1, 5)
         elif set == "yu_mn":
             card = self.mana.remove_card(iden)
             self.graveyard.add_card(card)
+            self.master.add_log(f"Your card {card.name} from mana zone was moved to your graveyard.")
             self.send_message(6, 1, 0, iden)
+        elif set == "yu_hd":
+            card = self.hand.remove_card(iden)
+            self.graveyard.add_card(card)
+            self.master.add_log(f"Your card {card.name} from hand was discarded to your graveyard.")
+            self.send_message(6, 1, 2, iden)
         elif set == "op_mn":
             card = self.opp_mana.remove_card(iden)
             self.opp_graveyard.add_card(card)
+            self.add_log(f"Opponent's card {card.name} from mana zone was moved to his graveyard.")
             self.send_message(6, 0, 0, iden)
         elif set == "op_bf":
-            # TODO: on death effect
-            card = self.opp_bfield.remove_card(iden)
-            self.opp_graveyard.add_card(card)
+            # Just sent a message to destroy that card
+            # Opponent will return where it went
             self.send_message(6, 0, 1, iden)
         elif set == "op_sf":
             card = self.opp_sfield.remove_card()
             self.opp_graveyard.add_card(card)
+            self.add_log(f"Opponent's card {card.name} was sent to graveyard.")
             self.send_message(6, 0, 1, 5)
+        elif set == "op_hd":
+            self.opp_hand.remove_card(iden)
+            # Opponent will sent which card was sent to graveyard
+            self.send_message(6, 0, 2, iden)
         self.refresh_screen()
         
     def a_add_to_mana(self, iden):

@@ -83,24 +83,17 @@ class Controller:
             c_pos = int(msg[4:6], base=16)
             if c_player == 0:
                 if c_space == 0:
-                    card = self.master.mana.remove_card(c_pos)
-                    self.master.graveyard.add_card(card)
-                    self.master.add_log(f"Your card {card.name} from mana zone was moved to your graveyard.")
+                    self.master.a_move_to_graveyard("yu_mn", c_pos)
                 elif c_space == 1:
-                    card = self.master.bfield.remove_card(c_pos)
-                    self.master.graveyard.add_card(card)
-                    self.master.add_log(f"Your card {card.name} from battle zone was moved to your graveyard.")
+                    self.master.a_move_to_graveyard("yu_bf", c_pos)
                 elif c_space == 2:
-                    card = self.master.hand.remove_card(c_pos)
-                    self.master.graveyard.add_card(card)
-                    self.master.send_message(15, card.id)
-                    self.master.add_log(f"Your card {card.name} from hand was discarded to your graveyard.")
+                    self.master.a_move_to_graveyard("yu_hd", c_pos)
+                    self.master.send_message(15, card.id) # Sent back which card was discarded
             elif c_player == 1:
                 if c_space == 0:
-                    card = self.master.opp_mana.remove_card(c_pos)
-                    self.master.opp_graveyard.add_card(card)
-                    self.master.add_log(f"Opponent's card {card.name} from mana zone was moved to his graveyard.")
+                    self.master.a_move_to_graveyard("op_mn", c_pos)
                 elif c_space == 1:
+                    # Do not change to a_move_to_graveyard
                     if c_pos == 5:
                         card = self.master.opp_sfield.remove_card()
                     else:
@@ -313,3 +306,10 @@ class Controller:
                 card = self.master.bfield.remove_card(c_pos)
                 self.master.mana.add_card(card)
                 self.master.add_log(f"Opponent moved your card {card.name} from battlezone to your mana zone")
+        elif command == 22:
+            # 22,x - player x puts card from y pos on battlefield zone to hand
+            # x - position
+            c_pos = int(msg[2:4], base=16)
+            card = self.master.opp_bfield.remove_card(c_pos)
+            self.master.opp_hand.add_placeholder()
+            self.master.add_log(f"Opponent picked up card {card.name} from his battlezone to his hand")
