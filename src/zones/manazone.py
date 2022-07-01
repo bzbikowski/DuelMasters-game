@@ -41,7 +41,7 @@ class Manazone():
             self.cards[pos]["locked"] = False
     
     def remove_card(self, pos):
-        if self.cards[pos]["tapped"]:
+        if self.cards[pos]["tapped"] and not self.cards[pos]["locked"]:
             self.weights[self.dict_civ[self.cards[pos]["card"].civ]] -= 1
         return self.cards.pop(pos)["card"]
 

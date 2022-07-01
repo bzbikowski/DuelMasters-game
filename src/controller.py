@@ -91,7 +91,7 @@ class Controller:
                     self.master.send_message(15, card.id) # Sent back which card was discarded
             elif c_player == 1:
                 if c_space == 0:
-                    self.master.a_move_to_graveyard("op_mn", c_pos)
+                    self.master.a_move_to_graveyard("op_mn", c_pos, False)
                 elif c_space == 1:
                     # Do not change to a_move_to_graveyard
                     if c_pos == 5:

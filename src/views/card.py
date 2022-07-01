@@ -102,7 +102,6 @@ class CardView(QGraphicsPixmapItem):
             put_action.triggered.connect(lambda: self.m_put_shield(self.iden))
             menu.addAction(put_action)
         elif self.set == 'op_sh':
-            # TODO: check if selected card can attack shields
             if self.parent.can_attack_shield() and select_mode in [2, 21]:
                 select_action = QAction('Select shield to attack')
                 select_action.triggered.connect(lambda: self.m_select_shield_to_attack(self.iden))

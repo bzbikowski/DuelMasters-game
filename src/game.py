@@ -741,10 +741,16 @@ class Game(QWidget):
         """Check if selected creature can attack shield"""
         if len(self.selected_card) == 0:
             return False
+        can_attack = True
         pos = self.selected_card[0][1]
-        if not self.bfield.is_tapped(pos) and self.bfield.get_shield_count(pos) > len(self.selected_shields):
-            return True
-        return False
+        for effect in self.bfield[pos].effects:
+            if "notattacking" in effect:
+                if effect["notattacking"]["mode"] in ["all", "player"]:
+                    can_attack = False
+                    break
+        if self.bfield.is_tapped(pos) or self.bfield.get_shield_count(pos) <= len(self.selected_shields):
+            can_attack = False
+        return can_attack
 
     def pop_fun_queue(self, index):
         """Pop and return item from the effects queue"""
@@ -990,8 +996,8 @@ class Game(QWidget):
             if "sacrifice" in effect.keys():
                 count =  int(effect["sacrifice"]["count"])
                 self.fun_queue.append((self.sacrifice_creature, [count]))
-            if "sacrificemana" in effect.keys():
-                count =  int(effect["sacrificemana"]["count"])
+            if "manasacrifice" in effect.keys():
+                count =  int(effect["manasacrifice"]["count"])
                 self.fun_queue.append((self.sacrifice_mana, [count]))
 
         if len(self.fun_queue) > 0:
@@ -1304,7 +1310,7 @@ class Game(QWidget):
         self.refresh_screen()
         self.post_effect()
 
-    def select_creatures_to_be_sacraficed(self, count, target_list):
+    def select_creatures_to_be_sacraficed(self, count, target_list): # TODO: change sacrafice, reserved for removing mana/creatures to play a card
         self.add_log(f"Select {count} targets from valid target list") # TODO: better log
         self.your_turn = 2
         self.selected_card = []
@@ -1314,7 +1320,7 @@ class Game(QWidget):
         self.selected_card_targets = [("yu_bf", targets["yu_bf"])]
         self.fun_queue.insert(0, (self.sacrafice_selected_creatures, [True]))
 
-    def sacrafice_selected_creatures(self, from_opp=False):
+    def sacrafice_selected_creatures(self, from_opp=False): # TODO: change sacrafice, reserved for removing mana/creatures to play a card
         for set, iden in self.selected_card:
             if set == "yu_bf":
                 card = self.bfield.remove_card(iden)
@@ -1334,7 +1340,7 @@ class Game(QWidget):
         self.refresh_screen()
         self.post_effect()
 
-    def post_sacrafice_creatures(self):
+    def post_sacrafice_creatures(self): # TODO: change sacrafice, reserved for removing mana/creatures to play a card
         self.your_turn = 1
         self.refresh_screen()
         self.post_effect()
@@ -1384,8 +1390,20 @@ class Game(QWidget):
         pass
 
     def sacrifice_mana(self, count):
-        # TODO
-        pass
+        # TODO: show locked mana in common view 
+        cards = [card.id for card in self.mana]
+        settings = {"cards": cards, "count": count}
+        self.cards_window = CommonWindow(settings, self)
+        self.cards_window.card_choosed.connect(self.post_sacrifice_mana)
+        self.cards_window.show()
+
+    def post_sacrifice_mana(self):
+        offset = 0
+        for pos in sorted(self.cards_window.get_selected_cards()):
+            self.a_move_to_graveyard("yu_mn", pos - offset)
+            offset += 1
+        self.refresh_screen()
+        self.post_effect()
 
     ##################
     #  GAME METHODS  #
@@ -1535,7 +1553,7 @@ class Game(QWidget):
             self.summon_effect(card)
         self.refresh_screen()
 
-    def a_move_to_graveyard(self, set, iden):
+    def a_move_to_graveyard(self, set, iden, send_message=True):
         # Action: Move a card to the graveyard
         if set == "yu_bf":
             card = self.bfield.remove_card(iden)
@@ -1564,18 +1582,19 @@ class Game(QWidget):
         elif set == "yu_mn":
             card = self.mana.remove_card(iden)
             self.graveyard.add_card(card)
-            self.master.add_log(f"Your card {card.name} from mana zone was moved to your graveyard.")
+            self.add_log(f"Your card {card.name} from mana zone was moved to your graveyard.")
             self.send_message(6, 1, 0, iden)
         elif set == "yu_hd":
             card = self.hand.remove_card(iden)
             self.graveyard.add_card(card)
-            self.master.add_log(f"Your card {card.name} from hand was discarded to your graveyard.")
+            self.add_log(f"Your card {card.name} from hand was discarded to your graveyard.")
             self.send_message(6, 1, 2, iden)
         elif set == "op_mn":
             card = self.opp_mana.remove_card(iden)
             self.opp_graveyard.add_card(card)
             self.add_log(f"Opponent's card {card.name} from mana zone was moved to his graveyard.")
-            self.send_message(6, 0, 0, iden)
+            if send_message:
+                self.send_message(6, 0, 0, iden)
         elif set == "op_bf":
             # Just sent a message to destroy that card
             # Opponent will return where it went
@@ -1718,4 +1737,5 @@ class Game(QWidget):
         print(f"selected_card_choose: {self.get_selected_card_choose()}")
         print(f"your_bf: {self.get_your_bf()}")
         print(f"your_mn: {self.get_your_mn()}")
+        print(f"your_mn_weights: {self.mana.weights}")
         print("=============")

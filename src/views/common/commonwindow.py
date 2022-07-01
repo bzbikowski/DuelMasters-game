@@ -11,7 +11,7 @@ class CommonWindow(QWidget):
     """
     View to check on graveyard cards
     TODO: center scene in view
-    TODO: implement card selecting in case of effects
+    TODO: add additional symbols on card (e.g. when mana, render lock, tapping etc.)
     """
     card_choosed = Signal()
     def __init__(self, settings, parent):

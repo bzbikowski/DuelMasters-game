@@ -14,7 +14,7 @@ Run ```pip install -r requirements.txt``` to install all required libraries in y
 
 ### Todo things:
 * add information about the game
-* complete graveyard feature
+* ~~complete graveyard feature~~
 * complete logs system
 * ~~refactor all views~~
 * refactor tcp error system
@@ -46,18 +46,6 @@ Message system: https://1drv.ms/x/s!AodrLtV7i89ggaIIfuUt6f0RaV8HGg?e=zqtAZV
 Card images were taken from:
 * https://duelmasters.fandom.com/wiki/Duel_Masters_Wiki
 * http://www.ccgdb.com/duelmasters/
-
-### Message system
-Message system (TODO: translate to English):
-        8,x,y - ja dodaję kartę x z reki na tarczę y
-        9,x,y - ja tapuje/odtapuje manę
-                x - 0/1 - odtapuje/tapuje
-                y - pozycja karty na manie
-        10,x - ja zaglądam w swoją tarczę na pozycji x
-        11,x,y - ja zaglądam w twoją tarczę/kartę z reki na pozycji y
-                x - 0/1 - ręka/tarcza
-        12,x,y - (info) ja atakuje swoją kartą x twoją kartę y na polu bitwy
-        13,x - ja niszcze ci tarczę na pozycji x
 
 ### Usefull commands
 export PATH="$PATH:/c/Users/zbiku/AppData/Local/Packages/PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0/LocalCache/local-packages/Python310/Scripts"
