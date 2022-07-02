@@ -27,7 +27,6 @@ class MainMenu(QWidget):
         self.is_debug_mode = debug_mode
 
         self.game = None
-        self.log = None
         self.window = None
         self.deck = []
         self.parent = parent
@@ -37,10 +36,11 @@ class MainMenu(QWidget):
         self.ui.manager_button.clicked.connect(self.deck_window)
         self.ui.exit_button.clicked.connect(self.exit_app)
 
-        self.setup_logger(debug_mode)
+        self.setup_logging()
+        self.log = logging.getLogger("menu")
         self.database = Database()
 
-    def setup_logger(self, dm):
+    def setup_logging(self):
         """
         Setup main logger, that will be used across all classes
         """
@@ -48,14 +48,10 @@ class MainMenu(QWidget):
         path_to_logs_folder = os.path.join(QStandardPaths.writableLocation(QStandardPaths.AppLocalDataLocation), "logs")
         if not os.path.exists(path_to_logs_folder):
             os.mkdir(path_to_logs_folder)
-        self.log = logging.getLogger("dm_game")
-        self.log.setLevel(logging.DEBUG)
         time = datetime.datetime.now()
-        terminal = logging.FileHandler('{0}/{1}-{2}-{3}_{4}-{5}-{6}.log'.format(path_to_logs_folder, time.year, time.month, time.day, time.hour, time.minute, time.second))
-        terminal.setLevel(logging.DEBUG)
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        terminal.setFormatter(formatter)
-        self.log.addHandler(terminal)
+        filename = '{0}/{1}-{2}-{3}_{4}-{5}-{6}.log'.format(path_to_logs_folder, time.year, time.month, time.day, time.hour, time.minute, time.second)
+        format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        logging.basicConfig(filename=filename, format=format, level=logging.DEBUG)
         
     def new_game(self):
         """

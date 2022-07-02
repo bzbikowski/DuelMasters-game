@@ -15,18 +15,14 @@ class Client(QTcpSocket):
         :param port: Port to connect to
         """
         super(Client, self).__init__()
-        self.log = None
         self.address = address
         self.port = port
         self.parent = parent
         self.errorOccurred.connect(self.error_handle)
         self.readyRead.connect(self.receive_data)
         self.disconnected.connect(self.disconnected_with_server)
-        self.setup_logger()
 
-    def setup_logger(self):
-        self.log = logging.getLogger("dm_game")
-        self.log.setLevel(logging.DEBUG)
+        self.log = logging.getLogger("client")
 
     def start_connection(self):
         self.log.debug(f"Starting a connection to {self.address}:{self.port}")

@@ -161,7 +161,7 @@ class CardView(QGraphicsPixmapItem):
             menu.addAction(destroy_action)
         elif self.set == 'op_bf':
             if select_mode == 2:
-                if self.parent.opp_bfield.is_tapped(self.iden):
+                if self.parent.opp_bfield.is_tapped(self.iden) or self.parent.opp_bfield.has_effect("treatastapped", self.iden):
                     select_action = QAction("Target card to attack")
                     select_action.triggered.connect(lambda: self.m_attack_creature(self.set, self.iden))
                     menu.addAction(select_action)

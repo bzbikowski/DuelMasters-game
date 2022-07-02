@@ -673,7 +673,7 @@ Destroy 1 of your opponent's creatures.</rules_text>
 		<rules_text>Choose 1 of your opponent's untapped creatures in the battle zone. Your creatures can attack it this turn as though it were tapped.</rules_text>
 		<flavor_text>"You won't escape me!"</flavor_text>
         <effects>
-			<treatastaped count="1" />
+			<treatastapped count="1" />
 		</effects>
 	</card>
 

@@ -13,3 +13,11 @@ class SetName(Enum):
     op_hd = 10
     yu_mn = 11
     op_mn = 12
+
+
+class EffectName(Enum):
+    powerattacker = 1
+    shieldbreaker = 2
+    passblockers = 3
+    slayer = 4
+    treatastapped = 5

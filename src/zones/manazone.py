@@ -7,7 +7,7 @@ class Manazone():
         self.weights = [0, 0, 0, 0, 0]
         self.dict_civ = {"Light": 0, "Nature": 1, "Darkness": 2, "Fire": 3, "Water": 4}
 
-        self.log = logging.getLogger("dm_game")
+        self.log = logging.getLogger("manazone")
 
     def __getitem__(self, index):
         return self.cards[index]["card"]

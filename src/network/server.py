@@ -15,7 +15,6 @@ class Server(QTcpServer):
     clientError = Signal(None)
     def __init__(self, parent=None):
         super(Server, self).__init__()
-        self.log = None
         self.parent = parent
         self.socket = None
         self.setMaxPendingConnections(2)
@@ -24,11 +23,8 @@ class Server(QTcpServer):
         self.connected = False
         self.wifi_addr = "0.0.0.0"
         self.port = 10023
-        self.setup_logger()
 
-    def setup_logger(self):
-        self.log = logging.getLogger("dm_game")
-        self.log.setLevel(logging.DEBUG)
+        self.log = logging.getLogger("client")
 
     def find_ip(self):
         wifi_pat = r"^192\.168\.[0-2]?[0-9]?[0-9]\.[0-2]?[0-9]?[0-9]$" # TODO: 192.168.* used only for debbuging

@@ -15,7 +15,7 @@ from src.views.graveyard import GraveyardWindow
 from src.dialogs import ServerDialog, ClientDialog
 from src.controller import Controller
 from src.zones import Battlezone, Graveyardzone, Handzone, Manazone, Shieldzone, Spellzone
-from src.enums import SetName
+from src.enums import SetName, EffectName
 
 
 class Game(QWidget):
@@ -26,7 +26,7 @@ class Game(QWidget):
         super(Game, self).__init__()
         self.ui = Ui_Game()
         self.ui.setupUi(self)
-        self.log = None
+        self.log = logging.getLogger("game")
         self.mode = mode
         self.database = database
         # self.move((screen_width - self.width)/2, (screen_height - self.height)/2 - 20)
@@ -62,9 +62,6 @@ class Game(QWidget):
 
         # Setup logging on the screen
         self.log_panel = SideLogger()
-
-        # Setup logging of the application to the file
-        self.setup_logger()
 
         self.controller = Controller(self)
 
@@ -105,13 +102,6 @@ class Game(QWidget):
 
     ## Internal functions
     #######################
-    def setup_logger(self):
-        self.log = logging.getLogger("dm_game")
-        if self.debug_mode:
-            self.log.setLevel(logging.DEBUG)
-        else:
-            self.log.setLevel(logging.INFO)
-
     def closeEvent(self, event):
         """Close connection and return to menu"""
         if self.started:
@@ -558,12 +548,12 @@ class Game(QWidget):
                     for sel_card in self.selected_card:
                         if sel_card[0] == type:
                             if sel_card[1] == i:
-                                self.highlight_card(x, x + 85, y, y + 115, QColor(0, 0, 255))
+                                self.highlight_card(x, x + 85, y + i * 125, y + i * 125 + 115, QColor(0, 0, 255))
                                 break
                 if self.select_mode == 21:
                     for pos in self.selected_shields:
                         if pos == i:
-                            self.highlight_card(x, x + 85, y, y + 115, QColor(255, 0, 255))
+                            self.highlight_card(x, x + 85, y + i * 125, y + i * 125 + 115, QColor(255, 0, 255))
                             break
 
     def add_bf_to_scene(self, type):
@@ -863,14 +853,14 @@ class Game(QWidget):
         if pass_blockers or not blocker_available:
             # Proceed to attack
             self.send_message(112, your_pos)
+        else:
+            # Remember opponent choice and available blocker list
+            self.chosen = your_pos
+            self.blocker_list = blocker_list
 
-        # Remember opponent choice and available blocker list
-        self.chosen = your_pos
-        self.blocker_list = blocker_list
-
-        # Decide what to do: block with blocker or pass blocking
-        self.add_log("Choose either you block an attack with a blocker or allow it.")
-        self.your_turn = 3 # special turn - block or pass - creature
+            # Decide what to do: block with blocker or pass blocking
+            self.add_log("Choose either you block an attack with a blocker or allow it.")
+            self.your_turn = 3 # special turn - block or pass - creature
 
     def shields_attacked(self, opp_pos, shields_pos):
         """One of the shield is attacked"""
@@ -1002,8 +992,8 @@ class Game(QWidget):
             if "manasacrifice" in effect.keys():
                 count =  int(effect["manasacrifice"]["count"])
                 self.fun_queue.append((self.sacrifice_mana, [count]))
-            if "treatastaped" in effect.keys():
-                count =  int(effect["treatastaped"]["count"])
+            if "treatastapped" in effect.keys():
+                count =  int(effect["treatastapped"]["count"])
                 self.fun_queue.append((self.treat_card_as_tapped, [count]))
             if "give" in effect.keys():
                 mode = effect["give"]["mode"]
@@ -1018,7 +1008,7 @@ class Game(QWidget):
             if self.your_turn == 5:
                 if len(self.shields_to_destroy) == 0:
                     self.your_turn = 0
-                    self.send_message(214)
+                    self.send_message(314)
                 else:
                     self.add_log(f"You still have {len(self.shields_to_destroy)} shields to decide.")
 
@@ -1040,7 +1030,7 @@ class Game(QWidget):
             # If card was from shield, check if all shields were handled
             if self.your_turn == 5 and len(self.shields_to_destroy) == 0:
                 self.your_turn = 0
-                self.send_message(214)
+                self.send_message(314)
 
     def teleport(self, firsttime, mode, *args):
         if firsttime:
@@ -1440,7 +1430,6 @@ class Game(QWidget):
         self.post_effect()
 
     def treat_card_as_tapped(self, count):
-        # TODO:
         self.add_log(f"Select {count} targets from valid target list") # TODO: better log
         self.your_turn = 2
         self.selected_card = []
@@ -1451,8 +1440,8 @@ class Game(QWidget):
     
     def post_treat_card_as_tapped(self):
         for _, iden in self.selected_card:
-            self.opp_bfield.give_effect(iden, "turn", "treatastaped")
-            self.send_message() # TODO: send message
+            self.opp_bfield.give_effect(iden, "turn", "treatastapped")
+            self.send_message(23, iden, 1, EffectName["treatastapped"].value)
         self.selected_card = []
         self.selected_card_choose = 0
         self.select_mode = 0
@@ -1460,26 +1449,24 @@ class Game(QWidget):
         self.refresh_screen()
         self.post_effect()
 
-    def give_effect(self, mode, count, effect):
-        # TODO:
-        # TODO:
-        self.add_log(f"Select {count} targets from valid target list") # TODO: better log
+    def give_effect(self, mode, count, effects):
+        # TODO: better log, list effects etc.
+        self.add_log(f"Select {count} targets from valid target list") 
         self.your_turn = 2
         self.selected_card = []
         self.selected_card_choose = count
         self.select_mode = 1 # effect
         self.selected_card_targets = [("yu_bf", ["*"])]
-        self.fun_queue.insert(0, (self.post_give_effect, [mode, effect]))
+        self.fun_queue.insert(0, (self.post_give_effect, [mode, effects]))
 
-    def post_give_effect(self, mode, effect):
-        print(effect)
-        effect_name = list(effect.keys())[0]
-        arguments = []
-        for arg in list(effect.values())[0].keys():
-            arguments.append((arg, effect[effect_name][arg]))
-        for _, iden in self.selected_card:
-            self.bfield.give_effect(iden, mode, effect_name, *arguments)
-            self.send_message() # TODO: send message
+    def post_give_effect(self, mode, effects):
+        for effect_name in effects.keys():
+            arguments = []
+            for arg, value in effects[effect_name].items():
+                arguments.append((arg, value))
+            for _, iden in self.selected_card:
+                self.bfield.give_effect(iden, mode, effect_name, *arguments)
+                self.send_message(23, iden, 0, EffectName[effect_name].value)
         self.selected_card = []
         self.selected_card_choose = 0
         self.select_mode = 0
@@ -1526,7 +1513,6 @@ class Game(QWidget):
 
         # TODO: for now by default untap, later there can be choice
         for card_pos, card in self.bfield.get_creatures_with_pos():
-            print(card.effects)
             for pos_effect, effect in enumerate(card.effects):
                 # untap effect
                 if "untap" in effect:
@@ -1544,7 +1530,14 @@ class Game(QWidget):
                 if "time" in list(effect.values())[0]:
                     if list(effect.values())[0]["time"] != "-":
                         self.bfield.decrement_time_for_effect(card_pos, pos_effect)
+        for card_pos, card in self.opp_bfield.get_creatures_with_pos():
+            for pos_effect, effect in enumerate(card.effects):
+                # expire effect by one turn
+                if "time" in list(effect.values())[0]:
+                    if list(effect.values())[0]["time"] != "-":
+                        self.opp_bfield.decrement_time_for_effect(card_pos, pos_effect)
         self.bfield.handle_expired_effects()
+        self.opp_bfield.handle_expired_effects()
 
         self.selected_card = []
         self.your_turn = 0
@@ -1627,7 +1620,7 @@ class Game(QWidget):
         self.shields_to_destroy.remove(iden)
         if len(self.shields_to_destroy) == 0:
             self.your_turn = 0
-            self.send_message(214)
+            self.send_message(314)
         else:
             self.add_log(f"You still have {len(self.shields_to_destroy)} shields to decide.")
         self.refresh_screen()
@@ -1636,6 +1629,7 @@ class Game(QWidget):
         # Action: Play a shield with shield trigger
         self.shields_to_destroy.remove(iden)
         card = self.shields.remove_shield(iden)
+        self.send_message(214, iden)
         if card.card_type == 'Spell':
             self.sfield.set_card(card)
             self.send_message(4, card.id, 5)
@@ -1747,10 +1741,11 @@ class Game(QWidget):
         if self.bfield.is_tapped(iden):
             return
         if set == 'yu_bf':
-            if "shieldbreaker" in self.bfield[iden].effects:
+            if self.bfield.has_effect("shieldbreaker", iden):
                 count = int(self.bfield[iden].effects["shieldbreaker"]["count"])
             else:
                 count = 1
+            print(count)
             self.bfield.set_shield_count(iden, count)
         self.selected_card = [(set, iden)]
         self.selected_shields = []
@@ -1767,8 +1762,8 @@ class Game(QWidget):
         if len(self.selected_card) == 0 or not self.select_mode == 2: 
             # None of the attacking creatures is selected
             return
-        if not self.opp_bfield.is_tapped(iden) and True: # TODO: check if your card has ability to attack untapped cards
-            return
+        # if not self.opp_bfield.is_tapped(iden) and True: # checks already done on views/card level
+        #     return
         self.add_log(f"Attacking card {self.opp_bfield[iden].name} with card {self.bfield[self.selected_card[0][1]].name}")
         self.send_message(12, self.selected_card[0][1], iden) # Inform opponent about the attack
         self.your_turn = 0

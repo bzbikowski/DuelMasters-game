@@ -1,5 +1,7 @@
 import logging
 
+from src.enums import EffectName
+
 
 class Controller:
     """
@@ -11,7 +13,7 @@ class Controller:
         Set class to control
         """
         self.master = module
-        self.log = logging.getLogger("dm_game")
+        self.log = logging.getLogger("controller")
 
     def received_message(self, msg):
         """
@@ -208,7 +210,13 @@ class Controller:
             self.master.add_log(f"Opponent picked up {c_pos} shield to his hand.")
             self.master.refresh_screen()
         elif command == 214:
-            # 214 - opponent ended handling shield attack
+            # 214,x - opponent played x shield to spell/battle zone
+            c_pos = int(msg[:2], base=16)
+            self.master.opp_shields.remove_shield(c_pos)
+            self.master.add_log(f"Opponent played a card from {c_pos} shield trigger.")
+            self.master.refresh_screen()
+        elif command == 314:
+            # 314 - opponent ended handling shield attack
             self.master.selected_card = []
             self.master.your_turn = 1
         elif command == 15:
@@ -309,7 +317,21 @@ class Controller:
         elif command == 22:
             # 22,x - player x puts card from y pos on battlefield zone to hand
             # x - position
-            c_pos = int(msg[2:4], base=16)
+            c_pos = int(msg[0:2], base=16)
             card = self.master.opp_bfield.remove_card(c_pos)
             self.master.opp_hand.add_placeholder()
             self.master.add_log(f"Opponent picked up card {card.name} from his battlezone to his hand")
+        elif command == 23:
+            # 23 - opponent added an z effect to x card on y battefield
+            c_pos = int(msg[0:2], base=16)
+            c_player = int(msg[2:4], base=16)
+            c_effect_name = int(msg[4:6], base=16)
+            effect_name = EffectName(c_effect_name).name
+            if c_player == 0:
+                # to the opponent
+                card = self.master.opp_bfield[c_pos]
+                self.master.add_log(f"Opponent gave effect {effect_name} to his card {card.name}")
+            elif c_player == 1:
+                # to the player
+                card = self.master.bfield[c_pos]
+                self.master.add_log(f"Opponent gave effect {effect_name} to your card {card.name}")

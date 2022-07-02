@@ -6,7 +6,7 @@ class Battlezone():
     # TODO: make battlezone accept infinite cards, not only 5
     def __init__(self, opponent=False, parent=None):
         self._cards = {}
-        self.log = logging.getLogger("dm_game")
+        self.log = logging.getLogger("battlezone")
 
     def add_card(self, card):
         for i in range(5):
