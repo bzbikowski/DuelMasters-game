@@ -288,7 +288,7 @@ class Controller:
                 pos=int(msg[2:4], base=16)
                 target_list.append((set, pos))
                 msg = msg[4:]
-            self.master.select_creatures_to_be_sacraficed(count, target_list)
+            self.master.select_creatures_to_be_put_to_mana(count, target_list)
         elif command == 120:
             # 120 - opponent choosed cards and his actions ended
             self.master.post_sacrafice_creatures()

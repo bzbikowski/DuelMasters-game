@@ -149,7 +149,7 @@ class CardView(QGraphicsPixmapItem):
                     attack_action = QAction("Attack with this creature")
                     attack_action.triggered.connect(lambda: self.m_select_creature(self.set, self.iden))
                     menu.addAction(attack_action)
-            if select_mode == 2 and (self.set, self.iden) in selected_card:
+            if (select_mode == 2 or select_mode == 21) and (self.set, self.iden) in selected_card:
                 unselect_action = QAction("Unselect this card")
                 unselect_action.triggered.connect(lambda: self.m_unselect_creature(self.set, self.iden))
                 menu.addAction(unselect_action)

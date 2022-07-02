@@ -17,6 +17,7 @@ class Battlezone():
                 self._cards[i]["tapped"] = False
                 self._cards[i]["shield_count"] = 0
                 self._cards[i]["summon_sickness"] = True
+                # self._cards[i]["buffs"] = []
                 return i
         return -1
 
@@ -78,6 +79,26 @@ class Battlezone():
         for card_pos in self._cards.keys():
             if self.is_taken(card_pos):
                 yield card_pos, self._cards[card_pos]["card"]
+
+    def give_effect(self, pos, mode, effect_name, *args):
+        args_dict = {key: value for (key, value) in args}
+        if mode == "turn":
+            args_dict["time"] = 1
+            self._cards[pos]["card"].effects.append({effect_name: args_dict})
+
+    def decrement_time_for_effect(self, pos, effect_pos):
+        effect_name = list(self._cards[pos]['card'].effects[effect_pos].keys())[0]
+        self._cards[pos]['card'].effects[effect_pos][effect_name]["time"] -= 1
+
+    def handle_expired_effects(self):
+        for pos, card in self.get_creatures_with_pos():
+            delete_list = []
+            for effect_pos in range(len(card.effects)):
+                effect = card.effects[effect_pos]
+                if "time" in list(effect.values())[0] and list(effect.values())[0]["time"] == 0:
+                    delete_list.append(effect_pos)
+            for delete_pos in sorted(delete_list, reverse=True): # From the latest effect to newest
+                self._cards[pos]['card'].effects.pop(delete_pos)
 
     def __getitem__(self, index):
         return self._cards[index]["card"]

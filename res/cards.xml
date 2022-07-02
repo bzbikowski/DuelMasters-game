@@ -759,7 +759,7 @@ Double breaker (This creature breaks 2 shields.)</rules_text>
 		<rules_text>When you put this creature into the battle zone, destroy 1 of your creatures. Then your opponent chooses 1 of his creatures and destroys it.</rules_text>
 		<flavor_text>"Though battered and scarred, I march on through wars, storms, and strife. I march on."</flavor_text>
         <effects>
-			<oneforone opponentchoose=""/>
+			<oneforone count="1"/>
 		</effects>
 	</card>
 

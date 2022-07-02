@@ -748,6 +748,7 @@ class Game(QWidget):
                 if effect["notattacking"]["mode"] in ["all", "player"]:
                     can_attack = False
                     break
+        print(f"{self.bfield.get_shield_count(pos)} <= {len(self.selected_shields)}")
         if self.bfield.is_tapped(pos) or self.bfield.get_shield_count(pos) <= len(self.selected_shields):
             can_attack = False
         return can_attack
@@ -787,13 +788,14 @@ class Game(QWidget):
 
         if int(opp_card.power) < your_power:
             # Your creature wins
+            is_opp_card_slayer = self.opp_bfield.has_effect("slayer", opp_pos)
             self.a_move_to_graveyard("op_bf", opp_pos)
             destroyafterbattle = False
             for effect in your_card.effects:
                 if "destroyafterbattle" in effect:
                     destroyafterbattle = True
                     break
-            if destroyafterbattle or self.opp_bfield.has_effect("slayer", opp_pos):
+            if destroyafterbattle or is_opp_card_slayer:
                 self.a_move_to_graveyard("yu_bf", self.selected_card[0][1])
                 self.add_log(f"Both creatures were destoyed due to battle results.")
             else:
@@ -807,13 +809,14 @@ class Game(QWidget):
             self.add_log(f"Both creatures were destoyed due to battle results.")
         else:
             # Your creature dies
+            is_your_card_slayer = self.bfield.has_effect("slayer", self.selected_card[0][1])
             self.a_move_to_graveyard("yu_bf", self.selected_card[0][1])
             destroyafterbattle = False
             for effect in opp_card.effects:
                 if "destroyafterbattle" in effect:
                     destroyafterbattle = True
                     break
-            if destroyafterbattle or self.bfield.has_effect("slayer", self.selected_card[0][1]):
+            if destroyafterbattle or is_your_card_slayer:
                 self.a_move_to_graveyard("op_bf", opp_pos)
                 self.add_log(f"Both creatures were destoyed due to battle results.")
             else:
@@ -999,6 +1002,14 @@ class Game(QWidget):
             if "manasacrifice" in effect.keys():
                 count =  int(effect["manasacrifice"]["count"])
                 self.fun_queue.append((self.sacrifice_mana, [count]))
+            if "treatastaped" in effect.keys():
+                count =  int(effect["treatastaped"]["count"])
+                self.fun_queue.append((self.treat_card_as_tapped, [count]))
+            if "give" in effect.keys():
+                mode = effect["give"]["mode"]
+                count = int(effect["give"]["count"])
+                effect = effect["give"]["effect"]
+                self.fun_queue.append((self.give_effect, [mode, count, effect]))
 
         if len(self.fun_queue) > 0:
             action, args = self.fun_queue.pop(0)
@@ -1182,11 +1193,11 @@ class Game(QWidget):
             if power != None:
                 # Filter out targets by power
                 for pos in valid_targets["yu_bf"]:
-                    card_power = self.bfield[pos]['card'].power
+                    card_power = self.bfield[pos].power
                     if card_power <= power:
                         filtered_targets["yu_bf"].append(pos)
                 for pos in valid_targets["op_bf"]:
-                    card_power = self.opp_bfield[pos]['card'].power
+                    card_power = self.opp_bfield[pos].power
                     if card_power <= power:
                         filtered_targets["op_bf"].append(pos)
             else:
@@ -1273,7 +1284,7 @@ class Game(QWidget):
                 self.selected_card_choose = count
                 self.select_mode = 1 # effect
                 self.selected_card_targets = [("op_bf", ["*"])]
-                self.fun_queue.insert(0, (self.sacrafice_selected_creatures, []))
+                self.fun_queue.insert(0, (self.put_to_mana_selected_creatures, []))
             return
         elif mode == "battlefield":
             self.add_log(f"Select {count} targets from your battlefield zone to be sacraficed to mana zone")
@@ -1281,7 +1292,7 @@ class Game(QWidget):
             self.selected_card_choose = count
             self.select_mode = 1 # effect
             self.selected_card_targets = [("yu_bf", ["*"])]
-            self.fun_queue.insert(0, (self.sacrafice_selected_creatures, []))
+            self.fun_queue.insert(0, (self.put_to_mana_selected_creatures, []))
             return
         cards = []
         if mode == "graveyard":
@@ -1310,7 +1321,7 @@ class Game(QWidget):
         self.refresh_screen()
         self.post_effect()
 
-    def select_creatures_to_be_sacraficed(self, count, target_list): # TODO: change sacrafice, reserved for removing mana/creatures to play a card
+    def select_creatures_to_be_put_to_mana(self, count, target_list): # TODO: change sacrafice, reserved for removing mana/creatures to play a card
         self.add_log(f"Select {count} targets from valid target list") # TODO: better log
         self.your_turn = 2
         self.selected_card = []
@@ -1318,9 +1329,9 @@ class Game(QWidget):
         self.select_mode = 1 # effect
         targets = {"yu_bf": [pos for (set, pos) in target_list if SetName(set).name == "yu_bf"]}
         self.selected_card_targets = [("yu_bf", targets["yu_bf"])]
-        self.fun_queue.insert(0, (self.sacrafice_selected_creatures, [True]))
+        self.fun_queue.insert(0, (self.put_to_mana_selected_creatures, [True]))
 
-    def sacrafice_selected_creatures(self, from_opp=False): # TODO: change sacrafice, reserved for removing mana/creatures to play a card
+    def put_to_mana_selected_creatures(self, from_opp=False): # TODO: change sacrafice, reserved for removing mana/creatures to play a card
         for set, iden in self.selected_card:
             if set == "yu_bf":
                 card = self.bfield.remove_card(iden)
@@ -1374,8 +1385,26 @@ class Game(QWidget):
             self.post_effect()
 
     def one_for_one(self, count):
-        # TODO
-        pass
+        # Unique effect of Rothus
+        self.add_log(f"Select {count} targets from valid target list") # TODO: better log
+        self.your_turn = 2
+        self.selected_card = []
+        self.selected_card_choose = count
+        self.select_mode = 1 # effect
+        self.selected_card_targets = [("yu_bf", ["*"])]
+        self.fun_queue.insert(0, (self.destroy_selected_creatures, []))
+        self.fun_queue.insert(1, (self.one_for_one_opponent, [count]))
+
+    def one_for_one_opponent(self, count):
+        # Opponent chooses which cards to delete
+        self.add_log(f"Your opponent selects {count} targets to be removed") # TODO: better log
+        args = []
+        # invert sets
+        for pos, _ in self.opp_bfield.get_creatures_with_pos():
+            args.append(SetName["yu_bf"].value)
+            args.append(pos)
+        self.your_turn = 0
+        self.send_message(17, count, *args)
 
     def discard_cards(self, count):
         # Opponent discards x cards from his hand
@@ -1386,8 +1415,13 @@ class Game(QWidget):
         self.post_effect()
 
     def sacrifice_creature(self, count):
-        # TODO
-        pass
+        self.add_log(f"Select {count} targets from valid target list") # TODO: better log
+        self.your_turn = 2
+        self.selected_card = []
+        self.selected_card_choose = count
+        self.select_mode = 1 # effect
+        self.selected_card_targets = [("yu_bf", ["*"])]
+        self.fun_queue.insert(0, (self.destroy_selected_creatures, []))
 
     def sacrifice_mana(self, count):
         # TODO: show locked mana in common view 
@@ -1402,6 +1436,54 @@ class Game(QWidget):
         for pos in sorted(self.cards_window.get_selected_cards()):
             self.a_move_to_graveyard("yu_mn", pos - offset)
             offset += 1
+        self.refresh_screen()
+        self.post_effect()
+
+    def treat_card_as_tapped(self, count):
+        # TODO:
+        self.add_log(f"Select {count} targets from valid target list") # TODO: better log
+        self.your_turn = 2
+        self.selected_card = []
+        self.selected_card_choose = count
+        self.select_mode = 1 # effect
+        self.selected_card_targets = [("op_bf", ["*"])]
+        self.fun_queue.insert(0, (self.post_treat_card_as_tapped, []))
+    
+    def post_treat_card_as_tapped(self):
+        for _, iden in self.selected_card:
+            self.opp_bfield.give_effect(iden, "turn", "treatastaped")
+            self.send_message() # TODO: send message
+        self.selected_card = []
+        self.selected_card_choose = 0
+        self.select_mode = 0
+        self.selected_card_targets = []
+        self.refresh_screen()
+        self.post_effect()
+
+    def give_effect(self, mode, count, effect):
+        # TODO:
+        # TODO:
+        self.add_log(f"Select {count} targets from valid target list") # TODO: better log
+        self.your_turn = 2
+        self.selected_card = []
+        self.selected_card_choose = count
+        self.select_mode = 1 # effect
+        self.selected_card_targets = [("yu_bf", ["*"])]
+        self.fun_queue.insert(0, (self.post_give_effect, [mode, effect]))
+
+    def post_give_effect(self, mode, effect):
+        print(effect)
+        effect_name = list(effect.keys())[0]
+        arguments = []
+        for arg in list(effect.values())[0].keys():
+            arguments.append((arg, effect[effect_name][arg]))
+        for _, iden in self.selected_card:
+            self.bfield.give_effect(iden, mode, effect_name, *arguments)
+            self.send_message() # TODO: send message
+        self.selected_card = []
+        self.selected_card_choose = 0
+        self.select_mode = 0
+        self.selected_card_targets = []
         self.refresh_screen()
         self.post_effect()
 
@@ -1433,12 +1515,20 @@ class Game(QWidget):
 
     def a_end_turn(self):
         """End your turn"""
+        for pos, card in self.bfield.get_creatures_with_pos():
+            if self.bfield.has_effect("mustattack", pos):
+                # check if creature attacked, if not, print message and skip end turn
+                if not self.bfield.is_tapped(pos) and not self.bfield.has_summon_sickness(pos):
+                    self.add_log(f"You still have {card.name} that must attack this turn.")
+                    return
         self.add_log("End of your turn.")
         self.send_message(2)
-        # untap effect
+
         # TODO: for now by default untap, later there can be choice
         for card_pos, card in self.bfield.get_creatures_with_pos():
-            for effect in card.effects:
+            print(card.effects)
+            for pos_effect, effect in enumerate(card.effects):
+                # untap effect
                 if "untap" in effect:
                     mode = effect["untap"]["mode"]
                     if mode == "self":
@@ -1450,6 +1540,11 @@ class Game(QWidget):
                         for pos, _ in self.bfield.get_creatures_with_pos():
                             self.bfield.set_untapped(pos)
                         break
+                # expire effect by one turn
+                if "time" in list(effect.values())[0]:
+                    if list(effect.values())[0]["time"] != "-":
+                        self.bfield.decrement_time_for_effect(card_pos, pos_effect)
+        self.bfield.handle_expired_effects()
 
         self.selected_card = []
         self.your_turn = 0
@@ -1492,12 +1587,12 @@ class Game(QWidget):
             return
         # TODO: if not effect or spell targeting, if selected_card is creature set to him shield count
         self.selected_card.append([set, iden])
-        if set == 'yu_bf':
-            if "shieldbreaker" in self.bfield[iden].effects:
-                count = int(self.bfield[iden].effects["shieldbreaker"]["count"])
-            else:
-                count = 1
-            self.bfield.set_shield_count(iden, count)
+        # if set == 'yu_bf':
+        #     if "shieldbreaker" in self.bfield[iden].effects:
+        #         count = int(self.bfield[iden].effects["shieldbreaker"]["count"])
+        #     else:
+        #         count = 1
+        #     self.bfield.set_shield_count(iden, count)
         self.refresh_screen()
 
     def a_unchoose_card(self, set, iden):
@@ -1651,12 +1746,20 @@ class Game(QWidget):
         # TODO: check if creature can attack (ability, tapped)
         if self.bfield.is_tapped(iden):
             return
+        if set == 'yu_bf':
+            if "shieldbreaker" in self.bfield[iden].effects:
+                count = int(self.bfield[iden].effects["shieldbreaker"]["count"])
+            else:
+                count = 1
+            self.bfield.set_shield_count(iden, count)
         self.selected_card = [(set, iden)]
+        self.selected_shields = []
         self.select_mode = 2
 
     def a_unselect_creature(self, set, iden):
         # Action: unselect your creature to attack another creature or shield
         self.selected_card.remove((set, iden))
+        self.selected_shields = []
         self.select_mode = 0
 
     def a_attack_creature(self, set, iden):

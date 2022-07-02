@@ -103,6 +103,16 @@ class Card:
                         effect_dict = {}
                         for key in effect.attributes.keys():
                             effect_dict[key] = effect.attributes[key].firstChild.nodeValue
+                        if effect_name == "give":
+                            # Handle give effect
+                            give_effects = [item for item in effect.childNodes if item.nodeType == item.ELEMENT_NODE]
+                            for give_effect in give_effects:
+                                give_effect_name = give_effect.nodeName
+                                give_effect_dict = {}
+                                for key in give_effect.attributes.keys():
+                                    give_effect_dict[key] = give_effect.attributes[key].firstChild.nodeValue
+                            effect_dict["effect"] = {give_effect_name: give_effect_dict}
+                        effect_dict["time"] = "-"
                         effect_names.append(effect_name)
                         effect_dicts.append(effect_dict)
                     cardlist.append((id, global_id, setname, cardname, civ, typ, race, cost, power, rarity, col_num,
