@@ -1630,6 +1630,7 @@ class Game(QWidget):
         self.shields_to_destroy.remove(iden)
         card = self.shields.remove_shield(iden)
         self.send_message(214, iden)
+        # TODO: somehow add check for len(self.shields_to_destroy) == 0 after handling summon
         if card.card_type == 'Spell':
             self.sfield.set_card(card)
             self.send_message(4, card.id, 5)
@@ -1741,11 +1742,12 @@ class Game(QWidget):
         if self.bfield.is_tapped(iden):
             return
         if set == 'yu_bf':
+            count = 1
             if self.bfield.has_effect("shieldbreaker", iden):
-                count = int(self.bfield[iden].effects["shieldbreaker"]["count"])
-            else:
-                count = 1
-            print(count)
+                for effect in self.bfield[iden].effects:
+                    if list(effect.keys())[0] == "shieldbreaker":
+                        if count < int(effect["shieldbreaker"]["count"]):
+                            count = int(effect["shieldbreaker"]["count"])
             self.bfield.set_shield_count(iden, count)
         self.selected_card = [(set, iden)]
         self.selected_shields = []

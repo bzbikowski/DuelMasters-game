@@ -38,7 +38,7 @@ class Client(QTcpSocket):
         msg = ""
         for item in data:
             m = hex(int(item))[2:]
-            while len(m) < 2:
+            while len(m) < 8:
                 m = "0" + m
             msg += m
         block = QByteArray()
