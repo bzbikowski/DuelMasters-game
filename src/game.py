@@ -118,11 +118,11 @@ class Game(QWidget):
         self.parent.show_window()
 
     def handle_disconnect(self):
-        print("GAME - DISCONNECTED")
+        self.log.debug("GAME - DISCONNECTED")
         self.close()
 
     def handle_error(self):
-        print("Client raised errorOccurred signal, please check your network.")
+        self.log.info("There was a problem with connectivity to other player. Please try again later.")
         self.close()
 
     ## Game initialize functions - setup network connection
@@ -196,7 +196,7 @@ class Game(QWidget):
             if random.random() < 0.5:
                 self.send_message(0)
                 self.add_log("You start the game! Your turn.", False)
-                self.new_round()
+                self.new_round(False)
                 self.log.info(f"Turn {self.turn_count}: Host turn.")
             else:
                 self.send_message(1)
@@ -568,6 +568,10 @@ class Game(QWidget):
                     card = CardView(type, i, self)
                     card.set_card(self.bfield[i])
                     pixmap = self.get_pixmap_card(self.bfield[i].id)
+                    if self.bfield.is_tapped(i):
+                        image = pixmap.toImage()
+                        image = image.convertToFormat(QImage.Format_Grayscale8)
+                        pixmap = pixmap.fromImage(image)
                     card.setPixmap(pixmap)
                     card.setPos(x + i * 95, y)
                     self.view_scene.addItem(card)
@@ -585,6 +589,10 @@ class Game(QWidget):
                     card = CardView(type, i, self)
                     card.set_card(self.opp_bfield[i])
                     pixmap = self.get_pixmap_card(self.opp_bfield[i].id)
+                    if self.opp_bfield.is_tapped(i) or self.opp_bfield.has_effect("treatastapped", i):
+                        image = pixmap.toImage()
+                        image = image.convertToFormat(QImage.Format_Grayscale8)
+                        pixmap = pixmap.fromImage(image)
                     card.setPixmap(pixmap)
                     card.setPos(x + i * 95, y)
                     self.view_scene.addItem(card)
@@ -692,23 +700,34 @@ class Game(QWidget):
         1 -> every other round - draw a card
         """
         if not_first:
-            # TODO: send message -> about every untapped card
             self.mana.unlock_and_untap()
-            self.bfield.reset_shield_count()
+            self.bfield.reset_board()
+            for pos, _ in self.bfield.get_creatures_with_pos():
+                self.send_message(16, 1, 1, pos)
             self.card_to_draw = 1
             self.a_draw_card()
         self.card_to_mana = 1
         self.your_turn = 1
         self.blocker_list = []
 
-    def win(self):
-        """Do someting when you win"""
-        print("Winner!")
+    def win(self, from_opp=False):
+        """You won the game"""
+        # TODO: victory screen
+        if not from_opp:
+            self.send_message(25)
+        _ = QMessageBox.information(self, "Information", "You won the game! Press ok to return to main menu.",
+                                             QMessageBox.Ok, QMessageBox.NoButton)
+        self.close()
 
-    def lose(self):
-        """Do someting when you lose"""
-        print("Loser!")
-
+    def lose(self, from_opp=False):
+        """You lost the game"""
+        # TODO: loser screen
+        if not from_opp:
+            self.send_message(26)
+        _ = QMessageBox.information(self, "Information", "You lost the game! Press ok to return to main menu.",
+                                             QMessageBox.Ok, QMessageBox.NoButton)
+        self.close()
+        
     def refresh_screen(self):
         """Refresh screen"""
         self.clear_view_scene()
@@ -738,7 +757,6 @@ class Game(QWidget):
                 if effect["notattacking"]["mode"] in ["all", "player"]:
                     can_attack = False
                     break
-        print(f"{self.bfield.get_shield_count(pos)} <= {len(self.selected_shields)}")
         if self.bfield.is_tapped(pos) or self.bfield.get_shield_count(pos) <= len(self.selected_shields):
             can_attack = False
         return can_attack
@@ -818,14 +836,7 @@ class Game(QWidget):
     def creature_attacked(self, opp_pos, your_pos):
         """One of the creature is attacked"""
         # Check if you have blockers available
-        blocker_list = []
-        blocker_available = False
-        for creature_pos, creature_card in self.bfield.get_creatures_with_pos():
-            for effect in creature_card.effects:
-                if "blocker" in effect:
-                    if effect["blocker"]["mode"] == "all":
-                        blocker_available = True
-                        blocker_list.append(creature_pos)
+        blocker_list = self.bfield.get_available_blockers()
 
         pass_blockers = False
         for effect in self.opp_bfield[opp_pos].effects:
@@ -850,7 +861,7 @@ class Game(QWidget):
                     else:
                         pass_blockers = True
 
-        if pass_blockers or not blocker_available:
+        if pass_blockers or len(blocker_list) == 0:
             # Proceed to attack
             self.send_message(112, your_pos)
         else:
@@ -865,14 +876,7 @@ class Game(QWidget):
     def shields_attacked(self, opp_pos, shields_pos):
         """One of the shield is attacked"""
         # Check if you have blockers available
-        blocker_list = []
-        blocker_available = False
-        for creature_pos, creature_card in self.bfield.get_creatures_with_pos():
-            for effect in creature_card.effects:
-                if "blocker" in effect:
-                    if effect["blocker"]["mode"] == "all":
-                        blocker_available = True
-                        blocker_list.append(creature_pos)
+        blocker_list = self.bfield.get_available_blockers()
 
         pass_blockers = False
         for effect in self.opp_bfield[opp_pos].effects:
@@ -897,13 +901,13 @@ class Game(QWidget):
                     else:
                         pass_blockers = True
 
-        if pass_blockers or not blocker_available:
+        if pass_blockers or len(blocker_list) == 0:
             self.send_message(113)
-        
-        self.blocker_list = blocker_list
+        else:
+            self.blocker_list = blocker_list
 
-        self.add_log("You can choose either to block an attack with a blocker or allow it.")
-        self.your_turn = 4 # special turn - block or pass - shield
+            self.add_log("You can choose either to block an attack with a blocker or allow it.")
+            self.your_turn = 4 # special turn - block or pass - shield
 
     def attack_shield(self):
         """Send information to opponent that you destroyed his shields"""
@@ -920,6 +924,42 @@ class Game(QWidget):
         self.shields_to_destroy = idens
         self.your_turn = 5
         self.add_log(f"{idens} shields were destroyed. Decide what to do with it.")
+        
+    def directly_attacked(self, opp_pos):
+        """You are directly attacked by opponent card"""
+        # Check if you have blockers available
+        blocker_list = self.bfield.get_available_blockers()
+
+        pass_blockers = False
+        for effect in self.opp_bfield[opp_pos].effects:
+            if "passblockers" in effect:
+                mode = effect["passblockers"]["mode"]
+                if mode == "all":
+                    pass_blockers = True
+                    break
+                elif mode == "creature":
+                    count = int(effect["passblockers"]["count"])
+                    if len(self.opp_bfield) >= count + 1:
+                        pass_blockers = True
+                        break
+                elif mode == "power":
+                    power = int(effect["passblockers"]["power"])
+                    blocked_by = []
+                    for blocker_pos in blocker_list:
+                        if self.bfield[blocker_pos].power > power:
+                            blocked_by.append(blocker_pos)
+                    if len(blocked_by) > 0:
+                        blocker_list = blocked_by
+                    else:
+                        pass_blockers = True
+
+        if pass_blockers or len(blocker_list) == 0:
+            self.send_message(124)
+        else:
+            self.blocker_list = blocker_list
+
+            self.add_log("You can choose either to block an attack with a blocker or allow it.")
+            self.your_turn = 6 # special turn - block or pass - direct
 
     def summon_effect(self, card):
         """Check and trigger the effects of played card"""
@@ -1809,7 +1849,20 @@ class Game(QWidget):
         self.add_log(f"Passing blocking")
         self.your_turn = 0
         self.blocker_list = []
-        self.send_message(113)  
+        self.send_message(113)
+    
+    def a_direct_attack(self):
+        # Action: direct attack to another player
+        # All checks done on views/game level
+        iden = self.get_selected_card()[0][1]
+        self.add_log(f"Attacking player directly")
+        self.send_message(24, iden)
+
+    def a_direct_block_with_creature(self, set, iden):
+        self.add_log(f"Blocking attack with {iden}")
+        self.your_turn = 0
+        self.blocker_list = []
+        self.send_message(124, iden)
    
     def a_opp_look_at_hand(self, iden):
         self.send_message(11, 0, iden)

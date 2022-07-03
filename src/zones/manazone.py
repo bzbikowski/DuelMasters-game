@@ -29,7 +29,6 @@ class Manazone():
         return sum == int(card.cost) and not self.weights[self.dict_civ[card.civ]] == 0
 
     def lock_used_mana(self):
-        # TODO: lock only used mana if more cards are tapped in mana
         for pos in range(len(self.cards)):
             if self.cards[pos]["tapped"]:
                 self.cards[pos]["locked"] = True

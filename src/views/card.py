@@ -138,6 +138,10 @@ class CardView(QGraphicsPixmapItem):
                 block_action = QAction("Block with this creature")
                 block_action.triggered.connect(lambda: self.m_shield_block_with_creature(self.set, self.iden))
                 menu.addAction(block_action)
+            elif your_turn == 5 and self.iden in self.parent.blocker_list:
+                block_action = QAction("Block with this creature")
+                block_action.triggered.connect(lambda: self.m_direct_block_with_creature(self.set, self.iden))
+                menu.addAction(block_action)
             if not self.parent.bfield.has_summon_sickness(self.iden) and not self.parent.bfield.is_tapped(self.iden):
                 can_attack = True
                 for effect in self.parent.bfield[self.iden].effects:
@@ -248,6 +252,9 @@ class CardView(QGraphicsPixmapItem):
 
     def m_shield_block_with_creature(self, set, iden):
         self.parent.a_shield_block_with_creature(set, iden)
+
+    def m_direct_block_with_creature(self, set, iden):
+        self.parent.a_direct_block_with_creature(set, iden)
    
     def m_opp_look_at_hand(self, iden):
         self.parent.a_opp_look_at_hand(iden)

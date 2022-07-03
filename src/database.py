@@ -1,5 +1,6 @@
 import json
 import os
+import logging
 from PySide6.QtCore import QFile, QIODevice, QStandardPaths
 from PySide6.QtSql import QSqlDatabase, QSqlQuery
 
@@ -21,18 +22,18 @@ class Database(object):
         # db.setPassword(os.getenv("DB_PASS"))
         res_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, "res")
         if not self.db.open():
-            print(self.db.lastError())
+            logging.error(self.db.lastError())
             return
         if not self.check_if_initialized():
             ds_querry = QSqlQuery(self.db)
             ds_ok = ds_querry.exec_("CREATE TABLE dataset(id integer primary key, name text);")
             if not ds_ok:
-                print(ds_querry.lastError().text())
+                logging.error(ds_querry.lastError().text())
                 return
             as_querry = QSqlQuery(self.db)
             as_ok = as_querry.exec_("CREATE TABLE asset(id integer primary key, name text, image blob);")
             if not as_ok:
-                print(as_querry.lastError().text())
+                logging.error(as_querry.lastError().text())
                 return
             
             images_res_path = os.path.join(res_path, "img")
@@ -40,7 +41,7 @@ class Database(object):
             for asset_name, asset_path in assets:
                 file = QFile(asset_path)
                 if not file.open(QIODevice.ReadOnly):
-                    print(f"ERROR: couldn't open file {asset_path}")
+                    logging.error(f"ERROR: couldn't open file {asset_path}")
                     return
                 image_blob = file.readAll()
                 as_querry_init = QSqlQuery(self.db)
@@ -50,7 +51,7 @@ class Database(object):
                 as_querry_init.bindValue(":image", image_blob)
                 as_ok_init = as_querry_init.exec_()
                 if not as_ok_init:
-                    print(f"ASSET INIT SQL ERROR: asset {asset_name}: {as_querry_init.lastError().text()}")
+                    logging.error(f"ASSET INIT SQL ERROR: asset {asset_name}: {as_querry_init.lastError().text()}")
                     return
             cd_querry = QSqlQuery(self.db)
             q = """CREATE TABLE card(id integer primary key, sid int, gid int, name varchar(50), civilization varchar(10), type varchar(10),
@@ -59,7 +60,7 @@ class Database(object):
                                low_res blob, cardset int, foreign key (cardset) references dataset(id));"""
             cd_ok = cd_querry.exec_(q)
             if not cd_ok:
-                print(cd_querry.lastError().text())
+                logging.error(cd_querry.lastError().text())
                 return
             for id, global_id, setname, cardname, civ, card_type, race, cost, power, rarity, col_num, artist, rule_text, flavor_text, raw_effects in Card.parseFile(f"{res_path}//cards.xml"):
                 images = Card.load_images(images_res_path, setname, id)
@@ -90,7 +91,7 @@ class Database(object):
                 querry.bindValue(":set_name", setname)
                 ok = querry.exec_()
                 if not ok:
-                    print(f"CARD INIT SQL ERROR: card {cardname}: {querry.lastError().text()}")
+                    logging.error(f"CARD INIT SQL ERROR: card {cardname}: {querry.lastError().text()}")
                     return
 
     def check_if_initialized(self):
@@ -98,7 +99,7 @@ class Database(object):
         ok = querry.exec_(
             "SELECT count(name) FROM sqlite_master WHERE type='table' AND (name='card' OR name='dataset' OR name='asset');")
         if not ok:
-            print(querry.lastError().text())
+            logging.error(querry.lastError().text())
         querry.next()
         if not querry.value(0) == 0:
             return True
@@ -109,7 +110,7 @@ class Database(object):
         ok = querry.exec_(
             "SELECT count(name) FROM card;")
         if not ok:
-            print(querry.lastError().text())
+            logging.error(querry.lastError().text())
         querry.next()
         return querry.value(0)
 
@@ -119,7 +120,7 @@ class Database(object):
         querry.bindValue(":sid", id)
         ok = querry.exec_()
         if not ok:
-            print(querry.lastError().text())
+            logging.error(querry.lastError().text())
             return
         querry.next()
         data = querry.value(0)
@@ -131,7 +132,7 @@ class Database(object):
         querry.bindValue(":sid", id)
         ok = querry.exec_()
         if not ok:
-            print(querry.lastError().text())
+            logging.error(querry.lastError().text())
             return
         querry.next()
         sid = querry.value(0)
@@ -152,7 +153,7 @@ class Database(object):
         querry.bindValue(":name", name)
         ok = querry.exec_()
         if not ok:
-            print(querry.lastError().text())
+            logging.error(querry.lastError().text())
             return
         querry.next()
         image = querry.value(0)

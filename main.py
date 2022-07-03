@@ -12,8 +12,8 @@ def process_args():
     """
     Parse agruments from command line into the program.
     Args:
-    debug | -d | --debug - enable program in debug mode, all messages, warnings and errors will be logged to text file.
-    help | -h | --help - print to console help message
+    | debug | -d | --debug | enable program in debug mode, all messages, warnings and errors will be logged to text file.
+    | help  | -h | --help  | print to console help message
     """
     parser = argparse.ArgumentParser(prog="Duel Masters Game")
     parser.add_argument("-d", "--debug", action="store", default="True", help="enable/disable debug mode")

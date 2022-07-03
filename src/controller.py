@@ -6,7 +6,6 @@ from src.enums import EffectName
 class Controller:
     """
     Class which decode received msg into actions
-    Todo: change print to logs
     """
     def __init__(self, module):
         """
@@ -29,11 +28,11 @@ class Controller:
         elif command == 1:
             # 1 - you start the game
             self.master.add_log("You start the game! Your turn.")
-            self.master.new_round()
+            self.master.new_round(False)
         elif command == 2:
             # 2 - start of your turn
             self.master.add_log("Your turn.")
-            self.master.new_round(True)
+            self.master.new_round()
         elif command == 3:
             # 3 - opponent draws a card
             self.master.opp_hand.add_placeholder()
@@ -89,6 +88,7 @@ class Controller:
                 elif c_space == 1:
                     self.master.a_move_to_graveyard("yu_bf", c_pos)
                 elif c_space == 2:
+                    card = self.master.hand[c_pos]
                     self.master.a_move_to_graveyard("yu_hd", c_pos)
                     self.master.send_message(15, card.id) # Sent back which card was discarded
             elif c_player == 1:
@@ -124,7 +124,7 @@ class Controller:
         elif command == 8:
             # 8,x - opponent adds card from his hand to y shield (face down)
             c_pos = int(msg[:8], base=16)
-            self.master.opp_shields.add_placeholder()
+            self.master.opp_shields.add_placeholder(c_pos)
             self.master.opp_hand.remove_card(0)
             self.master.add_log(f"Opponent added card from his hand to shields")
         elif command == 9:
@@ -151,7 +151,6 @@ class Controller:
             elif c_space == 1:
                 card = self.master.shields[c_pos]
                 self.master.add_log(f"Opponent is peeking your {c_pos} shield")
-            # TODO: implement 111 command - return id of the card back to opponent
             self.master.send_message(111, card.id)
         elif command == 111:
             # 111,x - 
@@ -335,3 +334,24 @@ class Controller:
                 # to the player
                 card = self.master.bfield[c_pos]
                 self.master.add_log(f"Opponent gave effect {effect_name} to your card {card.name}")
+        elif command == 24:
+            # 24,x - opponent attacks you directly with x card
+            # x - position of creature on the board
+            creature_pos = int(msg[:8], base=16)
+            self.master.add_log(f"You are being directly attacked by {self.master.opp_bfield[creature_pos].name}.")
+            self.master.directly_attacked(creature_pos)
+        elif command == 124:
+            # 124,x - answer from the opponent, that either he blocks with blocker or shields will be destroyed
+            if msg == "":
+                # Opponent didn't block, you win
+                self.master.win()
+            else:
+                # Oppponent blocked with creature
+                c_pos = int(msg[:8], base=16)
+                self.master.attack_creature(c_pos)
+        elif command == 25:
+            # 25 - opponent won the game
+            self.master.lose(True)
+        elif command == 26:
+            # 26 - opponent lost the game
+            self.master.win(True)

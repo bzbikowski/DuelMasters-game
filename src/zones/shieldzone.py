@@ -1,3 +1,5 @@
+import logging
+
 from src.cards import Card
 
 
@@ -5,32 +7,45 @@ class Shieldzone():
     def __init__(self, opponent=False, parent=None):
         self.shields = {0: {}, 1: {}, 2: {}, 3: {}, 4: {}}
 
+        self.log = logging.getLogger("shieldzone")
+
     def add_shield(self, card):
         index = 0
-        while index <= 40:
+        while index <= 40: # safety measures
             if not self.is_shield_exists(index):
                 self.shields[index] = {}
                 self.shields[index]["card"] = card
                 self.shields[index]["visible"] = False
                 return index
             index += 1
-        print("ERROR: Unexpected add_shield incpetion")
+        self.log.error("ERROR: Unexpected add_shield incpetion")
         exit(1)
 
-    def add_placeholder(self):
-        index = 0
-        while index <= 40:
-            if not self.is_shield_exists(index):
-                self.shields[index] = {}
-                self.shields[index]["card"] = Card(set_id=-1)
-                self.shields[index]["visible"] = False
-                return index
-            index += 1
-        print("ERROR: Unexpected add_shield incpetion")
-        exit(1)
+    def add_placeholder(self, pos=None): # TODO: test it
+        if pos is not None:
+                self.shields[pos] = {}
+                self.shields[pos]["card"] = Card(set_id=-1)
+                self.shields[pos]["visible"] = False
+        else:
+            index = 0
+            while index <= 40: # safety measures
+                if not self.is_shield_exists(index):
+                    self.shields[index] = {}
+                    self.shields[index]["card"] = Card(set_id=-1)
+                    self.shields[index]["visible"] = False
+                    return index
+                index += 1
+            self.log.error("ERROR: Unexpected add_shield incpetion")
+            exit(1)
+
+    def get_count(self):
+        count = 0
+        for index in range(len(self.shields)):
+            if self.is_shield_exists(index):
+                count += 1
+        return count
 
     def remove_shield(self, pos):
-        # TODO: to keep proper layout, min. 5 shields (destoyed or not) are required
         card = self.shields[pos]["card"]
         self.shields[pos] = {}
         return card
@@ -54,7 +69,7 @@ class Shieldzone():
         try:
             return self.shields[pos]["visible"]
         except KeyError as err:
-            print(f"ERROR: {err}")
+            self.log.error(f"ERROR: {err}")
             exit(1)
 
     def set_shield_visible(self, pos):

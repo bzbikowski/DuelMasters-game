@@ -12,6 +12,7 @@ class CommonWindow(QWidget):
     View to check on graveyard cards
     TODO: center scene in view
     TODO: add additional symbols on card (e.g. when mana, render lock, tapping etc.)
+    TODO: allow customisation (window name)
     """
     card_choosed = Signal()
     def __init__(self, settings, parent):
@@ -99,6 +100,6 @@ class CommonWindow(QWidget):
 
     @Slot()
     def return_selected_items(self):
-        # TODO: validate if can be closed
+        # TODO: validate if can be closed, some effect may or must have cards choosen
         self.card_choosed.emit()
         self.close()

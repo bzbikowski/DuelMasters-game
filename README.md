@@ -19,7 +19,7 @@ Run ```pip install -r requirements.txt``` to install all required libraries in y
 * ~~refactor all views~~
 * refactor tcp error system
 * complete whole documentation for project
-* make all effects for all cards
+* ~~make all effects for all cards~~
 
 * General
   * popup help messages when hovering over elements

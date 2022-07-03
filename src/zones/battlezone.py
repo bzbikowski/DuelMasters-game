@@ -50,7 +50,7 @@ class Battlezone():
         self._cards[pos] = {}
         return card
 
-    def reset_shield_count(self):
+    def reset_board(self):
         for pos in self._cards.keys():
             if self.is_taken(pos):
                 self._cards[pos]["tapped"] = False
@@ -99,6 +99,15 @@ class Battlezone():
                     delete_list.append(effect_pos)
             for delete_pos in sorted(delete_list, reverse=True): # From the latest effect to newest
                 self._cards[pos]['card'].effects.pop(delete_pos)
+
+    def get_available_blockers(self):
+        blocker_list = []
+        for creature_pos, creature_card in self.get_creatures_with_pos():
+            for effect in creature_card.effects:
+                if "blocker" in effect:
+                    if effect["blocker"]["mode"] == "all":
+                        blocker_list.append(creature_pos)
+        return blocker_list
 
     def __getitem__(self, index):
         return self._cards[index]["card"]

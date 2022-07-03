@@ -1,4 +1,5 @@
 import json
+import logging
 import xml.dom.minidom as minidom
 
 from PySide6.QtCore import QFile, QIODevice
@@ -56,7 +57,7 @@ class Card:
             path = f"{folder_path}//{set_name}//{str(set_id)}//{size}.jpg"
             file = QFile(path)
             if not file.open(QIODevice.ReadOnly):
-                print(f"ERROR: couldn't open file {path}")
+                logging.error(f"ERROR: couldn't open file {path}")
                 return
             images[size] = file.readAll()
         return images

@@ -40,10 +40,14 @@ class GameView(QGraphicsScene):
                     accept_action = QAction("Trigger effect")
                     accept_action.triggered.connect(self.m_accept_cards)
                     menu.addAction(accept_action)
-                if select_mode == 21 and True: # TODO: check if number of shield selected matches shieldbreaker ability
+                if select_mode == 21 and self.parent.bfield.get_shield_count(self.parent.get_selected_card()[0][1]) == len(self.parent.get_selected_shields()): # TODO: test it
                     shield_action = QAction("Confirm shields attack")
                     shield_action.triggered.connect(self.m_shield_attack)
                     menu.addAction(shield_action)
+                if select_mode == 2 and self.parent.opp_shields.get_count() == 0: # TODO: check if card can attack players
+                    direct_action = QAction("Attack player directly")
+                    direct_action.triggered.connect(self.m_direct_attack)
+                    menu.addAction(direct_action)
                 if your_turn == 3:
                     pass_action = QAction("Do not block the attack")
                     pass_action.triggered.connect(self.m_pass_attack)
@@ -51,6 +55,10 @@ class GameView(QGraphicsScene):
                 elif your_turn == 4:
                     pass_action = QAction("Do not block the attack")
                     pass_action.triggered.connect(self.m_shield_pass_attack)
+                    menu.addAction(pass_action)
+                elif your_turn == 5:
+                    pass_action = QAction("Do not block the attack")
+                    pass_action.triggered.connect(self.m_direct_pass_attack)
                     menu.addAction(pass_action)
                 end_action = QAction("End turn")
                 end_action.triggered.connect(self.m_end_turn)
@@ -74,11 +82,17 @@ class GameView(QGraphicsScene):
     def m_shield_attack(self):
         self.parent.a_shield_attack()
 
+    def m_direct_attack(self):
+        self.parent.a_direct_attack()
+
     def m_pass_attack(self):
         self.parent.a_pass_attack()
 
     def m_shield_pass_attack(self): 
         self.parent.a_shield_pass_attack()
+
+    def m_direct_pass_attack(self):
+        self.parent.lose()
 
     def m_debug_info(self):
         self.parent.a_debug_info()
