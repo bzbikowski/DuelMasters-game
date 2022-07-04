@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class SetName(Enum):
     yu_sh = 1
     op_sh = 2

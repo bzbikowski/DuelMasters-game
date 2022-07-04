@@ -1,7 +1,7 @@
 import logging
 import random
 
-from PySide6.QtCore import Qt, QTimer, QThread, Slot, Signal
+from PySide6.QtCore import Qt, QTimer, QThread, Slot, Signal, QRectF
 from PySide6.QtGui import QBrush, QColor, QPen, QPixmap, QTransform, QImage, QFont
 from PySide6.QtWidgets import QWidget, QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, \
     QTextEdit, QLabel, QPushButton, QGraphicsRectItem, QGraphicsTextItem, QMessageBox
@@ -40,12 +40,24 @@ class Game(QWidget):
         self.started = False
         self.card_to_draw = 0
         self.card_to_mana = 0
-        # TODO: change to enum
-        self.your_turn = 0 # 0 - not your turn, 1 - your turn, 2 - special turn, 3 - block or pass creature, 4 - block or pass shield, 5 - shield destroyed
+
+        ## Your turn info:
+        # 0 - not your turn
+        # 1 - your turn
+        # 2 - special turn
+        # 3 - block or pass creature
+        # 4 - block or pass shield
+        # 5 - shield destroyed
+        self.your_turn = 0
         self.selected_card = None
         self.focus_request = False
-        # TODO: change to enum
-        self.select_mode = 0  # 0 - no select mode, 1 - effects, 2 - creature, 21 - shields attack
+
+        ## Select mode info:
+        # 0 - no select mode
+        # 1 - effects
+        # 2 - creature
+        # 21 - shields attack
+        self.select_mode = 0
         self.selected_card_choose = 0
         self.selected_card_targets = []
         self.turn_count = 0
@@ -304,38 +316,30 @@ class Game(QWidget):
         self.add_mana_to_scene("yu_mn")
         # opponent's cards in mana zone
         self.add_mana_to_scene("op_mn")
-        # change max number of logs to display
-        size_of_panel = len(self.log_panel)
-        if self.change_button_state:
-            self.extend_logs_button.setText("+")
-            if size_of_panel < 3:
-                self.extend_logs_proxy.setPos(20, 728 - size_of_panel * 60)
-            else:
-                self.extend_logs_proxy.setPos(20, 540)
-        else:
-            self.extend_logs_button.setText("-")
-            self.extend_logs_proxy.setPos(20, 20)
         # display logs
+        size_of_panel = len(self.log_panel)
         if size_of_panel > 0:
-            if self.change_button_state:
-                lenght = min(len(self.log_panel), 3)
-            else:
-                lenght = min(len(self.log_panel), 10)
             x_pos = 20
-            y_pos = 698
-            y_height = 50
+            y_pos = 748
             x_width = 296
-            for i in range(lenght):
+            for i in range(size_of_panel):
                 log = self.log_panel[i]
-                frame = QGraphicsRectItem(x_pos, y_pos, x_width, y_height)
-                frame.setPen(QPen(QColor(255, 0, 0)))
-                self.preview_scene.addItem(frame)
-
                 text = QGraphicsTextItem(log)
-                text.setPos(x_pos + 10, y_pos + 5)
-                text.setTextWidth(x_width-20)
+                text.setTextWidth(x_width - 10)
+
+                text_height = text.boundingRect().height()
+                y_pos -= text_height + 10
+
+                text.setPos(x_pos + 5, y_pos + 3)
+
+                frame = QGraphicsRectItem(x_pos, y_pos, x_width, text_height)
+                frame.setBrush(QBrush(QColor(0, 0, 0, 100)))
+
+                self.preview_scene.addItem(frame)
                 self.preview_scene.addItem(text)
-                y_pos -= 60
+
+                if y_pos < 0: # TODO: make it scrollable and remove this block
+                    break
 
     def get_pixmap_card(self, card_id, res='low_res'):
         """Get pixmap of card from the database"""
@@ -373,9 +377,15 @@ class Game(QWidget):
         """
         Draw a preview of the clicked card on preview side of the screen
         """
-        pixmap = self.get_pixmap_card(card_id, 'medium_res')
+        # add black background window
+        frame = QGraphicsRectItem(0, 0, 336, 453)
+        frame.setBrush(QBrush(QColor(0, 0, 0)))
+        self.preview_scene.addItem(frame)
+
+        # add preview of the card
+        pixmap = self.get_pixmap_card(card_id, 'medium_res') 
         card_prev = QGraphicsPixmapItem(pixmap)
-        card_prev.setPos(0, 0)
+        card_prev.setPos(8, 0)
         self.preview_scene.addItem(card_prev)
         
     def add_hand_to_scene(self, type):

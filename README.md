@@ -48,5 +48,8 @@ Card images were taken from:
 * http://www.ccgdb.com/duelmasters/
 
 ### Usefull commands
-export PATH="$PATH:/c/Users/zbiku/AppData/Local/Packages/PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0/LocalCache/local-packages/Python310/Scripts"
+
+#### Find on Windows PySide Ui Converter 
+path_to_file=$(find /c/Users/${USERNAME}/AppData/Local/Packages/ -name pyside6-uic.exe)
+export PATH="$PATH:$(dirname $path_to_file)"
 pyside6-uic -o src/ui/ui_manager.py ui/manager.ui

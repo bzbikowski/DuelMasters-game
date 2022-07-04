@@ -1,20 +1,17 @@
-from collections import deque
-
-
 class SideLogger:
     """
-    Class for displaying, containing and modifying logs messages, which are displayed in game screen on the right side.
+    Class for containing and modifying logs messages, which are displayed in game screen on the right side.
     """
     def __init__(self):
         # TODO: store all logs, make it scrollable when expanded
-        self.logs = deque(maxlen=10)
+        self._logs = []
 
     def __len__(self):
         # return total count of logs
-        return len(self.logs)
+        return len(self._logs)
 
     def append(self, msg):
-        self.logs.appendleft(msg)
+        self._logs.insert(0, msg)
 
     def __getitem__(self, item):
-        return self.logs[item]
+        return self._logs[item]
