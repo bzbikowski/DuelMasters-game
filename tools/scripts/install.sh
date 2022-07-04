@@ -13,7 +13,8 @@ source /home/vagrant/.venv/bin/activate
 python3 -m pip install -r /home/vagrant/game/requirements.txt
 
 # Setup folder for local game files
-mkdir -p /home/vagrant/.local/share/Duel_Masters_Game
+mkdir -p /home/vagrant/.local/share/Duel_Masters_Game/logs
+ln -s /home/vagrant/.local/share/Duel_Masters_Game/logs /home/vagrant/logs
 
 chown -R vagrant:vagrant /home/vagrant
 

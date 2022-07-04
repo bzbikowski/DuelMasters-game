@@ -262,12 +262,6 @@ class Game(QWidget):
         self.lock_pixmap = QPixmap()
         self.lock_pixmap.loadFromData(self.database.get_asset("lock"))
 
-        self.extend_logs_button = QPushButton()
-        self.extend_logs_button.setFixedSize(20, 20)
-        self.extend_logs_button.clicked.connect(self.change_logs_size)
-        self.extend_logs_proxy = self.preview_scene.addWidget(self.extend_logs_button)
-
-        self.change_button_state = True
         self.spell_played = False
         self.selected_card = []
         self.selected_shields = []
@@ -354,15 +348,9 @@ class Game(QWidget):
         Display info and highlight a card when it is clicked on the board
         """
         self.refresh_screen()
-        if self.change_button_state:
-            if c_id is not None:
-                self.draw_preview_card(c_id)
+        if c_id is not None:
+            self.draw_preview_card(c_id)
         self.highlight_card(x, x + 85, y, y + 115, QColor(255, 0, 0))
-
-    def change_logs_size(self):
-        """Change size of log panel on right size"""
-        self.change_button_state = not self.change_button_state
-        self.refresh_screen()
 
     def highlight_card(self, x1, x2, y1, y2, color):
         """

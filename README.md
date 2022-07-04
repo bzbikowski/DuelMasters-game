@@ -13,16 +13,13 @@ You also need to have installed PySide6 on your Python interpreter.
 Run ```pip install -r requirements.txt``` to install all required libraries in your python interpeter.
 
 ### Todo things:
-* add information about the game
-* ~~complete graveyard feature~~
-* complete logs system
-* ~~refactor all views~~
-* refactor tcp error system
-* complete whole documentation for project
-* ~~make all effects for all cards~~
 
 * General
+  * add information about the game
   * popup help messages when hovering over elements
+  * complete logs system
+  * refactor tcp error system
+  * complete whole documentation for project
 * Main Menu
   * add loading database menu during first start
 * Game
