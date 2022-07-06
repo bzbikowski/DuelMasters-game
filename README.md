@@ -52,6 +52,9 @@ Card images were taken from:
 ### Usefull commands
 
 #### Find on Windows PySide Ui Converter (bash)
+
+```
 path_to_file=$(find /c/Users/${USERNAME}/AppData/Local/Packages/ -name pyside6-uic.exe)
 export PATH="$PATH:$(dirname $path_to_file)"
 pyside6-uic -o src/ui/ui_manager.py ui/manager.ui
+```
