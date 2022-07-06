@@ -27,8 +27,10 @@ As the client, enter IP address of the server over a reachable interface and cor
   * complete logs system
   * refactor tcp error system
   * complete whole documentation for project
+* Resources
+  * should be move outside repo with the code e.g. to S3
 * Main Menu
-  * add loading database menu during first start
+  * add loading database menu during first start (WIP)
 * Game
   * implement for debug mode separate tool window, which could run commands without restrictions
 * Manager
