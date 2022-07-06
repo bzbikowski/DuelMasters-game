@@ -3,15 +3,20 @@
 ################################################################################
 ## Form generated from reading UI file 'server.ui'
 ##
-## Created by: Qt User Interface Compiler version 5.15.3
+## Created by: Qt User Interface Compiler version 6.2.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide6.QtCore import *
-from PySide6.QtGui import *
-from PySide6.QtWidgets import *
-
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
+    QFont, QFontDatabase, QGradient, QIcon,
+    QImage, QKeySequence, QLinearGradient, QPainter,
+    QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtWidgets import (QApplication, QDialog, QLabel, QPushButton,
+    QSizePolicy, QVBoxLayout, QWidget)
 
 class Ui_ServerDialog(object):
     def setupUi(self, ServerDialog):
@@ -24,13 +29,6 @@ class Ui_ServerDialog(object):
         self.verticalLayout = QVBoxLayout(self.verticalLayoutWidget)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
-        self.ip_address_label = QLabel(self.verticalLayoutWidget)
-        self.ip_address_label.setObjectName(u"ip_address_label")
-        self.ip_address_label.setLayoutDirection(Qt.LeftToRight)
-        self.ip_address_label.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
-
-        self.verticalLayout.addWidget(self.ip_address_label)
-
         self.port_label = QLabel(self.verticalLayoutWidget)
         self.port_label.setObjectName(u"port_label")
 
@@ -55,7 +53,6 @@ class Ui_ServerDialog(object):
 
     def retranslateUi(self, ServerDialog):
         ServerDialog.setWindowTitle(QCoreApplication.translate("ServerDialog", u"Waiting for connection", None))
-        self.ip_address_label.setText(QCoreApplication.translate("ServerDialog", u"TextLabel", None))
         self.port_label.setText(QCoreApplication.translate("ServerDialog", u"TextLabel", None))
         self.status_label.setText(QCoreApplication.translate("ServerDialog", u"TextLabel", None))
         self.back_button.setText(QCoreApplication.translate("ServerDialog", u"Return to menu", None))

@@ -27,5 +27,5 @@ if __name__ == "__main__":
     app = QApplication(qt_args)
     app.setApplicationName("Duel_Masters_Game")
     window = Window(parsed_args)
-    window.show()
+    # window.show()
     sys.exit(app.exec())

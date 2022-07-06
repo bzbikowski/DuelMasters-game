@@ -28,6 +28,7 @@ class Controller:
         elif command == 1:
             # 1 - you start the game
             self.master.add_log("You start the game! Your turn.")
+            self.master.first = True
             self.master.new_round(False)
         elif command == 2:
             # 2 - start of your turn
@@ -355,3 +356,7 @@ class Controller:
         elif command == 26:
             # 26 - opponent lost the game
             self.master.win(True)
+        elif command == 27:
+            # 27 - start of the next turn
+            self.master.turn_count += 1
+            self.master.add_turn_info()

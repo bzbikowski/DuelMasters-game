@@ -38,6 +38,7 @@ class Game(QWidget):
         self.locked = False
         self.isServer = False
         self.started = False
+        self.first = False  # who has the first move in the game
         self.card_to_draw = 0
         self.card_to_mana = 0
 
@@ -60,7 +61,7 @@ class Game(QWidget):
         self.select_mode = 0
         self.selected_card_choose = 0
         self.selected_card_targets = []
-        self.turn_count = 0
+        self.turn_count = 1 # start from 1
         self.spell_played = None
 
         # Setup scenes
@@ -178,16 +179,10 @@ class Game(QWidget):
         self.serverDialog = ServerDialog()
         self.serverDialog.closing.connect(self.close)
 
-        ip_local, ip_port = self.server.find_ip()
-        if ip_local == "0.0.0.0":
-            _ = QMessageBox.information(self, "Information", "Couldn't find a valid ip address."
-                                                             " Please check your connection.",
-                                        QMessageBox.Ok, QMessageBox.NoButton)
-            return
-        else:
-            self.serverDialog.ui.ip_address_label.setText("Your address is {}".format(ip_local))
-            self.serverDialog.ui.port_label.setText("You are listining on port {}".format(ip_port))
-            self.serverDialog.ui.status_label.setText("Waiting for connection...")
+        ip_port = self.server.port
+
+        self.serverDialog.ui.port_label.setText("You are listining on port {}".format(ip_port))
+        self.serverDialog.ui.status_label.setText("Waiting for connection...")
 
         self.server.run()
         self.started = True
@@ -204,15 +199,17 @@ class Game(QWidget):
         self.show()
         self.log.info("Found opponent. Game is being started.")
         self.init_game()
+        self.add_turn_info(False) # draw_screen is called after, so do not refresh
         if self.mode == 1:
             if random.random() < 0.5:
                 self.send_message(0)
-                self.add_log("You start the game! Your turn.", False)
+                self.add_log("You start the game! Your turn.", False) # draw_screen is called after, so do not refresh
+                self.first = True
                 self.new_round(False)
                 self.log.info(f"Turn {self.turn_count}: Host turn.")
             else:
                 self.send_message(1)
-                self.add_log("Opponent starts the game.", False)
+                self.add_log("Opponent starts the game.", False) # draw_screen is called after, so do not refresh
                 self.log.info(f"Turn {self.turn_count}: Opponent turn.")
         self.draw_screen()
 
@@ -282,6 +279,24 @@ class Game(QWidget):
         """Change state"""
         self.locked = False
         
+    def refresh_screen(self):
+        """Refresh screen"""
+        self.clear_view_scene()
+        self.clear_preview_scene()
+        self.draw_screen()
+
+    def clear_view_scene(self):
+        """Remove all items from view"""
+        items = self.view_scene.items()
+        for i in range(len(items)-1):
+            self.view_scene.removeItem(items[i])
+
+    def clear_preview_scene(self):
+        """Remove all items from preview"""
+        items = self.preview_scene.items()
+        for i in range(len(items)-2):
+            self.preview_scene.removeItem(items[i])
+
     def draw_screen(self):
         """
         Draw all elements into the screen.
@@ -311,29 +326,29 @@ class Game(QWidget):
         # opponent's cards in mana zone
         self.add_mana_to_scene("op_mn")
         # display logs
-        size_of_panel = len(self.log_panel)
-        if size_of_panel > 0:
-            x_pos = 20
-            y_pos = 748
-            x_width = 296
-            for i in range(size_of_panel):
-                log = self.log_panel[i]
-                text = QGraphicsTextItem(log)
-                text.setTextWidth(x_width - 10)
+        x_pos = 20
+        y_pos = 748
+        x_width = 296
+        for i in range(len(self.log_panel)):
+            log, id = self.log_panel[i]
 
-                text_height = text.boundingRect().height()
-                y_pos -= text_height + 10
+            text = QGraphicsTextItem(log)
+            text.setTextWidth(x_width - 10)
+            text_height = text.boundingRect().height()
+            y_pos -= text_height + 10
 
-                text.setPos(x_pos + 5, y_pos + 3)
-
-                frame = QGraphicsRectItem(x_pos, y_pos, x_width, text_height)
+            text.setPos(x_pos + 5, y_pos + 3)
+            frame = QGraphicsRectItem(x_pos, y_pos, x_width, text_height)
+            if id == 0: # Log message
                 frame.setBrush(QBrush(QColor(0, 0, 0, 100)))
+            elif id == 1: # Turn info
+                frame.setBrush(QBrush(QColor(127, 127, 127, 100)))
 
-                self.preview_scene.addItem(frame)
-                self.preview_scene.addItem(text)
+            self.preview_scene.addItem(frame)
+            self.preview_scene.addItem(text)
 
-                if y_pos < 0: # TODO: make it scrollable and remove this block
-                    break
+            if y_pos < 0: # TODO: make it scrollable and remove this block
+                break
 
     def get_pixmap_card(self, card_id, res='low_res'):
         """Get pixmap of card from the database"""
@@ -663,17 +678,17 @@ class Game(QWidget):
 
     def message_screen_request(self, bg_color, frame_color, text):
         """Message box for displaying important information. After one click it disappears."""
-        # TODO: Debug why the box is not appearing
-        bg = QGraphicsRectItem(100, 100, 200, 200)
+        # TODO: currently this box disappears after refresh_screen function, find better solution
+        bg = QGraphicsRectItem(100, 100, 200, 200) # TODO: center it
         bg.setBrush(QBrush(bg_color))
         bg.setZValue(1.0)
         self.view_scene.addItem(bg)
-        frame = QGraphicsRectItem(99, 99, 202, 202)
+        frame = QGraphicsRectItem(99, 99, 202, 202) # TODO: center it
         frame.setPen(QPen(frame_color))
         frame.setZValue(2.0)
         self.view_scene.addItem(frame)
         text = QGraphicsTextItem(text)
-        text.setPos(110, 110)
+        text.setPos(110, 110) # TODO: center it
         text.setZValue(3.0)
         self.view_scene.addItem(text)
         self.focus_request = True
@@ -682,6 +697,12 @@ class Game(QWidget):
     def add_log(self, msg, refresh=True):
         """Add log to log panel"""
         self.log_panel.append(msg)
+        if refresh:
+            self.refresh_screen()
+
+    def add_turn_info(self, refresh=True):
+        """Add log to log panel"""
+        self.log_panel.print_turn(self.turn_count)
         if refresh:
             self.refresh_screen()
 
@@ -698,6 +719,10 @@ class Game(QWidget):
         1 -> every other round - draw a card
         """
         if not_first:
+            if self.first: # your turns are the start for synced turns
+                self.turn_count += 1
+                self.send_message(27)
+                self.add_turn_info()
             self.mana.unlock_and_untap()
             self.bfield.reset_board()
             for pos, _ in self.bfield.get_creatures_with_pos():
@@ -726,24 +751,6 @@ class Game(QWidget):
                                              QMessageBox.Ok, QMessageBox.NoButton)
         self.close()
         
-    def refresh_screen(self):
-        """Refresh screen"""
-        self.clear_view_scene()
-        self.clear_preview_scene()
-        self.draw_screen()
-
-    def clear_view_scene(self):
-        """Remove all items from view"""
-        items = self.view_scene.items()
-        for i in range(len(items)-1):
-            self.view_scene.removeItem(items[i])
-
-    def clear_preview_scene(self):
-        """Remove all items from preview"""
-        items = self.preview_scene.items()
-        for i in range(len(items)-2):
-            self.preview_scene.removeItem(items[i])
-
     def can_attack_shield(self):
         """Check if selected creature can attack shield"""
         if len(self.selected_card) == 0:

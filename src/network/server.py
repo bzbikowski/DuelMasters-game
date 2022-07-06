@@ -21,22 +21,9 @@ class Server(QTcpServer):
         self.newConnection.connect(self.conn_handle)
         self.acceptError.connect(self.server_error_handle)
         self.connected = False
-        self.wifi_addr = "0.0.0.0"
-        self.port = 10023
+        self.port = 10023 # TODO: make it configurable?
 
         self.log = logging.getLogger("client")
-
-    def find_ip(self):
-        wifi_pat = r"^192\.168\.[0-2]?[0-9]?[0-9]\.[0-2]?[0-9]?[0-9]$" # TODO: 192.168.* used only for debbuging
-        inet = QNetworkInterface().interfaceFromName("eth0")
-        addresses = inet.allAddresses()
-        self.log.debug(f"Found interfaces: {str([addr.toString() for addr in addresses])}")
-        for addr in addresses:
-            addr_str = addr.toString()
-            if re.match(wifi_pat, addr_str):
-                self.wifi_addr = addr_str
-        self.log.info(f"Your address and port: {self.wifi_addr}:{self.port}")
-        return self.wifi_addr, self.port
 
     def conn_handle(self):
         self.log.info("Found new connection")
@@ -54,7 +41,7 @@ class Server(QTcpServer):
         self.connectionOk.emit()
 
     def server_error_handle(self, error):
-        self.log.debug(f"Server error: {self.errorString()}")
+        self.log.error(f"Server error: {self.errorString()}")
         self.close_connection()
 
     def socket_error_handle(self, error):
@@ -79,8 +66,8 @@ class Server(QTcpServer):
         self.close()
 
     def run(self):
-        self.log.info(f"Looking for connection on interface {self.wifi_addr} and port {self.port}")
-        self.listen(QHostAddress(self.wifi_addr), self.port)
+        self.log.info(f"Looking for connection on port {self.port}")
+        self.listen(QHostAddress.AnyIPv4, self.port)
 
     def send_data(self, data):
         msg = ""

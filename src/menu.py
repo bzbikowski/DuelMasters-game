@@ -10,7 +10,7 @@ from src.database import Database
 from src.game import Game
 from src.manager import DeckManager
 from src.ui.ui_menu import Ui_Menu
-from src.dialogs import ConnectionDialog
+from src.dialogs import ConnectionDialog, LoadingDialog
 
 
 class MainMenu(QWidget):
@@ -38,7 +38,24 @@ class MainMenu(QWidget):
 
         self.setup_logging()
         self.log = logging.getLogger("menu")
+
+        self.show_loading_screen()
+        self.load_database()
+
+    def show_loading_screen(self):
+        # FIXME: currently it's just a black screen for some reason
+        self.loading_screen = LoadingDialog(self)
+        self.loading_screen.show()
+
+    def load_database(self):
+        self.loading_screen.set_status("Loading database", 50)
         self.database = Database()
+        self.database.finished_inicialization.connect(self.close_loading_screen)
+        self.database.initialize_database()
+
+    def close_loading_screen(self):
+        self.loading_screen.close()
+        self.show_window()
 
     def setup_logging(self):
         """
@@ -51,7 +68,11 @@ class MainMenu(QWidget):
         time = datetime.datetime.now()
         filename = '{0}/{1}-{2}-{3}_{4}-{5}-{6}.log'.format(path_to_logs_folder, time.year, time.month, time.day, time.hour, time.minute, time.second)
         format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-        logging.basicConfig(filename=filename, format=format, level=logging.DEBUG)
+        if self.is_debug_mode:
+            log_level = logging.DEBUG
+        else:
+            log_level = logging.INFO
+        logging.basicConfig(filename=filename, format=format, level=log_level)
         
     def new_game(self):
         """
@@ -62,7 +83,6 @@ class MainMenu(QWidget):
             self.log.info("Started connection menu")
             self.connection = ConnectionDialog(self)
             mode = self.connection.exec_()
-            # TODO: change to enum
             if mode == 0:
                 self.show_window()
             elif mode in [1, 2]:

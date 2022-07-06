@@ -1,25 +1,27 @@
 import json
 import os
 import logging
-from PySide6.QtCore import QFile, QIODevice, QStandardPaths
+from PySide6.QtCore import QObject, QFile, QIODevice, QStandardPaths, QThread, Signal
 from PySide6.QtSql import QSqlDatabase, QSqlQuery
 
 
 from src.cards import Card
 
 
-
-class Database(object):
+class Database(QObject):
+    finished_inicialization = Signal(None)
     def __init__(self):
-        # TODO: cleanup class and add doc
+        super(Database, self).__init__()
         # TODO: proper gid and sid logic
         self.db = QSqlDatabase.addDatabase("QSQLITE")
+
         # set db location to $HOME/.local/share/
         if not os.path.exists(QStandardPaths.writableLocation(QStandardPaths.AppLocalDataLocation)):
             os.mkdir(QStandardPaths.writableLocation(QStandardPaths.AppLocalDataLocation))
         self.db.setDatabaseName(os.path.join(QStandardPaths.writableLocation(QStandardPaths.AppLocalDataLocation), "dataset.db"))
-        # db.setUserName(os.getenv("DB_LOG"))
-        # db.setPassword(os.getenv("DB_PASS"))
+
+    def initialize_database(self):
+        # TODO: make this function not blocking
         res_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, "res")
         if not self.db.open():
             logging.error(self.db.lastError())
@@ -93,6 +95,7 @@ class Database(object):
                 if not ok:
                     logging.error(f"CARD INIT SQL ERROR: card {cardname}: {querry.lastError().text()}")
                     return
+        self.finished_inicialization.emit()
 
     def check_if_initialized(self):
         querry = QSqlQuery(self.db)
@@ -105,7 +108,7 @@ class Database(object):
             return True
         return False
 
-    def count(self): # TODO: is it needed?
+    def count(self):
         querry = QSqlQuery(self.db)
         ok = querry.exec_(
             "SELECT count(name) FROM card;")

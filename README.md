@@ -4,13 +4,20 @@ My attempt to create game based on Duel Masters series. Game is written with Pyt
 
 ## Project still under development
 
-Debug mode (you don't need any internet connection to test application) is disabled by default.
-To turn it on, pass an argument "--debug=True" when launching the "main.py" file:
+To run the game:
 
-```python main.py --debug=True```
+```python main.py```
 
 You also need to have installed PySide6 on your Python interpreter.
 Run ```pip install -r requirements.txt``` to install all required libraries in your python interpeter.
+
+You can use Vagrantfile in tools/ folder to create two VM instances to test the game.
+
+## How to play
+
+First, create a deck with 40 cards or load it from pre-created decks/ folder.
+Second, one player must host the game by being the server, second player must join the game as the client.
+As the client, enter IP address of the server over a reachable interface and correct port.
 
 ### Todo things:
 
@@ -31,12 +38,8 @@ Run ```pip install -r requirements.txt``` to install all required libraries in y
 * In far future
   * change architecture to client <-> external server <-> client from client <-> local server
   * creating your own avatar and cardback
-
-### Spreedsheets:
-
-Effects implemented: https://1drv.ms/x/s!AodrLtV7i89ggaI72uj1eJ-JBaoMRg?e=8ADWqT
-
-Message system: https://1drv.ms/x/s!AodrLtV7i89ggaIIfuUt6f0RaV8HGg?e=zqtAZV
+* In even further future
+  * add AI for playing with computer
 
 ### Information
 
@@ -46,7 +49,7 @@ Card images were taken from:
 
 ### Usefull commands
 
-#### Find on Windows PySide Ui Converter 
+#### Find on Windows PySide Ui Converter (bash)
 path_to_file=$(find /c/Users/${USERNAME}/AppData/Local/Packages/ -name pyside6-uic.exe)
 export PATH="$PATH:$(dirname $path_to_file)"
 pyside6-uic -o src/ui/ui_manager.py ui/manager.ui
